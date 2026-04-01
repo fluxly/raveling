@@ -1,26 +1,27 @@
 {
-  "dependencies": {
-    "@automerge/automerge": "^2.2.8",
-    "blockly": "^12.3.1",
-    "copy-webpack-plugin": "^13.0.1",
-    "filemanager-webpack-plugin": "^9.0.1",
-    "jsqr": "^1.4.0",
-    "liquidfun-emscripten": "^1.1.4",
-    "midi-writer-js": "^3.1.1",
-    "pngjs": "^7.0.0",
-    "qrcode-generator": "^2.0.4",
-    "tone": "^14.7.77",
-    "webpack": "^5.104.1",
-    "webpack-node-externals": "^3.0.0",
-    "ws": "^8.18.1",
-    "y-webrtc": "^10.3.0"
+  "name": "Raveling",
+  "version": "0.1.0",
+  "description": "A web components framework for building themeable, messageable, and accessible UI elements.",
+  "type": "module",
+  "main": "./dist/bundle.js",
+  "module": "./dist/bundle.js",
+  "exports": {
+    ".": {
+      "import": "./dist/bundle.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite",
+    "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
-    "html5-qrcode": "^2.3.8",
-    "webpack-cli": "^6.0.1",
-    "yjs": "^13.6.18"
-  },
-  "scripts": {
-    "webpack-build": "webpack"
+    "typescript": "^5.7.0",
+    "vite": "^6.0.0",
+    "vite-plugin-dts": "^4.0.0",
+    "vite-plugin-static-copy": "^3.4.0"
   }
 }

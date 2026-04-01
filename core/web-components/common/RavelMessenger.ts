@@ -31,7 +31,7 @@ export interface RavelMessengerType {
 }
 
 /**
- * Singleton pub/sub messenger that decouples communication between Gadget Grind
+ * Singleton pub/sub messenger that decouples communication between Ravel
  * web components. Components subscribe by message name and receive
  * {@link CustomEvent} instances whose `detail` carries `{ cmd, content }`.
  */
@@ -39,6 +39,7 @@ export const RavelMessenger: RavelMessengerType = {
     subscriptions: {},
 
     sendMessage(msg, cmd, content) {
+        console.log(msg);
         const evt = new CustomEvent(msg, { detail: { cmd: cmd, content: content } });
 
         const targets = this.subscriptions[msg];
@@ -47,6 +48,7 @@ export const RavelMessenger: RavelMessengerType = {
         for (let i = 0; i < targets.length; i++) {
             targets[i].dispatchEvent(evt);
         }
+
     },
 
     subscribe(msg, target) {
