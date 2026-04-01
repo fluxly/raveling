@@ -1,27 +1,53 @@
 /**
+ * The current Ravel message protocol version.
+ * Increment this when the message contract changes in a breaking way.
+ * Senders that omit `version` always use this value (latest).
+ */
+export const RAVEL_MESSAGE_VERSION = 1;
+
+/**
  * An {@link EventTarget} capable of receiving dispatched events.
  */
 type MessengerTarget = EventTarget & { dispatchEvent(evt: Event): boolean };
 
 /**
+ * Shape of the `detail` payload carried by every Ravel {@link CustomEvent}.
+ */
+export interface RavelMessageDetail {
+    cmd: string;
+    content: unknown;
+    /** Protocol version. Defaults to {@link RAVEL_MESSAGE_VERSION} when not specified. */
+    version: number;
+}
+
+/**
  * Describes the pub/sub messaging system used for inter-component communication.
+ *
+ * The singleton {@link RavelMessenger} is the default implementation.
+ * DOM-element brokers (e.g. `<ravel-message-broker>`) and bridge/forwarder
+ * elements may wrap or extend this interface to route messages across
+ * boundaries (iframes, workers, network, etc.).
  */
 export interface RavelMessengerType {
     /** Map of message names to the list of targets subscribed to each. */
     subscriptions: Record<string, MessengerTarget[]>;
+
     /**
      * Dispatches a {@link CustomEvent} to every target subscribed to the given message.
      * @param msg - The message name (event type) to dispatch.
      * @param cmd - A command string included in the event detail.
      * @param content - Arbitrary payload included in the event detail.
+     * @param version - Protocol version. Defaults to {@link RAVEL_MESSAGE_VERSION}.
      */
-    sendMessage(msg: string, cmd: string, content: unknown): void;
+    sendMessage(msg: string, cmd: string, content: unknown, version?: number): void;
+
     /**
      * Registers a target to receive events for the given message name.
      * @param msg - The message name to subscribe to.
      * @param target - The {@link MessengerTarget} that will receive dispatched events.
      */
     subscribe(msg: string, target: MessengerTarget): void;
+
     /**
      * Removes a target from the subscription list for the given message name.
      * @param msg - The message name to unsubscribe from.
@@ -33,14 +59,18 @@ export interface RavelMessengerType {
 /**
  * Singleton pub/sub messenger that decouples communication between Ravel
  * web components. Components subscribe by message name and receive
- * {@link CustomEvent} instances whose `detail` carries `{ cmd, content }`.
+ * {@link CustomEvent} instances whose `detail` carries
+ * `{ cmd, content, version }`.
+ *
+ * DOM-element brokers and bridge elements may use this messenger directly
+ * or wrap it to forward messages across architectural boundaries.
  */
 export const RavelMessenger: RavelMessengerType = {
     subscriptions: {},
 
-    sendMessage(msg, cmd, content) {
-        console.log(msg);
-        const evt = new CustomEvent(msg, { detail: { cmd: cmd, content: content } });
+    sendMessage(msg, cmd, content, version = RAVEL_MESSAGE_VERSION) {
+        const detail: RavelMessageDetail = { cmd, content, version };
+        const evt = new CustomEvent(msg, { detail });
 
         const targets = this.subscriptions[msg];
         if (!targets || targets.length === 0) return;
@@ -48,7 +78,6 @@ export const RavelMessenger: RavelMessengerType = {
         for (let i = 0; i < targets.length; i++) {
             targets[i].dispatchEvent(evt);
         }
-
     },
 
     subscribe(msg, target) {
@@ -66,11 +95,5 @@ export const RavelMessenger: RavelMessengerType = {
         if (index !== -1) {
             targets.splice(index, 1);
         }
-    }
+    },
 };
-
-export interface RavelMessageDetail {                                                                                                            
-      cmd: string;                                                                                                                                       
-      content: unknown;                                                                                                                                  
-  }   
-  
