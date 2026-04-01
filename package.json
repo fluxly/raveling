@@ -1,0 +1,26 @@
+{
+  "dependencies": {
+    "@automerge/automerge": "^2.2.8",
+    "blockly": "^12.3.1",
+    "copy-webpack-plugin": "^13.0.1",
+    "filemanager-webpack-plugin": "^9.0.1",
+    "jsqr": "^1.4.0",
+    "liquidfun-emscripten": "^1.1.4",
+    "midi-writer-js": "^3.1.1",
+    "pngjs": "^7.0.0",
+    "qrcode-generator": "^2.0.4",
+    "tone": "^14.7.77",
+    "webpack": "^5.104.1",
+    "webpack-node-externals": "^3.0.0",
+    "ws": "^8.18.1",
+    "y-webrtc": "^10.3.0"
+  },
+  "devDependencies": {
+    "html5-qrcode": "^2.3.8",
+    "webpack-cli": "^6.0.1",
+    "yjs": "^13.6.18"
+  },
+  "scripts": {
+    "webpack-build": "webpack"
+  }
+}
