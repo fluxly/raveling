@@ -73,9 +73,9 @@ Reference `--ravel-*` custom properties. Never hardcode colors. Common tokens: `
 
 ---
 
-## Observability
+## observable
 
-All components support `observability="off | events | state | verbose"`. Default is `off`. When enabled, the component logs and/or visualizes its internal behavior.
+All components support `observable="off | events | state | verbose"`. Default is `off`. When enabled, the component logs and/or visualizes its internal behavior.
 
 ---
 

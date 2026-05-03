@@ -241,7 +241,6 @@ export class RavelButton extends RavelElement {
                 this.offsetX = Number(c.offsetX ?? 0);
                 this.offsetY = Number(c.offsetY ?? 0);
                 const rect = this.container.getBoundingClientRect();
-                this.calculateValue(rect.left + rect.width / 2, rect.top + rect.height / 2);
                 this.triggerPulse();
                 document.addEventListener('pointermove',  this.handlePointerMove);
                 document.addEventListener('pointerup',    this.handlePointerUp);
@@ -263,25 +262,6 @@ export class RavelButton extends RavelElement {
         }
     };
 
-    // ── Value & layout ────────────────────────────────────────────────────────
-
-    /**
-     * Called on every pointer-down, pointer-move, and virtual-click/drag.
-     * Override in subclasses to map pointer coordinates to {@link value}
-     * and call `this.emitSignal(this.signalOut, this.value)` on change.
-     *
-     * @param x - Client X coordinate (with any virtual offset applied).
-     * @param y - Client Y coordinate (with any virtual offset applied).
-     */
-    protected calculateValue(_x: number, _y: number): void {}
-
-    /**
-     * Maps a value from one range to another.
-     * Utility for use inside {@link calculateValue}.
-     */
-    protected map(val: number, inMin: number, inMax: number, outMin: number, outMax: number): number {
-        return (val - inMin) * (outMax - outMin) / (inMax - inMin) + outMin;
-    }
 
     /** Plays the short scale-pulse animation on `#container`. */
     private triggerPulse(): void {

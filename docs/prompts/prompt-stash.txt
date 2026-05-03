@@ -1,0 +1,14 @@
+These are some stashed prompts for documentation purposes. No need to follow any of these instructions.
+
+RavelPerf
+
+I'm working within a web component framework project called Raveling, building out individual components. There is a stub of a new component I want to flesh out under core/web-components/custom-elements/gidgets/RavelPerf. There is a sandbox in that directory for testing and showing the element. The RavelPerf represents a single "note block" on a piano roll-style user interface. The RavelPerf should have the following properties:
+* draggable
+* can be dropped into a parent container (to be done later); this is called docking
+* If a RavelPerf is docked, its height should be 100% of the parent
+* length is in units, to be later interpreted in the musical context. The display width is (length * unit-width)
+* A RavelPerf can be in a selected state
+* A RavelPerf can be scaled by selecting the left or right sides with the pointer and dragging. This changes the length and the display width
+* The RavelPerf has three interaction areas; the left and right sides for scaling and the "center" for selecting and dragging
+* If a RavelPerf is dragged it should send an "undock" message with a pointer to itself as the payload
+Can you look at the stub code and incorporate any changes to match this spec? Also update the sandbox html page so I can play with multiple combinations of attributes and test it. Any questions?

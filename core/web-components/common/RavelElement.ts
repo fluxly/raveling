@@ -5,14 +5,14 @@ import sharedStyles from './shared-styles';
 export type RavelElementMode = 'inline' | 'draggable' | 'factory' | 'physics';
 
 /**
- * Observability level for the built-in debug panel and event logging.
+ * observable level for the built-in debug panel and event logging.
  *
  * - `'off'`     — no debug output (default).
  * - `'events'`  — logs messages and virtual events to the console.
  * - `'state'`   — shows a floating panel with a live state snapshot.
  * - `'verbose'` — both events and state panel.
  */
-export type RavelObservabilityLevel = 'off' | 'events' | 'state' | 'verbose';
+export type RavelObservableLevel = 'off' | 'events' | 'state' | 'verbose';
 
 /**
  * Abstract base class for all Raveling custom elements.
@@ -30,7 +30,7 @@ export type RavelObservabilityLevel = 'off' | 'events' | 'state' | 'verbose';
  * - **Messaging** — pub/sub via {@link RavelMessenger}; window-level broadcasting.
  * - **Themeable** — receives CSS custom-property maps from `ravel-theme-broker`.
  * - **Signalable** — `signals-in` / `signals-out` attributes; emits via `ravel-signals-broker`.
- * - **Observable** — `observability` attribute: `off | events | state | verbose`.
+ * - **Observable** — `observable` attribute: `off | events | state | verbose`.
  * - **Dockable** — sends a dock request to any listening `ravel-dock` element.
  * - **Virtual Events** — named listeners with factory-mode interception.
  * - **Accessible** — baseline WCAG AAA defaults on first connect.
@@ -92,10 +92,10 @@ export class RavelElement extends HTMLElement {
     /** Signal names this element can emit, parsed from `signals-out`. */
     private _signalsOut: string[] = [];
 
-    // ── Observability ─────────────────────────────────────────────────────────
+    // ── observable ─────────────────────────────────────────────────────────
 
-    /** Current observability level. Defaults to `'off'`. */
-    private _observability: RavelObservabilityLevel = 'off';
+    /** Current observable level. Defaults to `'off'`. */
+    private _observable: RavelObservableLevel = 'off';
     /** Floating debug panel, present only when level is `'state'` or `'verbose'`. */
     private _debugPanel: HTMLElement | null = null;
 
@@ -133,7 +133,7 @@ export class RavelElement extends HTMLElement {
             'mode', 'factory',
             'theme',
             'signals-in', 'signals-out',
-            'observability',
+            'observable',
         ];
     }
 
@@ -248,9 +248,9 @@ export class RavelElement extends HTMLElement {
             case 'signals-out':
                 this._signalsOut = newValue ? newValue.split(',').map(s => s.trim()) : [];
                 break;
-            case 'observability': {
-                const level = (newValue ?? 'off') as RavelObservabilityLevel;
-                this._observability = level;
+            case 'observable': {
+                const level = (newValue ?? 'off') as RavelObservableLevel;
+                this._observable = level;
                 const showPanel = level === 'state' || level === 'verbose';
                 showPanel ? this._mountDebugPanel() : this._removeDebugPanel();
                 break;
@@ -268,7 +268,7 @@ export class RavelElement extends HTMLElement {
      * @param version - Protocol version. Defaults to {@link RAVEL_MESSAGE_VERSION}.
      */
     sendMessage(msg: string, cmd: string, content: unknown, version?: number): void {
-        if (this._observability === 'events' || this._observability === 'verbose') {
+        if (this._observable === 'events' || this._observable === 'verbose') {
             console.debug(`[${this.tagName.toLowerCase()}] sendMessage`, { msg, cmd, content, version });
         }
         RavelMessenger.sendMessage(msg, cmd, content, version);
@@ -279,7 +279,7 @@ export class RavelElement extends HTMLElement {
      * pub/sub subscription list.
      */
     broadcastMessage(msg: string, cmd: string, content: unknown): void {
-        if (this._observability === 'events' || this._observability === 'verbose') {
+        if (this._observable === 'events' || this._observable === 'verbose') {
             console.debug(`[${this.tagName.toLowerCase()}] broadcastMessage`, { msg, cmd, content });
         }
         const evt = new CustomEvent(msg, { detail: { cmd, content } });
@@ -423,7 +423,7 @@ export class RavelElement extends HTMLElement {
         }
     };
 
-    // ── Observability / Debug Panel ───────────────────────────────────────────
+    // ── observable / Debug Panel ───────────────────────────────────────────
 
     private _mountDebugPanel(): void {
         if (this._debugPanel) return;
@@ -503,7 +503,7 @@ export class RavelElement extends HTMLElement {
      * In factory mode, interaction events are intercepted by {@link spawnCopy}.
      */
     dispatchVirtualEvent(event: string, detail: unknown): void {
-        if (this._observability === 'events' || this._observability === 'verbose') {
+        if (this._observable === 'events' || this._observable === 'verbose') {
             console.debug(`[${this.tagName.toLowerCase()}] virtualEvent:${event}`, detail);
         }
         const interactionEvents = ['click', 'drag-begin', 'pointerdown'];

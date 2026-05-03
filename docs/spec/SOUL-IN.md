@@ -34,7 +34,7 @@ B. Core Requirements
 
 6. Themes: Every component should be individually themable, or themed as a group (depending on attributes). Vibrant color everywhere
 
-7. Observability: Web Components should be able to log their activities and visualize their internals. These can be exposed as attributes.
+7. observable: Web Components should be able to log their activities and visualize their internals. These can be exposed as attributes.
 
 C. Core Guidelines
 

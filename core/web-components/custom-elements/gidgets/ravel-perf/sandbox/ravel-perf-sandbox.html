@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"/>
+    <title>RavelPerf Sandbox</title>
+    <script type="module" src="../ravel-perf.ts"></script>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; }
+        body {
+            background: #13131f;
+            color: #d0d0e8;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            font-size: 13px;
+            margin: 0;
+            padding: 16px;
+        }
+        h3 {
+            margin: 0 0 10px;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: #666688;
+        }
+
+        /* ── Piano roll ─────────────────────────────────── */
+        #piano-roll {
+            position: relative;
+            width: 100%;
+            height: 280px;
+            background: #0d0d1e;
+            border: 1px solid #2a2a44;
+            border-radius: 8px;
+            overflow: visible;   /* allow dragged notes to extend beyond */
+            margin-bottom: 14px;
+        }
+        .lane {
+            position: absolute;
+            left: 0; right: 0;
+            height: 40px;
+            border-bottom: 1px solid #17172e;
+        }
+        .lane.black-key { background: #0a0a1a; }
+        .grid-line {
+            position: absolute;
+            top: 0; bottom: 0;
+            width: 1px;
+        }
+        .grid-line.beat   { background: #1c1c36; }
+        .grid-line.bar    { background: #252548; }
+
+        /* ── Panel shared ──────────────────────────────── */
+        .panel {
+            background: #0d0d1e;
+            border: 1px solid #2a2a44;
+            border-radius: 8px;
+            padding: 14px 16px;
+            margin-bottom: 14px;
+        }
+        .row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            margin-bottom: 8px;
+        }
+        .row:last-child { margin-bottom: 0; }
+        label {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            color: #8888aa;
+            font-size: 11px;
+        }
+        input[type="number"],
+        input[type="text"] {
+            background: #1a1a30;
+            border: 1px solid #3a3a5a;
+            border-radius: 4px;
+            color: #d0d0e8;
+            padding: 4px 8px;
+            font-size: 13px;
+            width: 76px;
+            outline: none;
+        }
+        input[type="text"] { width: 110px; }
+        input[type="color"] {
+            width: 40px;
+            height: 28px;
+            padding: 2px 3px;
+            border: 1px solid #3a3a5a;
+            border-radius: 4px;
+            background: #1a1a30;
+            cursor: pointer;
+        }
+        input[type="checkbox"] { accent-color: #5577ff; cursor: pointer; }
+        label.inline { flex-direction: row; align-items: center; gap: 6px; cursor: pointer; }
+        button {
+            background: #3355cc;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            padding: 5px 14px;
+            font-size: 13px;
+            cursor: pointer;
+            height: 28px;
+        }
+        button:hover { background: #4466dd; }
+        button.ghost {
+            background: transparent;
+            border: 1px solid #3a3a5a;
+            color: #8888aa;
+        }
+        button.ghost:hover { border-color: #5577ff; color: #d0d0e8; }
+
+        /* ── Attribute table ───────────────────────────── */
+        #attr-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+            font-family: monospace;
+        }
+        #attr-table th {
+            text-align: left;
+            padding: 4px 8px;
+            color: #555577;
+            border-bottom: 1px solid #1e1e36;
+        }
+        #attr-table td {
+            padding: 3px 8px;
+            border-bottom: 1px solid #13131f;
+        }
+        #attr-table tr:hover td { background: #15152a; }
+        .attr-val { color: #88bbff; }
+
+        /* ── Event log ─────────────────────────────────── */
+        #log {
+            height: 110px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 11px;
+            background: #08080f;
+            border: 1px solid #1e1e36;
+            border-radius: 4px;
+            padding: 6px 8px;
+        }
+        .log-line { padding: 1px 0; color: #4466aa; }
+        .log-line.undock { color: #ffaa44; }
+        .log-line.select { color: #66cc88; }
+        .log-line.add    { color: #8888cc; }
+    </style>
+</head>
+<body>
+
+<!-- ── Piano roll ───────────────────────────────────────────── -->
+<h3>Piano Roll</h3>
+<div id="piano-roll">
+    <!-- Lane backgrounds (7 rows × 40px = 280px total) -->
+    <div class="lane"           style="top:  0px"></div>
+    <div class="lane black-key" style="top: 40px"></div>
+    <div class="lane"           style="top: 80px"></div>
+    <div class="lane black-key" style="top:120px"></div>
+    <div class="lane"           style="top:160px"></div>
+    <div class="lane"           style="top:200px"></div>
+    <div class="lane black-key" style="top:240px"></div>
+
+    <!-- Beat grid (unit = 60px, 4 units per bar) -->
+    <div class="grid-line beat" style="left: 60px"></div>
+    <div class="grid-line beat" style="left:120px"></div>
+    <div class="grid-line beat" style="left:180px"></div>
+    <div class="grid-line bar"  style="left:240px"></div>
+    <div class="grid-line beat" style="left:300px"></div>
+    <div class="grid-line beat" style="left:360px"></div>
+    <div class="grid-line beat" style="left:420px"></div>
+    <div class="grid-line bar"  style="left:480px"></div>
+    <div class="grid-line beat" style="left:540px"></div>
+    <div class="grid-line beat" style="left:600px"></div>
+    <div class="grid-line beat" style="left:660px"></div>
+    <div class="grid-line bar"  style="left:720px"></div>
+
+    <!-- Pre-populated notes (unit-width=60, h=34) -->
+    <ravel-perf id="pf-a" x="  0" y="  3" length="2" unit-width="60" h="34" color="#3b82f6" label="C4 ×2"></ravel-perf>
+    <ravel-perf id="pf-b" x="180" y="  3" length="4" unit-width="60" h="34" color="#3b82f6" label="C4 ×4"></ravel-perf>
+    <ravel-perf id="pf-c" x="  0" y=" 43" length="1" unit-width="60" h="34" color="#8b5cf6" label="B3"></ravel-perf>
+    <ravel-perf id="pf-d" x=" 60" y=" 43" length="1" unit-width="60" h="34" color="#8b5cf6" label="B3"></ravel-perf>
+    <ravel-perf id="pf-e" x="  0" y=" 83" length="3" unit-width="60" h="34" color="#22c55e" label="A3 ×3"></ravel-perf>
+    <ravel-perf id="pf-f" x="360" y=" 83" length="2" unit-width="60" h="34" color="#22c55e" label="A3 sel" selected></ravel-perf>
+    <ravel-perf id="pf-g" x=" 60" y="123" length="2" unit-width="60" h="34" color="#f97316" label="G3"></ravel-perf>
+    <ravel-perf id="pf-h" x="300" y="123" length="3" unit-width="60" h="34" color="#f97316" label="G3 ×3"></ravel-perf>
+    <ravel-perf id="pf-i" x="  0" y="163" length="5" unit-width="60" h="34" color="#ef4444" label="F3 long"></ravel-perf>
+    <ravel-perf id="pf-j" x="120" y="203" length="1" unit-width="60" h="34" color="#ec4899" label="E3 (no-click)" no-click></ravel-perf>
+    <ravel-perf id="pf-k" x="240" y="203" length="2" unit-width="60" h="34" color="#ec4899" label="E3"></ravel-perf>
+</div>
+
+<!-- ── Add note ─────────────────────────────────────────────── -->
+<div class="panel">
+    <h3>Add a Note</h3>
+    <div class="row">
+        <label>x <input type="number" id="inp-x"  value="0"    min="0"  step="60"></label>
+        <label>y <input type="number" id="inp-y"   value="3"    min="0"  step="40"></label>
+        <label>length <input type="number" id="inp-length" value="2" min="1" step="0.5"></label>
+        <label>unit-width <input type="number" id="inp-uw" value="60" min="10" step="10"></label>
+        <label>h <input type="number" id="inp-h"   value="34"   min="10" step="5"></label>
+        <label>label <input type="text" id="inp-label" value="New note"></label>
+        <label>color <input type="color" id="inp-color" value="#3b82f6"></label>
+        <label>quantum <input type="number" id="inp-quantum" value="1" min="0.001" step="0.5"></label>
+    </div>
+    <div class="row">
+        <label class="inline"><input type="checkbox" id="inp-selected"> selected</label>
+        <label class="inline"><input type="checkbox" id="inp-no-click"> no-click</label>
+        <button id="btn-add">Add Note</button>
+        <button class="ghost" id="btn-clear">Remove Added</button>
+    </div>
+</div>
+
+<!-- ── Global controls ──────────────────────────────────────── -->
+<div class="panel">
+    <h3>Global Controls</h3>
+    <div class="row">
+        <label>unit-width (all) <input type="number" id="inp-global-uw" value="60" min="10" step="10"></label>
+        <button id="btn-apply-uw">Apply to All</button>
+        <label>quantum (all) <input type="number" id="inp-global-q" value="1" min="0.001" step="0.5"></label>
+        <button id="btn-apply-q">Apply to All</button>
+        <button class="ghost" id="btn-quantize-all">Quantize All</button>
+    </div>
+    <div class="row">
+        <button class="ghost" id="btn-select-all">Select All</button>
+        <button class="ghost" id="btn-unselect-all">Unselect All</button>
+    </div>
+</div>
+
+<!-- ── Attribute inspector ──────────────────────────────────── -->
+<div class="panel">
+    <h3>Note Attributes  <span id="inspect-id" style="color:#5566bb;font-weight:normal;font-size:11px">(click a note to inspect)</span></h3>
+    <table id="attr-table">
+        <thead><tr><th>Attribute</th><th>Value</th></tr></thead>
+        <tbody id="attr-body"><tr><td colspan="2" style="color:#444466">—</td></tr></tbody>
+    </table>
+</div>
+
+<!-- ── Event log ────────────────────────────────────────────── -->
+<div class="panel">
+    <h3>Event Log <button class="ghost" id="btn-clear-log" style="font-size:11px;padding:2px 8px;height:auto;float:right">Clear</button></h3>
+    <div id="log"></div>
+</div>
+
+<script>
+    const roll = document.getElementById('piano-roll');
+    const logEl = document.getElementById('log');
+    const added = [];
+
+    // ── Logging ──────────────────────────────────────────────
+    function addLog(text, cls = '') {
+        const d = document.createElement('div');
+        d.className = 'log-line ' + cls;
+        const t = new Date().toLocaleTimeString('en', { hour12: false });
+        d.textContent = `[${t}] ${text}`;
+        logEl.prepend(d);
+    }
+
+    document.getElementById('btn-clear-log').addEventListener('click', () => {
+        logEl.innerHTML = '';
+    });
+
+    // ── Undock broadcast ─────────────────────────────────────
+    window.addEventListener('ravel-perf', (e) => {
+        if (e.detail?.cmd !== 'undock') return;
+        const el = e.detail.content;
+        const id = el?.id || 'ravel-perf';
+        const lx = Math.round(parseFloat(el?.style?.left) || 0);
+        const ly = Math.round(parseFloat(el?.style?.top)  || 0);
+        addLog(`undock  ${id}  pos=(${lx}, ${ly})`, 'undock');
+    });
+
+    // ── Click-to-inspect (propagates out of shadow DOM) ──────
+    roll.addEventListener('click', (e) => {
+        const perf = e.composedPath().find(n => n.tagName === 'RAVEL-PERF');
+        if (!perf) return;
+        inspectNote(perf);
+    }, true);
+
+    function inspectNote(el) {
+        document.getElementById('inspect-id').textContent = `#${el.id || '(no id)'}`;
+        const attrs = [
+            'x', 'y', 'length', 'unit-width', 'h',
+            'label', 'color', 'selected', 'no-click', 'docked',
+        ];
+        const tbody = document.getElementById('attr-body');
+        tbody.innerHTML = attrs.map(a => {
+            const val = el.hasAttribute(a)
+                ? (el.getAttribute(a) === '' ? '(present)' : el.getAttribute(a))
+                : '—';
+            return `<tr><td>${a}</td><td class="attr-val">${val}</td></tr>`;
+        }).join('');
+        addLog(`inspect ${el.id || 'ravel-perf'}`, 'select');
+    }
+
+    // ── Add note ─────────────────────────────────────────────
+    document.getElementById('btn-add').addEventListener('click', () => {
+        const perf = document.createElement('ravel-perf');
+        perf.setAttribute('x',          document.getElementById('inp-x').value);
+        perf.setAttribute('y',          document.getElementById('inp-y').value);
+        perf.setAttribute('length',     document.getElementById('inp-length').value);
+        perf.setAttribute('unit-width', document.getElementById('inp-uw').value);
+        perf.setAttribute('h',          document.getElementById('inp-h').value);
+        perf.setAttribute('label',      document.getElementById('inp-label').value);
+        perf.setAttribute('color',      document.getElementById('inp-color').value);
+        perf.setAttribute('quantum',    document.getElementById('inp-quantum').value);
+        if (document.getElementById('inp-selected').checked) perf.setAttribute('selected', '');
+        if (document.getElementById('inp-no-click').checked) perf.setAttribute('no-click', '');
+        roll.appendChild(perf);
+        added.push(perf);
+        addLog(`add  label="${perf.getAttribute('label')}"  length=${perf.getAttribute('length')}  uw=${perf.getAttribute('unit-width')}`, 'add');
+    });
+
+    document.getElementById('btn-clear').addEventListener('click', () => {
+        added.forEach(p => p.remove());
+        added.length = 0;
+        addLog('removed all added notes');
+    });
+
+    // ── Global unit-width ─────────────────────────────────────
+    document.getElementById('btn-apply-uw').addEventListener('click', () => {
+        const uw = document.getElementById('inp-global-uw').value;
+        roll.querySelectorAll('ravel-perf').forEach(p => p.setAttribute('unit-width', uw));
+        addLog(`unit-width → ${uw} (all notes)`);
+    });
+
+    // ── Global quantum ────────────────────────────────────────
+    document.getElementById('btn-apply-q').addEventListener('click', () => {
+        const q = document.getElementById('inp-global-q').value;
+        roll.querySelectorAll('ravel-perf').forEach(p => p.setAttribute('quantum', q));
+        addLog(`quantum → ${q} (all notes)`);
+    });
+
+    document.getElementById('btn-quantize-all').addEventListener('click', () => {
+        roll.querySelectorAll('ravel-perf').forEach(p => {
+            if (p.id) window.dispatchEvent(new CustomEvent(p.id, { detail: { cmd: 'quantize' } }));
+        });
+        addLog('quantize all');
+    });
+
+    // ── Select / unselect all ─────────────────────────────────
+    document.getElementById('btn-select-all').addEventListener('click', () => {
+        roll.querySelectorAll('ravel-perf').forEach(p => p.setAttribute('selected', ''));
+        addLog('select all', 'select');
+    });
+    document.getElementById('btn-unselect-all').addEventListener('click', () => {
+        roll.querySelectorAll('ravel-perf').forEach(p => p.removeAttribute('selected'));
+        addLog('unselect all');
+    });
+</script>
+</body>
+</html>

@@ -62,8 +62,8 @@ A developer should be able to drop in a single `<ravel-button>` without loading 
 **6. Themes**
 Every component is individually themable via attributes or CSS custom properties. Group theming should work via a `<ravel-theme-broker>`. Color should be expressive, vibrant, and controllable — not just "primary/secondary/accent."
 
-**7. Observability**
-Components should be able to expose their internal state, log their events, and visualize their behavior — all via HTML attributes. `observability="verbose"` on a component should make it talk. This is a first-class debugging and learning tool.
+**7. observable**
+Components should be able to expose their internal state, log their events, and visualize their behavior — all via HTML attributes. `observable="verbose"` on a component should make it talk. This is a first-class debugging and learning tool.
 
 ### C. Core Guidelines (recommended practices)
 
@@ -177,8 +177,8 @@ Each component should ship with a story/demo that:
 ### 4.6 Event Schema Versioning
 The messaging system should include a version field in message payloads so that evolving component APIs don't silently break integrations.
 
-### 4.7 Formal Observability Protocol
-The `observability` attribute should have a well-defined vocabulary:
+### 4.7 Formal observable Protocol
+The `observable` attribute should have a well-defined vocabulary:
 - `off` — no logging
 - `events` — log dispatched/received messages
 - `state` — visualize internal state changes
@@ -197,7 +197,7 @@ Each component should ship a `manifest.json` (or TypeScript-extracted equivalent
 ### Layer 1: Core Infrastructure
 - `<ravel-message-broker>` — pub/sub event routing, singleton, first-class DOM element
 - `<ravel-theme-broker>` — CSS custom property token distribution
-- `<ravel-observability-broker>` — aggregates component logs, visualizes activity
+- `<ravel-observable-broker>` — aggregates component logs, visualizes activity
 - `RavelingElement` — minimal abstract base class (shadow DOM setup, message integration, ARIA base)
 
 ### Layer 2: Primitives

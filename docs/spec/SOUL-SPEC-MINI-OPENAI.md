@@ -93,11 +93,11 @@ on color alone
 
 ------------------------------------------------------------------------
 
-## Observability
+## observable
 
 Support attribute:
 
--   `observability="off | events | state | verbose"`
+-   `observable="off | events | state | verbose"`
 
 Components should expose internal behavior when enabled.
 
