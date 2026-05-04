@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"/>
+    <title>ravel-button Sandbox</title>
+    <script type="module" src="../ravel-button.ts"></script>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; }
+        body {
+            background: #13131f;
+            color: #d0d0e8;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            font-size: 13px;
+            margin: 0;
+            padding: 20px;
+        }
+        h3 {
+            margin: 0 0 12px;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: #666688;
+        }
+        .panel {
+            background: #0d0d1e;
+            border: 1px solid #2a2a44;
+            border-radius: 8px;
+            padding: 16px 18px;
+            margin-bottom: 16px;
+        }
+
+        /* ── Button stage ──────────────────────────────── */
+        #stage {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 24px;
+            align-items: flex-start;
+            padding: 20px;
+        }
+        .stage-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+        .stage-label {
+            font-size: 10px;
+            color: #555577;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .button-row {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+
+        /* ── Controls ──────────────────────────────────── */
+        .row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            margin-bottom: 10px;
+        }
+        .row:last-child { margin-bottom: 0; }
+        label {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            color: #8888aa;
+            font-size: 11px;
+        }
+        input[type="number"],
+        input[type="text"] {
+            background: #1a1a30;
+            border: 1px solid #3a3a5a;
+            border-radius: 4px;
+            color: #d0d0e8;
+            padding: 4px 8px;
+            font-size: 13px;
+            width: 76px;
+            outline: none;
+        }
+        input[type="text"] { width: 110px; }
+        input[type="color"] {
+            width: 40px;
+            height: 28px;
+            padding: 2px 3px;
+            border: 1px solid #3a3a5a;
+            border-radius: 4px;
+            background: #1a1a30;
+            cursor: pointer;
+        }
+        button {
+            background: #3355cc;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            padding: 5px 14px;
+            font-size: 13px;
+            cursor: pointer;
+            height: 28px;
+        }
+        button:hover { background: #4466dd; }
+        button.ghost {
+            background: transparent;
+            border: 1px solid #3a3a5a;
+            color: #8888aa;
+            border-radius: 5px;
+            padding: 5px 14px;
+            font-size: 13px;
+            cursor: pointer;
+            height: 28px;
+        }
+        button.ghost:hover { border-color: #5577ff; color: #d0d0e8; }
+
+        /* ── Event log ─────────────────────────────────── */
+        #log {
+            height: 100px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 11px;
+            background: #08080f;
+            border: 1px solid #1e1e36;
+            border-radius: 4px;
+            padding: 6px 8px;
+        }
+        .log-line { padding: 1px 0; color: #4466aa; }
+        .log-line.click { color: #66ddaa; }
+    </style>
+</head>
+<body>
+
+<!-- ── Stage ────────────────────────────────────────────────── -->
+<div class="panel">
+    <h3>Examples</h3>
+    <div id="stage">
+
+        <div class="stage-group">
+            <div class="stage-label">Default (60×60)</div>
+            <div class="button-row">
+                <ravel-button id="btn-default" label="OK"></ravel-button>
+            </div>
+        </div>
+
+        <div class="stage-group">
+            <div class="stage-label">Colors</div>
+            <div class="button-row">
+                <ravel-button label="Red"    color="#cc3344"></ravel-button>
+                <ravel-button label="Green"  color="#22aa55"></ravel-button>
+                <ravel-button label="Gold"   color="#cc8822"></ravel-button>
+            </div>
+        </div>
+
+        <div class="stage-group">
+            <div class="stage-label">Custom borders</div>
+            <div class="button-row">
+                <ravel-button label="Thin"  color="#5544cc" border-width="1" shadow-size="2"></ravel-button>
+                <ravel-button label="Thick" color="#5544cc" border-width="4" shadow-size="6"></ravel-button>
+            </div>
+        </div>
+
+        <div class="stage-group">
+            <div class="stage-label">Manual border/shadow colors</div>
+            <div class="button-row">
+                <ravel-button
+                    label="Glow"
+                    color="#223366"
+                    border-color="#4488ff"
+                    shadow-color="#88aaff"
+                    shadow-size="5">
+                </ravel-button>
+            </div>
+        </div>
+
+        <div class="stage-group">
+            <div class="stage-label">Rectangular</div>
+            <div class="button-row">
+                <ravel-button label="Wide" w="120" h="40" color="#3355aa"></ravel-button>
+                <ravel-button label="Tall" w="40"  h="80" color="#3355aa"></ravel-button>
+            </div>
+        </div>
+
+        <div class="stage-group">
+            <div class="stage-label">No-click</div>
+            <div class="button-row">
+                <ravel-button label="Locked" color="#444466" no-click></ravel-button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- ── Builder ───────────────────────────────────────────────── -->
+<div class="panel">
+    <h3>Build a Button</h3>
+    <div class="row">
+        <label>w  <input type="number" id="inp-w"  value="60" min="20" step="10"></label>
+        <label>h  <input type="number" id="inp-h"  value="60" min="20" step="10"></label>
+        <label>label <input type="text"   id="inp-label" value="Click"></label>
+        <label>color <input type="color"  id="inp-color" value="#4466dd"></label>
+    </div>
+    <div class="row">
+        <label>border-width <input type="number" id="inp-bw" value="2"  min="0" step="1"></label>
+        <label>border-color <input type="color"  id="inp-bc" value="#2233aa"></label>
+        <label>shadow-size  <input type="number" id="inp-ss" value="4"  min="0" step="1"></label>
+        <label>shadow-color <input type="color"  id="inp-sc" value="#112266"></label>
+    </div>
+    <div class="row">
+        <button id="btn-add">Add to Stage</button>
+        <button class="ghost" id="btn-clear">Remove Added</button>
+    </div>
+</div>
+
+<!-- ── Live tweak ────────────────────────────────────────────── -->
+<div class="panel">
+    <h3>Live-tweak #btn-default</h3>
+    <div class="row">
+        <label>color        <input type="color"  id="tw-color"  value="#4466dd"></label>
+        <label>border-width <input type="number" id="tw-bw"     value="2" min="0" step="1"></label>
+        <label>border-color <input type="color"  id="tw-bc"     value="#2233aa"></label>
+        <label>shadow-size  <input type="number" id="tw-ss"     value="4" min="0" step="1"></label>
+        <label>shadow-color <input type="color"  id="tw-sc"     value="#112266"></label>
+        <label>label        <input type="text"   id="tw-label"  value="OK"></label>
+        <label>w            <input type="number" id="tw-w"      value="60" min="20" step="10"></label>
+        <label>h            <input type="number" id="tw-h"      value="60" min="20" step="10"></label>
+    </div>
+    <div class="row">
+        <button id="btn-apply-tw">Apply</button>
+        <button class="ghost" id="btn-reset-tw">Reset</button>
+    </div>
+</div>
+
+<!-- ── Event log ─────────────────────────────────────────────── -->
+<div class="panel">
+    <h3>Event Log <button class="ghost" id="btn-clear-log" style="font-size:11px;padding:2px 8px;height:auto;float:right">Clear</button></h3>
+    <div id="log"></div>
+</div>
+
+<script>
+    const logEl  = document.getElementById('log');
+    const stage  = document.getElementById('stage');
+    const added  = [];
+
+    function addLog(text, cls = '') {
+        const d = document.createElement('div');
+        d.className = 'log-line ' + cls;
+        const t = new Date().toLocaleTimeString('en', { hour12: false });
+        d.textContent = `[${t}] ${text}`;
+        logEl.prepend(d);
+    }
+
+    document.getElementById('btn-clear-log').addEventListener('click', () => {
+        logEl.innerHTML = '';
+    });
+
+    // Listen for click broadcasts
+    window.addEventListener('ravel-button', (e) => {
+        if (e.detail?.cmd !== 'click') return;
+        const el  = e.detail.content;
+        const lbl = el?.getAttribute?.('label') || el?.id || 'ravel-button';
+        addLog(`click  "${lbl}"`, 'click');
+    });
+
+    // ── Add button ────────────────────────────────────────────
+    document.getElementById('btn-add').addEventListener('click', () => {
+        const btn = document.createElement('ravel-button');
+        btn.setAttribute('w',            document.getElementById('inp-w').value);
+        btn.setAttribute('h',            document.getElementById('inp-h').value);
+        btn.setAttribute('label',        document.getElementById('inp-label').value);
+        btn.setAttribute('color',        document.getElementById('inp-color').value);
+        btn.setAttribute('border-width', document.getElementById('inp-bw').value);
+        btn.setAttribute('border-color', document.getElementById('inp-bc').value);
+        btn.setAttribute('shadow-size',  document.getElementById('inp-ss').value);
+        btn.setAttribute('shadow-color', document.getElementById('inp-sc').value);
+
+        const wrap = document.createElement('div');
+        wrap.className = 'stage-group';
+        wrap.innerHTML = '<div class="stage-label">Added</div>';
+        wrap.appendChild(btn);
+        stage.appendChild(wrap);
+        added.push(wrap);
+        addLog(`added  label="${btn.getAttribute('label')}"  ${btn.getAttribute('w')}×${btn.getAttribute('h')}`);
+    });
+
+    document.getElementById('btn-clear').addEventListener('click', () => {
+        added.forEach(w => w.remove());
+        added.length = 0;
+        addLog('removed added buttons');
+    });
+
+    // ── Live tweak ────────────────────────────────────────────
+    const target = document.getElementById('btn-default');
+
+    document.getElementById('btn-apply-tw').addEventListener('click', () => {
+        target.setAttribute('color',        document.getElementById('tw-color').value);
+        target.setAttribute('border-width', document.getElementById('tw-bw').value);
+        target.setAttribute('border-color', document.getElementById('tw-bc').value);
+        target.setAttribute('shadow-size',  document.getElementById('tw-ss').value);
+        target.setAttribute('shadow-color', document.getElementById('tw-sc').value);
+        target.setAttribute('label',        document.getElementById('tw-label').value);
+        target.setAttribute('w',            document.getElementById('tw-w').value);
+        target.setAttribute('h',            document.getElementById('tw-h').value);
+        addLog('applied live tweaks to #btn-default');
+    });
+
+    document.getElementById('btn-reset-tw').addEventListener('click', () => {
+        target.setAttribute('color',        '#4466dd');
+        target.setAttribute('border-width', '2');
+        target.setAttribute('border-color', '');
+        target.setAttribute('shadow-size',  '4');
+        target.setAttribute('shadow-color', '');
+        target.setAttribute('label',        'OK');
+        target.setAttribute('w',            '60');
+        target.setAttribute('h',            '60');
+        document.getElementById('tw-color').value  = '#4466dd';
+        document.getElementById('tw-bw').value     = '2';
+        document.getElementById('tw-bc').value     = '#2233aa';
+        document.getElementById('tw-ss').value     = '4';
+        document.getElementById('tw-sc').value     = '#112266';
+        document.getElementById('tw-label').value  = 'OK';
+        document.getElementById('tw-w').value      = '60';
+        document.getElementById('tw-h').value      = '60';
+        addLog('reset #btn-default');
+    });
+</script>
+</body>
+</html>

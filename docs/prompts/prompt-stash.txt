@@ -11,4 +11,20 @@ I'm working within a web component framework project called Raveling, building o
 * A RavelPerf can be scaled by selecting the left or right sides with the pointer and dragging. This changes the length and the display width
 * The RavelPerf has three interaction areas; the left and right sides for scaling and the "center" for selecting and dragging
 * If a RavelPerf is dragged it should send an "undock" message with a pointer to itself as the payload
-Can you look at the stub code and incorporate any changes to match this spec? Also update the sandbox html page so I can play with multiple combinations of attributes and test it. Any questions?
+Can you look at the stub code and incorporate any changes to match this spec? Also update the sandbox html page so I can play with multiple combinations of attributes and test it
+
+RavelRollTrack
+
+There's an empty directory in gidgets/ for a ravel-roll-track element. This is a timeline container for ravel-roll-perf elements. Multiple ravel-roll-tracks will be slotted in a parent ravel-roll element like this:
+<ravel-roll>
+    <ravel-roll-track>
+       <ravel-roll-perf ...></ravel-roll-perf ...>
+       <ravel-roll-perf ...></ravel-roll-perf ...>
+       <ravel-roll-perf ...></ravel-roll-perf ...>
+       <ravel-roll-perf ...></ravel-roll-perf ...>
+    </ravel-roll-track>
+    <ravel-roll-track>
+    ...
+    </ravel-roll-track>
+<ravel-roll>
+A ravel-roll-perf can be docked in a track manually or slotted as above (docked means the same as slotted in this context). When docked the track's x position will correspond to it's position on the timeline and should be quantized by the track. The track should maintain a model of the perfs it contains so the parent roll can later serialize the state of the track.

@@ -3,8 +3,8 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"/>
-    <title>RavelPerf Sandbox</title>
-    <script type="module" src="../ravel-perf.ts"></script>
+    <title>ravel-roll-perf Sandbox</title>
+    <script type="module" src="../../../../index.ts"></script>
     <style>
         *, *::before, *::after { box-sizing: border-box; }
         body {
@@ -151,7 +151,7 @@
     </style>
 </head>
 <body>
-
+<ravel-roll-track><ravel-roll-perf id="pf-a2" x="3" length="1" color="#3b82f6" label="A·2"></ravel-roll-perf></ravel-roll-track>
 <!-- ── Piano roll ───────────────────────────────────────────── -->
 <h3>Piano Roll</h3>
 <div id="piano-roll">
@@ -179,17 +179,17 @@
     <div class="grid-line bar"  style="left:720px"></div>
 
     <!-- Pre-populated notes (unit-width=60, h=34) -->
-    <ravel-perf id="pf-a" x="  0" y="  3" length="2" unit-width="60" h="34" color="#3b82f6" label="C4 ×2"></ravel-perf>
-    <ravel-perf id="pf-b" x="180" y="  3" length="4" unit-width="60" h="34" color="#3b82f6" label="C4 ×4"></ravel-perf>
-    <ravel-perf id="pf-c" x="  0" y=" 43" length="1" unit-width="60" h="34" color="#8b5cf6" label="B3"></ravel-perf>
-    <ravel-perf id="pf-d" x=" 60" y=" 43" length="1" unit-width="60" h="34" color="#8b5cf6" label="B3"></ravel-perf>
-    <ravel-perf id="pf-e" x="  0" y=" 83" length="3" unit-width="60" h="34" color="#22c55e" label="A3 ×3"></ravel-perf>
-    <ravel-perf id="pf-f" x="360" y=" 83" length="2" unit-width="60" h="34" color="#22c55e" label="A3 sel" selected></ravel-perf>
-    <ravel-perf id="pf-g" x=" 60" y="123" length="2" unit-width="60" h="34" color="#f97316" label="G3"></ravel-perf>
-    <ravel-perf id="pf-h" x="300" y="123" length="3" unit-width="60" h="34" color="#f97316" label="G3 ×3"></ravel-perf>
-    <ravel-perf id="pf-i" x="  0" y="163" length="5" unit-width="60" h="34" color="#ef4444" label="F3 long"></ravel-perf>
-    <ravel-perf id="pf-j" x="120" y="203" length="1" unit-width="60" h="34" color="#ec4899" label="E3 (no-click)" no-click></ravel-perf>
-    <ravel-perf id="pf-k" x="240" y="203" length="2" unit-width="60" h="34" color="#ec4899" label="E3"></ravel-perf>
+    <ravel-roll-perf id="pf-a" x="  0" y="  3" length="2" unit-width="60" h="34" color="#3b82f6" label="C4 ×2"></ravel-roll-perf>
+    <ravel-roll-perf id="pf-b" x="180" y="  3" length="4" unit-width="60" h="34" color="#3b82f6" label="C4 ×4"></ravel-roll-perf>
+    <ravel-roll-perf id="pf-c" x="  0" y=" 43" length="1" unit-width="60" h="34" color="#8b5cf6" label="B3"></ravel-roll-perf>
+    <ravel-roll-perf id="pf-d" x=" 60" y=" 43" length="1" unit-width="60" h="34" color="#8b5cf6" label="B3"></ravel-roll-perf>
+    <ravel-roll-perf id="pf-e" x="  0" y=" 83" length="3" unit-width="60" h="34" color="#22c55e" label="A3 ×3"></ravel-roll-perf>
+    <ravel-roll-perf id="pf-f" x="360" y=" 83" length="2" unit-width="60" h="34" color="#22c55e" label="A3 sel" selected></ravel-roll-perf>
+    <ravel-roll-perf id="pf-g" x=" 60" y="123" length="2" unit-width="60" h="34" color="#f97316" label="G3"></ravel-roll-perf>
+    <ravel-roll-perf id="pf-h" x="300" y="123" length="3" unit-width="60" h="34" color="#f97316" label="G3 ×3"></ravel-roll-perf>
+    <ravel-roll-perf id="pf-i" x="  0" y="163" length="5" unit-width="60" h="34" color="#ef4444" label="F3 long"></ravel-roll-perf>
+    <ravel-roll-perf id="pf-j" x="120" y="203" length="1" unit-width="60" h="34" color="#ec4899" label="E3 (no-click)" no-click></ravel-roll-perf>
+    <ravel-roll-perf id="pf-k" x="240" y="203" length="2" unit-width="60" h="34" color="#ec4899" label="E3"></ravel-roll-perf>
 </div>
 
 <!-- ── Add note ─────────────────────────────────────────────── -->
@@ -263,10 +263,10 @@
     });
 
     // ── Undock broadcast ─────────────────────────────────────
-    window.addEventListener('ravel-perf', (e) => {
+    window.addEventListener('ravel-roll-perf', (e) => {
         if (e.detail?.cmd !== 'undock') return;
         const el = e.detail.content;
-        const id = el?.id || 'ravel-perf';
+        const id = el?.id || 'ravel-roll-perf';
         const lx = Math.round(parseFloat(el?.style?.left) || 0);
         const ly = Math.round(parseFloat(el?.style?.top)  || 0);
         addLog(`undock  ${id}  pos=(${lx}, ${ly})`, 'undock');
@@ -292,12 +292,12 @@
                 : '—';
             return `<tr><td>${a}</td><td class="attr-val">${val}</td></tr>`;
         }).join('');
-        addLog(`inspect ${el.id || 'ravel-perf'}`, 'select');
+        addLog(`inspect ${el.id || 'ravel-roll-perf'}`, 'select');
     }
 
     // ── Add note ─────────────────────────────────────────────
     document.getElementById('btn-add').addEventListener('click', () => {
-        const perf = document.createElement('ravel-perf');
+        const perf = document.createElement('ravel-roll-perf');
         perf.setAttribute('x',          document.getElementById('inp-x').value);
         perf.setAttribute('y',          document.getElementById('inp-y').value);
         perf.setAttribute('length',     document.getElementById('inp-length').value);
@@ -322,19 +322,19 @@
     // ── Global unit-width ─────────────────────────────────────
     document.getElementById('btn-apply-uw').addEventListener('click', () => {
         const uw = document.getElementById('inp-global-uw').value;
-        roll.querySelectorAll('ravel-perf').forEach(p => p.setAttribute('unit-width', uw));
+        roll.querySelectorAll('ravel-roll-perf').forEach(p => p.setAttribute('unit-width', uw));
         addLog(`unit-width → ${uw} (all notes)`);
     });
 
     // ── Global quantum ────────────────────────────────────────
     document.getElementById('btn-apply-q').addEventListener('click', () => {
         const q = document.getElementById('inp-global-q').value;
-        roll.querySelectorAll('ravel-perf').forEach(p => p.setAttribute('quantum', q));
+        roll.querySelectorAll('ravel-roll-perf').forEach(p => p.setAttribute('quantum', q));
         addLog(`quantum → ${q} (all notes)`);
     });
 
     document.getElementById('btn-quantize-all').addEventListener('click', () => {
-        roll.querySelectorAll('ravel-perf').forEach(p => {
+        roll.querySelectorAll('ravel-roll-perf').forEach(p => {
             if (p.id) window.dispatchEvent(new CustomEvent(p.id, { detail: { cmd: 'quantize' } }));
         });
         addLog('quantize all');
@@ -342,11 +342,11 @@
 
     // ── Select / unselect all ─────────────────────────────────
     document.getElementById('btn-select-all').addEventListener('click', () => {
-        roll.querySelectorAll('ravel-perf').forEach(p => p.setAttribute('selected', ''));
+        roll.querySelectorAll('ravel-roll-perf').forEach(p => p.setAttribute('selected', ''));
         addLog('select all', 'select');
     });
     document.getElementById('btn-unselect-all').addEventListener('click', () => {
-        roll.querySelectorAll('ravel-perf').forEach(p => p.removeAttribute('selected'));
+        roll.querySelectorAll('ravel-roll-perf').forEach(p => p.removeAttribute('selected'));
         addLog('unselect all');
     });
 </script>

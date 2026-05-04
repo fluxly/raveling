@@ -23,7 +23,7 @@ import { RavelElement } from '../../../../common/RavelElement';
  *   The left handle also shifts the x position so the right edge stays fixed.
  * - **Center area** — click to toggle selected; drag beyond threshold to move.
  *   On drag, broadcasts `{ cmd: 'undock', content: this }` on the `'ravel-perf'`
- *   channel so a parent dock container can respond.
+ *   channel (`'ravel-roll-perf'`) so a parent dock container can respond.
  *
  * ### Messages received (on `this.id` channel)
  * | cmd        | Behaviour               |
@@ -31,7 +31,7 @@ import { RavelElement } from '../../../../common/RavelElement';
  * | `select`   | Sets selected state     |
  * | `unselect` | Clears selected state   |
  */
-export class RavelPerf extends RavelElement {
+export class RavelRollPerf extends RavelElement {
 
     private static readonly localStyles = `
         :host {
@@ -50,11 +50,11 @@ export class RavelPerf extends RavelElement {
             width: 8px;
             flex-shrink: 0;
             cursor: ew-resize;
-            background: rgba(0, 0, 0, 0.22);
+            background: rgba(255, 255, 255, 0.18);
             transition: background 0.1s;
         }
         #left-handle:hover, #right-handle:hover {
-            background: rgba(0, 0, 0, 0.4);
+            background: rgba(255, 255, 255, 0.35);
         }
         #center-area {
             flex: 1;
@@ -136,10 +136,10 @@ export class RavelPerf extends RavelElement {
         super.initialize();
 
         const style = document.createElement('style');
-        style.textContent = RavelPerf.localStyles;
+        style.textContent = RavelRollPerf.localStyles;
         this.shadowRoot!.insertBefore(style, this.container);
 
-        this.container.innerHTML = RavelPerf.componentHtml;
+        this.container.innerHTML = RavelRollPerf.componentHtml;
         this.labelEl    = this.container.querySelector<HTMLElement>('#label')!;
         this.centerArea = this.container.querySelector<HTMLElement>('#center-area')!;
         this.leftHandle = this.container.querySelector<HTMLElement>('#left-handle')!;
@@ -155,8 +155,10 @@ export class RavelPerf extends RavelElement {
         }
 
         this.style.position = 'absolute';
-        this.style.left = `${this.x}px`;
-        this.style.top  = `${this.y}px`;
+        if (!this._docked) {
+            this.style.left = `${this.x}px`;
+            this.style.top  = `${this.y}px`;
+        }
 
         this._applyDimensions();
         this._applyColor();
@@ -289,16 +291,14 @@ export class RavelPerf extends RavelElement {
         const dx = e.clientX - this._centerAnchorX;
         const dy = e.clientY - this._centerAnchorY;
 
-        if (!this._dragActive && Math.hypot(dx, dy) > RavelPerf.DRAG_THRESHOLD) {
+        if (!this._dragActive && Math.hypot(dx, dy) > RavelRollPerf.DRAG_THRESHOLD) {
             this._dragActive = true;
-            this.broadcastMessage('ravel-perf', 'undock', this);
+            this.broadcastMessage('ravel-roll-perf', 'undock', this);
         }
 
         if (this._dragActive) {
-            this.x = this._centerStartLeft + dx;
-            this.y = this._centerStartTop  + dy;
-            this.style.left = `${this.x}px`;
-            this.style.top  = `${this.y}px`;
+            this.style.left = `${this._centerStartLeft + dx}px`;
+            this.style.top  = `${this._centerStartTop  + dy}px`;
         }
     };
 
@@ -344,7 +344,7 @@ export class RavelPerf extends RavelElement {
     attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
         super.attributeChangedCallback(name, oldValue, newValue);
 
-        if ((name === 'x' || name === 'y') && this.style.position) {
+        if ((name === 'x' || name === 'y') && this.style.position && !this._docked) {
             this.style.left = `${this.x}px`;
             this.style.top  = `${this.y}px`;
         }
