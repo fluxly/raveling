@@ -69,6 +69,9 @@ export class RavelRollTrack extends RavelElement {
     // All connected track instances — used to find the drop target on release.
     private static readonly _instances = new Set<RavelRollTrack>();
 
+    // Monotonic counter for auto-generated perf IDs.
+    private static _perfSeq = 0;
+
     // Active drag state, set when one of our perfs broadcasts undock.
     private static _drag: {
         perf: HTMLElement;
@@ -151,7 +154,8 @@ export class RavelRollTrack extends RavelElement {
     static get observedAttributes(): string[] {
         return [
             ...RavelElement.baseObservedAttributes,
-            'unit-width', 'quantum', 'h', 'label', 'tick', 'tick-mul',
+            'unit-width', 'quantum', 'h', 'label', 'color', 'tick', 'tick-mul',
+            'default-length', 'default-label',
         ];
     }
 
@@ -169,6 +173,13 @@ export class RavelRollTrack extends RavelElement {
     private _label = '';
     private _tick = 1;
     private _tickMul = 4;
+
+    // Track color — applied to all captured perfs
+    private _color = '#4488ff';
+
+    // Default perf parameters for shift+click insertion
+    private _defaultLength = 1;
+    private _defaultLabel  = '';
 
     // Internal model
 
@@ -199,12 +210,14 @@ export class RavelRollTrack extends RavelElement {
         this._renderTicks();
 
         this.slotEl.addEventListener('slotchange', this.handleSlotChange);
+        this.addEventListener('click', this.handleClick);
         window.addEventListener('ravel-roll-perf', this.handlePerfBroadcast);
     }
 
     protected teardown(): void {
         RavelRollTrack._instances.delete(this);
         this.slotEl.removeEventListener('slotchange', this.handleSlotChange);
+        this.removeEventListener('click', this.handleClick);
         window.removeEventListener('ravel-roll-perf', this.handlePerfBroadcast);
         super.teardown();
     }
@@ -242,6 +255,21 @@ export class RavelRollTrack extends RavelElement {
     dockPerf(perf: HTMLElement, unitPos: number): void {
         this._dockPerf(perf, unitPos);
     }
+
+    // ── Shift+click insertion ─────────────────────────────────
+
+    private handleClick = (e: MouseEvent): void => {
+        if (!e.shiftKey) return;
+        const rect    = this.getBoundingClientRect();
+        const rawUnit = (e.clientX - rect.left) / this._unitWidth;
+        const unitPos = this._quantize(rawUnit);
+
+        const perf = document.createElement('ravel-roll-perf') as HTMLElement;
+        perf.id    = `${this.id || 'track'}-perf-${++RavelRollTrack._perfSeq}`;
+        perf.setAttribute('length', String(this._defaultLength));
+        perf.setAttribute('label',  this._defaultLabel);
+        this._dockPerf(perf, unitPos);
+    };
 
     // ── Slot handling ─────────────────────────────────────────
 
@@ -307,6 +335,7 @@ export class RavelRollTrack extends RavelElement {
     /** Set all track-managed attributes and pixel position on a perf element. */
     private _initPerf(perf: HTMLElement, unitPos: number): void {
         perf.setAttribute('docked',     '');
+        perf.setAttribute('color',      this._color);
         perf.setAttribute('unit-width', String(this._unitWidth));
         perf.setAttribute('quantum',    String(this._quantum));
         perf.setAttribute('x',          String(unitPos));
@@ -397,6 +426,15 @@ export class RavelRollTrack extends RavelElement {
             case 'tick-mul':
                 this._tickMul = Math.max(1, Number(newValue) || 4);
                 if (this.ticksEl) this._renderTicks();
+                break;
+            case 'color':
+                this._color = newValue ?? '#4488ff';
+                break;
+            case 'default-length':
+                this._defaultLength = Math.max(Number(newValue) || 1, 0.001);
+                break;
+            case 'default-label':
+                this._defaultLabel = newValue ?? '';
                 break;
         }
     }
