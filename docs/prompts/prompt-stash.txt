@@ -28,3 +28,27 @@ There's an empty directory in gidgets/ for a ravel-roll-track element. This is a
     </ravel-roll-track>
 <ravel-roll>
 A ravel-roll-perf can be docked in a track manually or slotted as above (docked means the same as slotted in this context). When docked the track's x position will correspond to it's position on the timeline and should be quantized by the track. The track should maintain a model of the perfs it contains so the parent roll can later serialize the state of the track.
+
+RavelRoll
+
+Next can we make the ravel-roll element? This is a piano roll UI that is a wrapper for 87 ravel-roll-track elements, 
+representing the notes A0-B7. Let's make each track 20 pixels tall to start. Tracks can be arbitrarily long so the    
+roll should fill the width of its parent and side scroll (as well as vertial scroll). Let's populate the 87 tracks    
+(but let the number of tracks be set by attribute, default 87). Each track should have a different color; let's       
+start with this mapping, with B7 at the top of the roll:
+B: "#e00000"   
+C: "#ff18c1", 
+C#: "#ba0186",
+D: "#0e65e5",
+D#: "#009a9a",
+E: "#0afeff", 
+F: "#00ff00",
+F#: "#01b501",
+G: "#ea9f01", 
+G#: "#01b501",
+A: "#fe6810", 
+A#: "#bb7e01"
+ I'd like to add a keyboard image that I made as a hint on the left side. This would run from top to bottom of  
+  the roll along the left side. It is the image in web-components/custom-elements/images/piano-roll-keyboard.svg. It    
+  can be included using the ${RavelComponentPath} in the common directory. Add a show-keyboard attribute (true by       
+  default). 

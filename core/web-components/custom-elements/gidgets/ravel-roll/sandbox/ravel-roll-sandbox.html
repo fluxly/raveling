@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"/>
+    <title>ravel-roll Sandbox</title>
+    <script type="module" src="../ravel-roll.ts"></script>
+    <script type="module" src="../../ravel-roll-track/ravel-roll-track.ts"></script>
+    <script type="module" src="../../ravel-roll-perf/ravel-roll-perf.ts"></script>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; }
+        body {
+            background: #13131f;
+            color: #d0d0e8;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            font-size: 13px;
+            margin: 0;
+            padding: 16px;
+        }
+        h3 {
+            margin: 0 0 10px;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: #666688;
+        }
+        .panel {
+            background: #0d0d1e;
+            border: 1px solid #2a2a44;
+            border-radius: 8px;
+            padding: 14px 16px;
+            margin-bottom: 14px;
+        }
+        .row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: flex-end;
+        }
+        label {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            color: #8888aa;
+            font-size: 11px;
+        }
+        input[type="number"] {
+            background: #1a1a30;
+            border: 1px solid #3a3a5a;
+            border-radius: 4px;
+            color: #d0d0e8;
+            padding: 4px 8px;
+            font-size: 13px;
+            width: 76px;
+            outline: none;
+        }
+        button {
+            background: #3355cc;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            padding: 5px 14px;
+            font-size: 13px;
+            cursor: pointer;
+            height: 28px;
+        }
+        button:hover { background: #4466dd; }
+        button.ghost {
+            background: transparent;
+            border: 1px solid #3a3a5a;
+            color: #8888aa;
+        }
+        button.ghost:hover { border-color: #5577ff; color: #d0d0e8; }
+        #log {
+            height: 100px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 11px;
+            background: #08080f;
+            border: 1px solid #1e1e36;
+            border-radius: 4px;
+            padding: 6px 8px;
+        }
+        .log-line { padding: 1px 0; color: #4466aa; }
+        .log-line.add   { color: #66cc88; }
+        .log-line.move  { color: #ffaa44; }
+    </style>
+</head>
+<body>
+
+<h3>Piano Roll — shift+click a track to add a note, drag to move</h3>
+
+<ravel-roll id="roll" unit-width="60" quantum="1" track-h="20" tick="1" tick-mul="4" length="128" h="400"></ravel-roll>
+
+<div class="panel" style="margin-top:14px">
+    <h3>Controls</h3>
+    <div class="row">
+        <label>unit-width  <input type="number" id="inp-uw"  value="60"  min="10" step="10"></label>
+        <label>quantum     <input type="number" id="inp-q"   value="1"   min="0.001" step="0.5"></label>
+        <label>track-h     <input type="number" id="inp-th"  value="20"  min="8"  step="2"></label>
+        <label>tick         <input type="number" id="inp-tick" value="1"  min="0"  step="0.5"></label>
+        <label>tick-mul    <input type="number" id="inp-tmu" value="4"   min="1"  step="1"></label>
+        <label>length (units) <input type="number" id="inp-len" value="128" min="8" step="8"></label>
+        <label>height (px) <input type="number" id="inp-h"   value="400" min="100" step="50"></label>
+        <button id="btn-apply">Apply</button>
+    </div>
+</div>
+
+<div class="panel">
+    <h3>Event Log  <button class="ghost" id="btn-clear" style="font-size:11px;padding:2px 8px;height:auto;float:right">Clear</button></h3>
+    <div id="log"></div>
+</div>
+
+<script>
+    const roll   = document.getElementById('roll');
+    const logEl  = document.getElementById('log');
+
+    function addLog(text, cls = '') {
+        const d = document.createElement('div');
+        d.className = 'log-line ' + cls;
+        const t = new Date().toLocaleTimeString('en', { hour12: false });
+        d.textContent = `[${t}] ${text}`;
+        logEl.prepend(d);
+    }
+
+    document.getElementById('btn-clear').addEventListener('click', () => { logEl.innerHTML = ''; });
+
+    window.addEventListener('ravel-roll-track', (e) => {
+        if (e.detail?.cmd !== 'state-change') return;
+        const s = e.detail.content;
+        if (s.perfs.length) addLog(`${s.id}  perfs=${s.perfs.length}`, 'add');
+    });
+
+    window.addEventListener('ravel-roll-perf', (e) => {
+        if (e.detail?.cmd !== 'undock') return;
+        addLog(`drag  ${e.detail.content?.id || '?'}`, 'move');
+    });
+
+    document.getElementById('btn-apply').addEventListener('click', () => {
+        roll.setAttribute('unit-width', document.getElementById('inp-uw').value);
+        roll.setAttribute('quantum',    document.getElementById('inp-q').value);
+        roll.setAttribute('track-h',   document.getElementById('inp-th').value);
+        roll.setAttribute('tick',      document.getElementById('inp-tick').value);
+        roll.setAttribute('tick-mul',  document.getElementById('inp-tmu').value);
+        roll.setAttribute('length',    document.getElementById('inp-len').value);
+        roll.setAttribute('h',         document.getElementById('inp-h').value);
+    });
+</script>
+</body>
+</html>
