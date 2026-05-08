@@ -105,10 +105,10 @@ export class RavelAlert extends RavelElement {
     `;
 
     private static readonly COLOR_BG: Record<string, string> = {
-        red:    'rgba(162, 22, 22,  0.93)',
-        yellow: 'rgba(148, 100, 0,  0.93)',
-        green:  'rgba(18,  112, 54, 0.93)',
-        blue:   'rgba(20,  56,  168, 0.93)',
+        red:    'rgba(214, 28,  28,  0.93)',
+        yellow: 'rgba(196, 138, 0,   0.93)',
+        green:  'rgba(22,  160, 70,  0.93)',
+        blue:   'rgba(24,  72,  218, 0.93)',
     };
 
     static get observedAttributes(): string[] {
