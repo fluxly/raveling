@@ -104,15 +104,15 @@ export class RavelRollPerf extends RavelElement {
 
     // State
 
-    private _length = 4;
-    private _unitWidth = 50;
-    private _height = 40;
+    private _length = 8;
+    private _unitWidth = 2;
+    private _height = 20;
     private _label = '';
     private _color = '#4488ff';
     private _noClick = false;
     private _selected = false;
     private _docked = false;
-    private _quantum = 1;
+    private _quantum = 8;
 
     // Scale interaction
 
@@ -302,12 +302,16 @@ export class RavelRollPerf extends RavelElement {
         }
     };
 
-    private handleCenterUp = (): void => {
+    private handleCenterUp = (e: PointerEvent): void => {
         this.centerArea.classList.remove('grabbing');
         document.removeEventListener('pointermove', this.handleCenterMove);
         document.removeEventListener('pointerup',   this.handleCenterUp);
 
         if (!this._dragActive) {
+            if (e.metaKey) {
+                this.remove();
+                return;
+            }
             // drive through attribute so external setAttribute/removeAttribute stays in sync
             if (this.hasAttribute('selected')) {
                 this.removeAttribute('selected');

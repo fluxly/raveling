@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"/>
+    <title>ravel-sequence Sandbox</title>
+    <script type="module" src="../../ravel-card/ravel-card.ts"></script>
+    <script type="module" src="../ravel-sequence.ts"></script>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; }
+        html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; }
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            font-size: 13px;
+        }
+
+        /* ── Floating control panel ────────────────────────── */
+        #controls {
+            position: fixed;
+            top: 16px;
+            right: 16px;
+            z-index: 200;
+            background: #0d0d1eee;
+            border: 1px solid #2a2a44;
+            border-radius: 8px;
+            padding: 14px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            min-width: 260px;
+            backdrop-filter: blur(6px);
+            color: #d0d0e8;
+        }
+        h3 {
+            margin: 0 0 2px;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: #666688;
+        }
+        .row {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        label {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            color: #8888aa;
+            font-size: 11px;
+        }
+        input[type="color"] {
+            width: 40px; height: 26px;
+            padding: 2px 3px;
+            border: 1px solid #3a3a5a;
+            border-radius: 4px;
+            background: #1a1a30;
+            cursor: pointer;
+        }
+        input[type="text"], input[type="number"] {
+            background: #1a1a30;
+            border: 1px solid #3a3a5a;
+            border-radius: 4px;
+            color: #d0d0e8;
+            padding: 3px 7px;
+            font-size: 12px;
+            width: 70px;
+            outline: none;
+        }
+        input[type="text"] { width: 60px; }
+        select {
+            background: #1a1a30;
+            border: 1px solid #3a3a5a;
+            border-radius: 4px;
+            color: #d0d0e8;
+            padding: 3px 7px;
+            font-size: 12px;
+            outline: none;
+        }
+        button {
+            background: #3355cc;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            padding: 4px 12px;
+            font-size: 12px;
+            cursor: pointer;
+            height: 26px;
+        }
+        button:hover { background: #4466dd; }
+        hr { border: none; border-top: 1px solid #2a2a44; margin: 2px 0; }
+
+        /* ── Event log ─────────────────────────────────────── */
+        #log {
+            max-height: 80px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 11px;
+            background: #08080f;
+            border: 1px solid #1e1e36;
+            border-radius: 4px;
+            padding: 5px 7px;
+        }
+        .log-line { padding: 1px 0; color: #4466aa; }
+        .log-line.nav { color: #66ddaa; }
+    </style>
+</head>
+<body>
+
+<ravel-sequence id="seq" start="0" icon="✦">
+
+    <ravel-card color="#0a0a1a">
+        <h1 style="margin:0 0 16px; font-size:3rem; font-weight:200; letter-spacing:4px">Frame One</h1>
+        <p style="margin:0; font-size:1.1rem; color:rgba(255,255,255,0.55); max-width:420px; text-align:center; line-height:1.6">The first frame in the sequence. Use the buttons below to navigate forward.</p>
+    </ravel-card>
+
+    <ravel-card color="#0d1a0a">
+        <h1 style="margin:0 0 16px; font-size:3rem; font-weight:200; letter-spacing:4px">Frame Two</h1>
+        <p style="margin:0; font-size:1.1rem; color:rgba(255,255,255,0.55); max-width:420px; text-align:center; line-height:1.6">The second frame. The breadcrumbs and button states update automatically.</p>
+    </ravel-card>
+
+    <ravel-card color="#1a0a0d">
+        <h1 style="margin:0 0 16px; font-size:3rem; font-weight:200; letter-spacing:4px">Frame Three</h1>
+        <p style="margin:0; font-size:1.1rem; color:rgba(255,255,255,0.55); max-width:420px; text-align:center; line-height:1.6">Sequence position is tracked and broadcast on the <code style="color:#88aaff">ravel-sequence</code> channel.</p>
+    </ravel-card>
+
+    <ravel-card color="#0f0a1a">
+        <h1 style="margin:0 0 16px; font-size:3rem; font-weight:200; letter-spacing:4px">Frame Four</h1>
+        <p style="margin:0; font-size:1.1rem; color:rgba(255,255,255,0.55); max-width:420px; text-align:center; line-height:1.6">Jump to any frame via the <code style="color:#88aaff">index</code> attribute or start at any frame via <code style="color:#88aaff">start</code>.</p>
+    </ravel-card>
+
+    <ravel-card color="#1a150a">
+        <h1 style="margin:0 0 16px; font-size:3rem; font-weight:200; letter-spacing:4px">Frame Five</h1>
+        <p style="margin:0; font-size:1.1rem; color:rgba(255,255,255,0.55); max-width:420px; text-align:center; line-height:1.6">The last frame. The Next button is now disabled.</p>
+    </ravel-card>
+
+</ravel-sequence>
+
+<!-- ── Controls ───────────────────────────────────────────── -->
+<div id="controls">
+    <h3>ravel-sequence</h3>
+
+    <div class="row">
+        <label>prev-label  <input type="text"   id="inp-prev"    value="←"></label>
+        <label>next-label  <input type="text"   id="inp-next"    value="→"></label>
+        <label>icon        <input type="text"   id="inp-icon"    value="✦"></label>
+    </div>
+
+    <div class="row">
+        <label>btn color   <input type="color"  id="inp-btn-color"  value="#3355cc"></label>
+        <label>btn text    <input type="color"  id="inp-btn-text"   value="#ffffff"></label>
+        <label>btn radius  <input type="number" id="inp-btn-radius" value="6" min="0"></label>
+    </div>
+
+    <div class="row">
+        <label>bc style
+            <select id="inp-bc-style">
+                <option value="dots">dots</option>
+                <option value="numbers">numbers</option>
+            </select>
+        </label>
+        <label>bc color  <input type="color" id="inp-bc-color" value="#ffffff"></label>
+    </div>
+
+    <button id="btn-apply">Apply</button>
+
+    <hr>
+
+    <div class="row">
+        <label>jump to  <input type="number" id="inp-jump" value="0" min="0"></label>
+        <button id="btn-jump">Go</button>
+    </div>
+
+    <hr>
+    <h3>Event Log</h3>
+    <div id="log"></div>
+</div>
+
+<script>
+    const seq   = document.getElementById('seq');
+    const logEl = document.getElementById('log');
+
+    function addLog(text, cls = '') {
+        const d = document.createElement('div');
+        d.className = 'log-line ' + cls;
+        const t = new Date().toLocaleTimeString('en', { hour12: false });
+        d.textContent = `[${t}] ${text}`;
+        logEl.prepend(d);
+    }
+
+    window.addEventListener('ravel-sequence', (e) => {
+        if (e.detail?.cmd !== 'change') return;
+        const { index, total } = e.detail.content;
+        addLog(`frame  ${index + 1} / ${total}`, 'nav');
+    });
+
+    document.getElementById('btn-apply').addEventListener('click', () => {
+        seq.setAttribute('prev-label',        document.getElementById('inp-prev').value);
+        seq.setAttribute('next-label',        document.getElementById('inp-next').value);
+        seq.setAttribute('icon',              document.getElementById('inp-icon').value);
+        seq.setAttribute('button-color',      document.getElementById('inp-btn-color').value);
+        seq.setAttribute('button-text-color', document.getElementById('inp-btn-text').value);
+        seq.setAttribute('button-radius',     document.getElementById('inp-btn-radius').value);
+        seq.setAttribute('breadcrumb-style',  document.getElementById('inp-bc-style').value);
+        seq.setAttribute('breadcrumb-color',  document.getElementById('inp-bc-color').value);
+    });
+
+    document.getElementById('btn-jump').addEventListener('click', () => {
+        seq.setAttribute('index', document.getElementById('inp-jump').value);
+    });
+</script>
+</body>
+</html>

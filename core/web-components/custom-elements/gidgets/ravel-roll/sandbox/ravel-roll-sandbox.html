@@ -54,6 +54,16 @@
             width: 76px;
             outline: none;
         }
+        input[type="text"] {
+            background: #1a1a30;
+            border: 1px solid #3a3a5a;
+            border-radius: 4px;
+            color: #d0d0e8;
+            padding: 4px 8px;
+            font-size: 13px;
+            width: 260px;
+            outline: none;
+        }
         button {
             background: #3355cc;
             color: #fff;
@@ -90,19 +100,26 @@
 
 <h3>Piano Roll — shift+click a track to add a note, drag to move</h3>
 
-<ravel-roll id="roll" unit-width="60" quantum="1" track-h="20" tick="1" tick-mul="4" length="128" h="400"></ravel-roll>
+<ravel-roll id="roll" unit-width="2" quantum="8" track-h="20" tick="32" tick-mul="4" length="512" h="700"></ravel-roll>
 
 <div class="panel" style="margin-top:14px">
     <h3>Controls</h3>
     <div class="row">
-        <label>unit-width  <input type="number" id="inp-uw"  value="60"  min="10" step="10"></label>
-        <label>quantum     <input type="number" id="inp-q"   value="1"   min="0.001" step="0.5"></label>
+        <label>unit-width  <input type="number" id="inp-uw"  value="2"   min="1"  step="1"></label>
+        <label>quantum     <input type="number" id="inp-q"   value="8"   min="1"  step="1"></label>
         <label>track-h     <input type="number" id="inp-th"  value="20"  min="8"  step="2"></label>
-        <label>tick         <input type="number" id="inp-tick" value="1"  min="0"  step="0.5"></label>
+        <label>tick         <input type="number" id="inp-tick" value="32" min="0"  step="1"></label>
         <label>tick-mul    <input type="number" id="inp-tmu" value="4"   min="1"  step="1"></label>
-        <label>length (units) <input type="number" id="inp-len" value="128" min="8" step="8"></label>
+        <label>length (units) <input type="number" id="inp-len" value="512" min="8" step="8"></label>
         <label>height (px) <input type="number" id="inp-h"   value="400" min="100" step="50"></label>
         <button id="btn-apply">Apply</button>
+    </div>
+    <div class="row" style="margin-top:10px">
+        <label style="flex:1">onion-src (SVG path)
+            <input type="text" id="inp-onion" value="/tools/midi-sample-output.svg">
+        </label>
+        <button id="btn-onion">Load</button>
+        <button class="ghost" id="btn-onion-clear">Clear</button>
     </div>
 </div>
 
@@ -134,6 +151,16 @@
     window.addEventListener('ravel-roll-perf', (e) => {
         if (e.detail?.cmd !== 'undock') return;
         addLog(`drag  ${e.detail.content?.id || '?'}`, 'move');
+    });
+
+    document.getElementById('btn-onion').addEventListener('click', () => {
+        const src = document.getElementById('inp-onion').value.trim();
+        if (src) roll.setAttribute('onion-src', src);
+    });
+
+    document.getElementById('btn-onion-clear').addEventListener('click', () => {
+        document.getElementById('inp-onion').value = '';
+        roll.removeAttribute('onion-src');
     });
 
     document.getElementById('btn-apply').addEventListener('click', () => {

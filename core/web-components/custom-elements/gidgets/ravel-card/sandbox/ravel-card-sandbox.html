@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"/>
+    <title>ravel-card Sandbox</title>
+    <script type="module" src="../ravel-card.ts"></script>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; }
+        body {
+            margin: 0;
+            background: #13131f;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            font-size: 13px;
+            color: #d0d0e8;
+        }
+
+        /* ── Floating control panel ────────────────────────── */
+        #controls {
+            position: fixed;
+            top: 16px;
+            right: 16px;
+            z-index: 100;
+            background: #0d0d1eee;
+            border: 1px solid #2a2a44;
+            border-radius: 8px;
+            padding: 14px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            min-width: 220px;
+            backdrop-filter: blur(6px);
+        }
+        h3 {
+            margin: 0 0 4px;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: #666688;
+        }
+        .row {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        label {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            color: #8888aa;
+            font-size: 11px;
+        }
+        input[type="color"] {
+            width: 40px;
+            height: 26px;
+            padding: 2px 3px;
+            border: 1px solid #3a3a5a;
+            border-radius: 4px;
+            background: #1a1a30;
+            cursor: pointer;
+        }
+        input[type="text"] {
+            background: #1a1a30;
+            border: 1px solid #3a3a5a;
+            border-radius: 4px;
+            color: #d0d0e8;
+            padding: 3px 7px;
+            font-size: 12px;
+            width: 90px;
+            outline: none;
+        }
+        input[type="number"] {
+            background: #1a1a30;
+            border: 1px solid #3a3a5a;
+            border-radius: 4px;
+            color: #d0d0e8;
+            padding: 3px 7px;
+            font-size: 12px;
+            width: 60px;
+            outline: none;
+        }
+        button {
+            background: #3355cc;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            padding: 4px 12px;
+            font-size: 12px;
+            cursor: pointer;
+            height: 26px;
+        }
+        button:hover { background: #4466dd; }
+        button.ghost {
+            background: transparent;
+            border: 1px solid #3a3a5a;
+            color: #8888aa;
+        }
+        button.ghost:hover { border-color: #5577ff; color: #d0d0e8; }
+        .divider {
+            border: none;
+            border-top: 1px solid #2a2a44;
+            margin: 2px 0;
+        }
+    </style>
+</head>
+<body>
+
+<!-- ── Card under test ───────────────────────────────────── -->
+<ravel-card id="card">
+    <h1 style="margin:0 0 12px; font-weight:300; letter-spacing:2px">ravel-card</h1>
+    <p style="margin:0; opacity:0.5; font-size:1rem">Arbitrary HTML goes here</p>
+</ravel-card>
+
+<!-- ── Floating controls ─────────────────────────────────── -->
+<div id="controls">
+    <h3>ravel-card</h3>
+
+    <div class="row">
+        <label>bg color    <input type="color"  id="inp-color"      value="#000000"></label>
+        <label>text color  <input type="color"  id="inp-text-color" value="#ffffff"></label>
+    </div>
+
+    <div class="row">
+        <label>font-size   <input type="text"   id="inp-font-size"  value="2rem"></label>
+        <label>z-index     <input type="number" id="inp-z-index"    value="10" min="0" step="1"></label>
+    </div>
+
+    <button id="btn-apply">Apply</button>
+
+    <hr class="divider">
+
+    <h3>Slot content</h3>
+    <div class="row">
+        <button id="btn-add-text">Add paragraph</button>
+        <button class="ghost" id="btn-clear-slot">Clear</button>
+    </div>
+</div>
+
+<script>
+    const card = document.getElementById('card');
+
+    document.getElementById('btn-apply').addEventListener('click', () => {
+        card.setAttribute('color',      document.getElementById('inp-color').value);
+        card.setAttribute('text-color', document.getElementById('inp-text-color').value);
+        card.setAttribute('font-size',  document.getElementById('inp-font-size').value);
+        card.setAttribute('z-index',    document.getElementById('inp-z-index').value);
+    });
+
+    let paraCount = 0;
+    document.getElementById('btn-add-text').addEventListener('click', () => {
+        const p = document.createElement('p');
+        p.style.margin = '6px 0';
+        p.style.fontSize = '1rem';
+        p.style.opacity = '0.7';
+        p.textContent = `Added paragraph ${++paraCount}`;
+        card.appendChild(p);
+    });
+
+    document.getElementById('btn-clear-slot').addEventListener('click', () => {
+        card.innerHTML = '';
+        paraCount = 0;
+    });
+
+    // Wire up live color inputs
+    document.getElementById('inp-color').addEventListener('input', (e) => {
+        card.setAttribute('color', e.target.value);
+    });
+    document.getElementById('inp-text-color').addEventListener('input', (e) => {
+        card.setAttribute('text-color', e.target.value);
+    });
+</script>
+</body>
+</html>

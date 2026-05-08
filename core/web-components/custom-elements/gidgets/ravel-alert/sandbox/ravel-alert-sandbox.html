@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"/>
+    <title>ravel-alert Sandbox</title>
+    <script type="module" src="../ravel-alert.ts"></script>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; }
+        html, body {
+            margin: 0;
+            width: 100%;
+            height: 100%;
+            background: #0d0d1a;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            font-size: 13px;
+            color: #d0d0e8;
+            overflow: hidden;
+        }
+
+        /* ── Scenario grid ─────────────────────────────────── */
+        #stage {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 18px;
+        }
+        #stage h2 {
+            margin: 0 0 6px;
+            font-size: 1rem;
+            font-weight: 300;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: #44445a;
+        }
+        .scenario-row {
+            display: flex;
+            gap: 10px;
+        }
+        .scenario-btn {
+            border: none;
+            border-radius: 999px;
+            padding: 10px 24px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            font-family: inherit;
+            letter-spacing: 0.5px;
+            transition: filter 0.15s;
+        }
+        .scenario-btn:hover { filter: brightness(1.3); }
+        .scenario-btn.red    { background: rgba(162, 22, 22, 0.85);   color: #fff; }
+        .scenario-btn.yellow { background: rgba(148, 100, 0, 0.85);   color: #fff; }
+        .scenario-btn.green  { background: rgba(18, 112, 54, 0.85);   color: #fff; }
+        .scenario-btn.blue   { background: rgba(20, 56, 168, 0.85);   color: #fff; }
+
+        /* ── Floating control panel ────────────────────────── */
+        #controls {
+            position: fixed;
+            top: 16px;
+            right: 16px;
+            z-index: 200;
+            background: #0d0d1eee;
+            border: 1px solid #2a2a44;
+            border-radius: 8px;
+            padding: 14px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            min-width: 260px;
+            backdrop-filter: blur(6px);
+        }
+        h3 {
+            margin: 0 0 2px;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: #666688;
+        }
+        .row {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        label {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            color: #8888aa;
+            font-size: 11px;
+        }
+        input[type="text"] {
+            background: #1a1a30;
+            border: 1px solid #3a3a5a;
+            border-radius: 4px;
+            color: #d0d0e8;
+            padding: 3px 7px;
+            font-size: 12px;
+            width: 160px;
+            outline: none;
+        }
+        select {
+            background: #1a1a30;
+            border: 1px solid #3a3a5a;
+            border-radius: 4px;
+            color: #d0d0e8;
+            padding: 3px 7px;
+            font-size: 12px;
+            outline: none;
+        }
+        .check-row {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            color: #8888aa;
+            font-size: 11px;
+        }
+        .check-row label {
+            flex-direction: row;
+            align-items: center;
+            gap: 4px;
+        }
+        button.fire {
+            background: #3355cc;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            padding: 5px 14px;
+            font-size: 12px;
+            cursor: pointer;
+            height: 28px;
+        }
+        button.fire:hover { background: #4466dd; }
+        hr { border: none; border-top: 1px solid #2a2a44; margin: 2px 0; }
+
+        /* ── Event log ─────────────────────────────────────── */
+        #log {
+            max-height: 90px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 11px;
+            background: #08080f;
+            border: 1px solid #1e1e36;
+            border-radius: 4px;
+            padding: 5px 7px;
+        }
+        .log-line           { padding: 1px 0; color: #4466aa; }
+        .log-line.show      { color: #aaaaee; }
+        .log-line.cancel    { color: #ee8866; }
+        .log-line.ok        { color: #66ddaa; }
+        .log-line.continue  { color: #66ccff; }
+        .log-line.dissolve  { color: #888888; font-style: italic; }
+    </style>
+</head>
+<body>
+
+<!-- The alert element lives here; it floats above everything -->
+<ravel-alert id="alert"></ravel-alert>
+
+<!-- ── Scenario stage ──────────────────────────────────────── -->
+<div id="stage">
+    <h2>ravel-alert</h2>
+    <div class="scenario-row">
+        <button class="scenario-btn red"    data-color="red"    data-text="Something went wrong. Would you like to try again?" data-buttons="cancel,ok">Error</button>
+        <button class="scenario-btn yellow" data-color="yellow" data-text="This action may have unintended effects. Continue?" data-buttons="cancel,continue">Warning</button>
+        <button class="scenario-btn green"  data-color="green"  data-text="Operation completed successfully."                  data-buttons="ok">Success</button>
+        <button class="scenario-btn blue"   data-color="blue"   data-text="A new version is available. Update now?"            data-buttons="cancel,continue">Info</button>
+    </div>
+    <div class="scenario-row">
+        <button class="scenario-btn green"  data-color="green"  data-text="Changes saved."            data-interstitial="1" data-timeout="2000">Saved  2s</button>
+        <button class="scenario-btn blue"   data-color="blue"   data-text="Syncing with server…"      data-interstitial="1" data-timeout="3000">Sync  3s</button>
+        <button class="scenario-btn yellow" data-color="yellow" data-text="Reconnecting, please wait…" data-interstitial="1" data-timeout="5000">Reconnecting  5s</button>
+        <button class="scenario-btn red"    data-color="red"    data-text="Connection lost."           data-interstitial="1" data-timeout="4000">Error  4s</button>
+    </div>
+</div>
+
+<!-- ── Custom controls ─────────────────────────────────────── -->
+<div id="controls">
+    <h3>Custom alert</h3>
+
+    <label>message
+        <input type="text" id="inp-text" value="Are you sure you want to do this?">
+    </label>
+
+    <div class="row">
+        <label>color
+            <select id="inp-color">
+                <option value="blue">blue</option>
+                <option value="red">red</option>
+                <option value="yellow">yellow</option>
+                <option value="green">green</option>
+            </select>
+        </label>
+    </div>
+
+    <div class="check-row">
+        <span>buttons</span>
+        <label><input type="checkbox" id="chk-cancel"   value="cancel">   cancel</label>
+        <label><input type="checkbox" id="chk-ok"       value="ok" checked> ok</label>
+        <label><input type="checkbox" id="chk-continue" value="continue"> continue</label>
+    </div>
+
+    <div class="row">
+        <label style="flex-direction:row;align-items:center;gap:6px">
+            <input type="checkbox" id="chk-interstitial">
+            <span>interstitial</span>
+        </label>
+        <label>timeout (ms)
+            <input type="text" id="inp-timeout" value="3000" style="width:70px">
+        </label>
+    </div>
+
+    <button class="fire" id="btn-show">Show Alert</button>
+
+    <hr>
+    <h3>Event Log</h3>
+    <div id="log"></div>
+</div>
+
+<script>
+    const alertEl = document.getElementById('alert');
+    const logEl   = document.getElementById('log');
+
+    function addLog(text, cls = '') {
+        const d = document.createElement('div');
+        d.className = 'log-line ' + cls;
+        const t = new Date().toLocaleTimeString('en', { hour12: false });
+        d.textContent = `[${t}] ${text}`;
+        logEl.prepend(d);
+    }
+
+    function fireAlert(text, color, buttons) {
+        window.dispatchEvent(new CustomEvent('ravel-alert', {
+            detail: { cmd: 'show', content: { text, color, buttons } }
+        }));
+        addLog(`show  [${color}]  "${text.slice(0, 36)}${text.length > 36 ? '…' : ''}"`, 'show');
+    }
+
+    function fireInterstitial(text, color, timeout) {
+        window.dispatchEvent(new CustomEvent('ravel-alert', {
+            detail: { cmd: 'show', content: { text, color, interstitial: true, timeout } }
+        }));
+        addLog(`interstitial  [${color}]  ${timeout}ms  "${text}"`, 'show');
+    }
+
+    // Scenario buttons
+    document.querySelectorAll('.scenario-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            if (btn.dataset.interstitial) {
+                fireInterstitial(btn.dataset.text, btn.dataset.color, Number(btn.dataset.timeout));
+            } else {
+                fireAlert(btn.dataset.text, btn.dataset.color, btn.dataset.buttons.split(','));
+            }
+        });
+    });
+
+    // Custom alert
+    document.getElementById('btn-show').addEventListener('click', () => {
+        const text         = document.getElementById('inp-text').value;
+        const color        = document.getElementById('inp-color').value;
+        const interstitial = document.getElementById('chk-interstitial').checked;
+        const timeout      = Number(document.getElementById('inp-timeout').value) || 3000;
+        if (interstitial) {
+            fireInterstitial(text, color, timeout);
+        } else {
+            const buttons = ['cancel', 'ok', 'continue']
+                .filter(b => document.getElementById(`chk-${b}`).checked);
+            fireAlert(text, color, buttons);
+        }
+    });
+
+    // Response / dissolve log
+    window.addEventListener('ravel-alert', (e) => {
+        const { cmd, content } = e.detail ?? {};
+        if (cmd === 'response') addLog(`response  →  ${content.button}`, content.button);
+        if (cmd === 'dissolve') addLog('dissolved', 'dissolve');
+    });
+</script>
+</body>
+</html>

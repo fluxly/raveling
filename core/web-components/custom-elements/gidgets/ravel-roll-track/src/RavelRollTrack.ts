@@ -116,6 +116,7 @@ export class RavelRollTrack extends RavelElement {
             width: 100%;
             box-sizing: border-box;
             overflow: visible;
+            user-select: none;
         }
         #container {
             width: 100%;
@@ -123,6 +124,7 @@ export class RavelRollTrack extends RavelElement {
             position: relative;
             overflow: visible;
             box-sizing: border-box;
+            user-select: none;
             background: var(--ravel-track-bg, rgba(255, 255, 255, 0.04));
             border-bottom: 1px solid var(--ravel-track-border, rgba(255, 255, 255, 0.08));
         }
@@ -167,18 +169,18 @@ export class RavelRollTrack extends RavelElement {
 
     // State
 
-    private _unitWidth = 60;
-    private _quantum = 1;
-    private _height = 40;
+    private _unitWidth = 2;
+    private _quantum = 8;
+    private _height = 20;
     private _label = '';
-    private _tick = 1;
+    private _tick = 32;
     private _tickMul = 4;
 
     // Track color — applied to all captured perfs
     private _color = '#4488ff';
 
     // Default perf parameters for shift+click insertion
-    private _defaultLength = 1;
+    private _defaultLength = 16;
     private _defaultLabel  = '';
 
     // Internal model
@@ -210,6 +212,7 @@ export class RavelRollTrack extends RavelElement {
         this._renderTicks();
 
         this.slotEl.addEventListener('slotchange', this.handleSlotChange);
+        this.addEventListener('pointerdown', this.handlePointerDown);
         this.addEventListener('click', this.handleClick);
         window.addEventListener('ravel-roll-perf', this.handlePerfBroadcast);
     }
@@ -217,6 +220,7 @@ export class RavelRollTrack extends RavelElement {
     protected teardown(): void {
         RavelRollTrack._instances.delete(this);
         this.slotEl.removeEventListener('slotchange', this.handleSlotChange);
+        this.removeEventListener('pointerdown', this.handlePointerDown);
         this.removeEventListener('click', this.handleClick);
         window.removeEventListener('ravel-roll-perf', this.handlePerfBroadcast);
         super.teardown();
@@ -236,12 +240,13 @@ export class RavelRollTrack extends RavelElement {
                 // Compute current unit position from live pixel left.
                 const pixelLeft = parseFloat(el.style.left) || 0;
                 const startUnit = this._quantize(pixelLeft / this._unitWidth);
+                const lengthUnit = parseFloat(el.style.width) / this._unitWidth || 1;
                 return {
                     id:     el.id || '',
                     label:  el.getAttribute('label')  ?? '',
                     color:  el.getAttribute('color')  ?? '#4488ff',
                     start:  startUnit,
-                    length: parseFloat(el.getAttribute('length') ?? '1') || 1,
+                    length: lengthUnit,
                     quantum: this._quantum,
                 };
             }),
@@ -257,6 +262,10 @@ export class RavelRollTrack extends RavelElement {
     }
 
     // ── Shift+click insertion ─────────────────────────────────
+
+    private handlePointerDown = (e: PointerEvent): void => {
+        if (e.shiftKey) e.preventDefault();
+    };
 
     private handleClick = (e: MouseEvent): void => {
         if (!e.shiftKey) return;
