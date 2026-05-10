@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"/>
+    <title>Gifograf Setup</title>
+    <script type="module" src="../../core/web-components/custom-elements/gidgets/ravel-card/ravel-card.ts"></script>
+    <script type="module" src="../../core/web-components/custom-elements/gidgets/ravel-sequence/ravel-sequence.ts"></script>
+    <script type="module" src="../../core/web-components/custom-elements/gidgets/ravel-alert/ravel-alert.ts"></script>
+    <style>
+        @font-face {
+            font-family: 'GT-Maru-Bold';
+            font-weight: normal;
+            font-style: normal;
+            src: url('./GT-Maru-Bold.woff') format('woff');
+        }
+
+        *, *::before, *::after { box-sizing: border-box; }
+        html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; }
+        body { font-family: 'GT-Maru-Bold', 'Segoe UI', system-ui, sans-serif; }
+
+        /* ── Setup panel (form wrapper) ──────────────────────── */
+        .setup-panel {
+            width: 360px;
+            max-width: 90vw;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .panel-title {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 3.5px;
+            color: rgba(255, 255, 255, 0.22);
+            text-align: center;
+            padding-bottom: 4px;
+        }
+
+        /* ── Machine info box ────────────────────────────────── */
+        .mbox {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            border-radius: 14px;
+            padding: 14px 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 9px;
+        }
+        .mrow {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            gap: 12px;
+        }
+        .mlabel {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            color: rgba(255, 255, 255, 0.28);
+            flex-shrink: 0;
+        }
+        .mval {
+            font-family: monospace;
+            font-size: 0.82rem;
+            color: rgba(255, 255, 255, 0.72);
+            text-align: right;
+            word-break: break-all;
+        }
+        .mval.reg-yes { color: rgba(80, 220, 110, 0.9); }
+        .mval.reg-no  { color: rgba(255, 255, 255, 0.28); }
+
+        /* ── Form fields ─────────────────────────────────────── */
+        .field { display: flex; flex-direction: column; gap: 7px; }
+
+        .flabel {
+            font-size: 0.68rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: rgba(255, 255, 255, 0.32);
+        }
+
+        .finput {
+            background: rgba(255, 255, 255, 0.055);
+            border: 1px solid rgba(255, 255, 255, 0.09);
+            border-radius: 12px;
+            color: #ffffff;
+            padding: 12px 16px;
+            font-size: 1rem;
+            font-family: inherit;
+            outline: none;
+            width: 100%;
+            transition: border-color 0.2s;
+        }
+        .finput:focus       { border-color: rgba(255, 255, 255, 0.32); }
+        .finput::placeholder { color: rgba(255, 255, 255, 0.16); }
+
+        /* ── Password wrapper ────────────────────────────────── */
+        .pw-wrap { position: relative; }
+        .pw-wrap .finput { padding-right: 48px; }
+        #btn-eye {
+            position: absolute;
+            right: 13px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1.05rem;
+            padding: 0;
+            line-height: 1;
+            color: rgba(255, 255, 255, 0.3);
+            transition: color 0.15s;
+        }
+        #btn-eye:hover { color: rgba(255, 255, 255, 0.7); }
+
+        /* ── Pill buttons ────────────────────────────────────── */
+        .btn {
+            border: none;
+            border-radius: 999px;
+            padding: 14px 32px;
+            font-size: 1rem;
+            cursor: pointer;
+            font-family: inherit;
+            letter-spacing: 0.4px;
+            font-weight: 500;
+            width: 100%;
+            transition: filter 0.15s;
+        }
+        .btn:hover { filter: brightness(1.2); }
+        .btn-ghost {
+            background: rgba(255, 255, 255, 0.09);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            color: rgba(255, 255, 255, 0.65);
+        }
+        .btn-blue  { background: rgba(24, 72, 218, 0.92);  color: #fff; }
+        .btn-green { background: rgba(22, 160, 70, 0.92);  color: #fff; }
+
+        /* ── Connect card ────────────────────────────────────── */
+        #gifo-img {
+            width: 120px;
+            cursor: pointer;
+            transition: opacity 0.2s, transform 0.2s, filter 0.4s;
+            opacity: 0.82;
+            user-select: none;
+        }
+        #gifo-img:hover        { opacity: 1; transform: scale(1.04); }
+        #gifo-img.ble-on       { opacity: 1; filter: drop-shadow(0 0 18px rgba(80, 220, 110, 0.45)); }
+
+        #connect-status {
+            font-size: 0.95rem;
+            color: rgba(255, 255, 255, 0.28);
+            font-style: italic;
+            letter-spacing: 0.3px;
+            text-align: center;
+            transition: color 0.3s;
+            min-height: 1.4em;
+        }
+        #connect-status.ble-on {
+            color: rgba(80, 220, 110, 0.75);
+            font-style: normal;
+        }
+
+        #btn-connect { width: 180px; }
+    </style>
+</head>
+<body>
+
+<ravel-sequence id="seq" start="0" icon="📡"
+                prev-label="← Back" next-label="Next →"
+                breadcrumb-style="dots"
+                pill-bottom="5vh" pill-width="46%">
+
+    <!-- ══════════════════════════════════════════════════════
+         Frame 0 — Connect
+         ══════════════════════════════════════════════════════ -->
+    <ravel-card color="#08080f">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:28px">
+            <img id="gifo-img" src="gifo.png" alt="Gifograf" title="Tap to connect">
+            <div id="connect-status">Tap to connect via Bluetooth</div>
+            <button id="btn-connect" class="btn btn-ghost">Connect</button>
+        </div>
+    </ravel-card>
+
+    <!-- ══════════════════════════════════════════════════════
+         Frame 1 — WiFi Setup
+         ══════════════════════════════════════════════════════ -->
+    <ravel-card color="#08080f">
+        <div class="setup-panel">
+            <div class="panel-title">WiFi Setup</div>
+
+            <div id="mbox-wifi" class="mbox" style="display:none">
+                <div class="mrow">
+                    <span class="mlabel">Machine ID</span>
+                    <span class="mval" id="w-mid">—</span>
+                </div>
+                <div class="mrow">
+                    <span class="mlabel">Location</span>
+                    <span class="mval" id="w-loc">—</span>
+                </div>
+                <div class="mrow">
+                    <span class="mlabel">Registered</span>
+                    <span class="mval" id="w-reg">—</span>
+                </div>
+            </div>
+
+            <div class="field">
+                <div class="flabel">Network</div>
+                <input type="text"     id="ssid"     class="finput" placeholder="Network name" autocomplete="off">
+            </div>
+            <div class="field">
+                <div class="flabel">Password</div>
+                <div class="pw-wrap">
+                    <input type="password" id="password" class="finput" placeholder="Password" autocomplete="new-password">
+                    <button id="btn-eye" type="button" title="Show / hide password">👁</button>
+                </div>
+            </div>
+            <div class="field">
+                <div class="flabel">Location</div>
+                <input type="text"     id="location" class="finput" placeholder="e.g. library" autocomplete="off">
+            </div>
+
+            <button id="btn-apply" class="btn btn-blue">Apply WiFi Settings</button>
+        </div>
+    </ravel-card>
+
+    <!-- ══════════════════════════════════════════════════════
+         Frame 2 — Register
+         ══════════════════════════════════════════════════════ -->
+    <ravel-card color="#08080f">
+        <div class="setup-panel" style="align-items:center">
+            <div class="panel-title">Register Device</div>
+
+            <div class="mbox" style="width:100%">
+                <div class="mrow">
+                    <span class="mlabel">Machine ID</span>
+                    <span class="mval" id="r-mid">—</span>
+                </div>
+                <div class="mrow">
+                    <span class="mlabel">Location</span>
+                    <span class="mval" id="r-loc">—</span>
+                </div>
+                <div class="mrow">
+                    <span class="mlabel">Network</span>
+                    <span class="mval" id="r-net">—</span>
+                </div>
+                <div class="mrow">
+                    <span class="mlabel">Registered</span>
+                    <span class="mval" id="r-reg">—</span>
+                </div>
+            </div>
+
+            <button id="btn-register" class="btn btn-green">Register Device</button>
+        </div>
+    </ravel-card>
+
+</ravel-sequence>
+
+<ravel-alert id="ra"></ravel-alert>
+
+<script>
+    const SERVICE_UUID = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
+    const CMD_UUID     = 'a1b2c3d4-e5f6-7890-abcd-ef1234567891';
+    const RESP_UUID    = 'a1b2c3d4-e5f6-7890-abcd-ef1234567892';
+
+    const enc = new TextEncoder();
+    const dec = new TextDecoder();
+
+    let bleDevice = null, writeChr = null, readChr = null, pollTimer = null;
+
+    const seq         = document.getElementById('seq');
+    const gifoImg     = document.getElementById('gifo-img');
+    const statusEl    = document.getElementById('connect-status');
+    const btnConnect  = document.getElementById('btn-connect');
+    const ssidEl      = document.getElementById('ssid');
+    const pwEl        = document.getElementById('password');
+    const locEl       = document.getElementById('location');
+    const btnEye      = document.getElementById('btn-eye');
+    const btnApply    = document.getElementById('btn-apply');
+    const btnRegister = document.getElementById('btn-register');
+    const mboxWifi    = document.getElementById('mbox-wifi');
+
+    // ── Alert helpers ─────────────────────────────────────────────────────────
+
+    function showAlert(text, color, buttons) {
+        window.dispatchEvent(new CustomEvent('ravel-alert', {
+            detail: { cmd: 'show', content: { text, color, buttons } }
+        }));
+    }
+
+    function showProgress(text, color, timeout = 90000) {
+        window.dispatchEvent(new CustomEvent('ravel-alert', {
+            detail: { cmd: 'show', content: { text, color, interstitial: true, timeout } }
+        }));
+    }
+
+    function hideAlert() {
+        window.dispatchEvent(new CustomEvent('ravel-alert', { detail: { cmd: 'hide' } }));
+    }
+
+    // ── Machine info ──────────────────────────────────────────────────────────
+
+    function setMval(id, text) {
+        const el = document.getElementById(id);
+        if (el) el.textContent = text || '—';
+    }
+
+    function setReg(id, registered) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.textContent = registered ? '✓ yes' : 'no';
+        el.className   = 'mval ' + (registered ? 'reg-yes' : 'reg-no');
+    }
+
+    function applyMachineData(d) {
+        setMval('w-mid', d.machine_id);
+        setMval('w-loc', d.location);
+        setReg ('w-reg', d.registered);
+
+        setMval('r-mid', d.machine_id);
+        setMval('r-loc', d.location);
+        setMval('r-net', d.wifi_network);
+        setReg ('r-reg', d.registered);
+
+        if (d.location)      locEl.value  = d.location;
+        if (d.wifi_network)  ssidEl.value = d.wifi_network;
+        if (d.wifi_password) pwEl.value   = d.wifi_password;
+
+        mboxWifi.style.display = 'flex';
+    }
+
+    function tryParseMachineInfo(text) {
+        try {
+            const d = JSON.parse(text);
+            if (d.machine_id !== undefined) { applyMachineData(d); return true; }
+        } catch (_) {}
+        return false;
+    }
+
+    // ── Poll timer ────────────────────────────────────────────────────────────
+
+    function stopPoll() {
+        if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+    }
+
+    function startPoll(onResult) {
+        stopPoll();
+        pollTimer = setInterval(async () => {
+            if (!readChr) { stopPoll(); return; }
+            try {
+                const t = dec.decode(await readChr.readValue());
+                if (!t.startsWith('Applying') && !t.startsWith('Registering')) {
+                    stopPoll();
+                    onResult(t);
+                }
+            } catch (_) { stopPoll(); }
+        }, 3000);
+    }
+
+    // ── BLE Connect ───────────────────────────────────────────────────────────
+
+    function setConnectedUI(on) {
+        gifoImg.classList.toggle('ble-on', on);
+        statusEl.className   = on ? 'ble-on' : '';
+        statusEl.textContent = on ? 'Connected to Gifograf' : 'Tap to connect via Bluetooth';
+        btnConnect.textContent = on ? 'Disconnect' : 'Connect';
+    }
+
+    async function doConnect() {
+        if (bleDevice && bleDevice.gatt.connected) {
+            bleDevice.gatt.disconnect();
+            return;
+        }
+
+        try {
+            bleDevice = await navigator.bluetooth.requestDevice({
+                filters: [{ services: [SERVICE_UUID] }]
+            });
+        } catch (err) {
+            if (err.name !== 'NotFoundError') {
+                showAlert('Bluetooth error: ' + err.message, 'red', ['ok']);
+            }
+            return;
+        }
+
+        showProgress('Connecting to Gifograf…', 'blue', 30000);
+
+        bleDevice.addEventListener('gattserverdisconnected', () => {
+            stopPoll();
+            writeChr = readChr = null;
+            setConnectedUI(false);
+            mboxWifi.style.display = 'none';
+            hideAlert();
+            showAlert('Disconnected from Gifograf.', 'yellow', ['ok']);
+            seq.setAttribute('index', '0');
+        });
+
+        try {
+            const server  = await bleDevice.gatt.connect();
+            const service = await server.getPrimaryService(SERVICE_UUID);
+            writeChr = await service.getCharacteristic(CMD_UUID);
+            readChr  = await service.getCharacteristic(RESP_UUID);
+
+            tryParseMachineInfo(dec.decode(await readChr.readValue()));
+
+            hideAlert();
+            setConnectedUI(true);
+            setTimeout(() => seq.setAttribute('index', '1'), 380);
+
+        } catch (err) {
+            hideAlert();
+            writeChr = readChr = null;
+            showAlert('Connection failed: ' + err.message, 'red', ['ok']);
+        }
+    }
+
+    // ── Apply WiFi ────────────────────────────────────────────────────────────
+
+    async function doApplyWifi() {
+        if (!writeChr) {
+            showAlert('Not connected — connect via Bluetooth first.', 'yellow', ['ok']);
+            return;
+        }
+
+        try {
+            await writeChr.writeValueWithResponse(enc.encode(JSON.stringify({
+                command:  'wifi',
+                ssid:     ssidEl.value.trim(),
+                password: pwEl.value,
+                location: locEl.value.trim(),
+            })));
+
+            const text = dec.decode(await readChr.readValue());
+
+            if (text.startsWith('Applying')) {
+                showProgress('Applying WiFi settings…', 'yellow', 90000);
+                startPoll(result => {
+                    hideAlert();
+                    if (result.startsWith('OK')) {
+                        showAlert(result, 'green', ['ok']);
+                        readChr.readValue()
+                            .then(v => tryParseMachineInfo(dec.decode(v)))
+                            .catch(() => {});
+                    } else {
+                        showAlert(result, 'red', ['ok']);
+                    }
+                });
+            } else if (text.startsWith('OK')) {
+                showAlert(text, 'green', ['ok']);
+            } else {
+                showAlert(text, 'red', ['ok']);
+            }
+        } catch (err) {
+            hideAlert();
+            showAlert('Error: ' + err.message, 'red', ['ok']);
+        }
+    }
+
+    // ── Register ──────────────────────────────────────────────────────────────
+
+    async function doRegister() {
+        if (!writeChr) {
+            showAlert('Not connected — connect via Bluetooth first.', 'yellow', ['ok']);
+            return;
+        }
+
+        try {
+            await writeChr.writeValueWithResponse(
+                enc.encode(JSON.stringify({ command: 'register' }))
+            );
+
+            const text = dec.decode(await readChr.readValue());
+
+            if (text.startsWith('Registering')) {
+                showProgress('Registering device…', 'blue', 120000);
+                startPoll(result => {
+                    hideAlert();
+                    if (result.startsWith('OK')) {
+                        showAlert('Device registered successfully.', 'green', ['ok']);
+                        readChr.readValue()
+                            .then(v => tryParseMachineInfo(dec.decode(v)))
+                            .catch(() => {});
+                    } else {
+                        showAlert(result, 'red', ['ok']);
+                    }
+                });
+            } else if (text.startsWith('OK')) {
+                showAlert('Device registered successfully.', 'green', ['ok']);
+            } else {
+                showAlert(text, 'red', ['ok']);
+            }
+        } catch (err) {
+            hideAlert();
+            showAlert('Error: ' + err.message, 'red', ['ok']);
+        }
+    }
+
+    // ── Wiring ────────────────────────────────────────────────────────────────
+
+    gifoImg.addEventListener('click', doConnect);
+    btnConnect.addEventListener('click', doConnect);
+    btnApply.addEventListener('click', doApplyWifi);
+    btnRegister.addEventListener('click', doRegister);
+
+    btnEye.addEventListener('click', () => {
+        const show = pwEl.type === 'text';
+        pwEl.type = show ? 'password' : 'text';
+        btnEye.textContent = show ? '👁' : '🙈';
+    });
+</script>
+</body>
+</html>
