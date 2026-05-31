@@ -15,6 +15,7 @@
   ],
   "scripts": {
     "build": "vite build",
+    "build:gifograf": "vite build --config projects/gifograf-setup-tool/vite.config.ts",
     "dev": "vite",
     "typecheck": "tsc --noEmit"
   },

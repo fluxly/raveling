@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gifograf Console</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: #f0f0f0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 24px;
+        }
+
+        /* ---- Gadget shell (mirrors RavelGadget container style) ---------- */
+        .gadget {
+            background: #fff;
+            max-width: 500px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 32px 28px 24px;
+            gap: 20px;
+            border: 10px solid #111111;
+            transition: border-color 0.3s;
+        }
+        .gadget.connected  { border-color: #00e000; }
+        .gadget.error-state { border-color: #e00000; }
+
+        /* ---- Connect icon ------------------------------------------------ */
+        #connect-icon {
+            font-size: 48px;
+            width: 70px;
+            height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            user-select: none;
+            border-radius: 50%;
+            transition: background 0.15s;
+        }
+        #connect-icon:hover { background: #f4f4f4; }
+
+        /* ---- Status line ------------------------------------------------- */
+        #status {
+            font-size: 13px;
+            color: #888;
+            text-align: center;
+        }
+        #status.connected { color: #00a000; font-weight: 600; }
+        #status.errored   { color: #c00000; }
+
+        /* ---- Form -------------------------------------------------------- */
+        form {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        label {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #444;
+            letter-spacing: 0.03em;
+        }
+
+        input[type="text"], input[type="password"] {
+            padding: 10px 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 15px;
+            outline: none;
+            transition: border-color 0.2s;
+            width: 100%;
+        }
+        input[type="text"]:focus { border-color: #4a90e2; }
+        input[type="text"]:disabled { background: #f8f8f8; color: #aaa; }
+        input[type="password"]:focus { border-color: #4a90e2; }
+        input[type="password"]:disabled { background: #f8f8f8; color: #aaa; }
+
+        .password-wrapper {
+            position: relative;
+        }
+        .password-wrapper input {
+            padding-right: 42px;
+        }
+        #toggle-password {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+            padding: 0;
+            line-height: 1;
+            color: #aaa;
+            transition: color 0.15s;
+        }
+        #toggle-password:hover { color: #555; }
+        #toggle-password:disabled { opacity: 0.3; cursor: not-allowed; }
+
+        #submit-btn {
+            margin-top: 4px;
+            padding: 12px;
+            background: #4a90e2;
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s, opacity 0.2s;
+            width: 100%;
+        }
+        #submit-btn:hover:not(:disabled) { background: #2c72c8; }
+        #submit-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        /* ---- Response area ----------------------------------------------- */
+        #response {
+            width: 100%;
+            padding: 11px 13px;
+            background: #f8f8f8;
+            border: 2px solid #e8e8e8;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 13px;
+            color: #555;
+            min-height: 42px;
+            word-break: break-all;
+            transition: border-color 0.2s, color 0.2s;
+        }
+        #response.ok      { border-color: #00cc00; color: #007700; }
+        #response.error   { border-color: #cc0000; color: #aa0000; }
+        #response.pending { border-color: #f0a000; color: #996600; }
+
+        /* ---- Machine info banner ----------------------------------------- */
+        #machine-info {
+            width: 100%;
+            padding: 10px 14px;
+            background: #f0f6ff;
+            border: 2px solid #c8daf8;
+            border-radius: 10px;
+            display: none;
+        }
+        #machine-info.visible { display: block; }
+        .machine-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            color: #444;
+            padding: 3px 0;
+        }
+        .machine-label { font-weight: 600; color: #666; }
+        .machine-value { font-family: monospace; color: #222; word-break: break-all; }
+
+        /* ---- Button row -------------------------------------------------- */
+        .btn-row {
+            display: flex;
+            gap: 10px;
+            margin-top: 4px;
+        }
+        #refresh-btn {
+            flex: 0 0 auto;
+            padding: 12px 16px;
+            background: #eee;
+            color: #444;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s, opacity 0.2s;
+        }
+        #refresh-btn:hover:not(:disabled) { background: #ddd; }
+        #refresh-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        /* ---- Register button --------------------------------------------- */
+        #register-btn {
+            width: 100%;
+            padding: 12px;
+            background: #2e7d32;
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s, opacity 0.2s;
+        }
+        #register-btn:hover:not(:disabled) { background: #1b5e20; }
+        #register-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        /* ---- Signal indicators (mirrors RavelGadget local-controls) ------ */
+        #indicators {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+            color: #888;
+            padding: 10px 14px;
+            border: 5px solid #eee;
+            border-radius: 20px;
+            position: relative;
+            bottom: -12px;
+        }
+        .indicator { display: flex; align-items: center; gap: 6px; }
+        .dot {
+            width: 11px; height: 11px;
+            border-radius: 50%;
+            background: #ddd;
+            transition: background 0.1s;
+        }
+        .dot.active { background: #00cc00; }
+        .dot.error  { background: #cc0000; }
+        
+        #gifo-icon {
+            width: 100px;
+            
+        }
+    </style>
+</head>
+<body>
+
+<div class="gadget" id="gadget">
+
+    <div id="connect-icon" title="Click to connect / disconnect"><img id="gifo-icon" src="gifo.png"/></div>
+
+    <div id="status">Click to connect via Bluetooth</div>
+
+    <div id="machine-info">
+        <div class="machine-row">
+            <span class="machine-label">Machine ID</span>
+            <span class="machine-value" id="machine-id-val">—</span>
+        </div>
+        <div class="machine-row">
+            <span class="machine-label">Location</span>
+            <span class="machine-value" id="machine-location-val">—</span>
+        </div>
+        <div class="machine-row">
+            <span class="machine-label">Registered</span>
+            <span class="machine-value" id="machine-registered-val">—</span>
+        </div>
+    </div>
+
+    <form id="cmd-form" autocomplete="off">
+        <label>
+            WiFi Network
+            <input type="text" id="ssid" placeholder="Network name" disabled required>
+        </label>
+        <label>
+            WiFi Password
+            <div class="password-wrapper">
+                <input type="password" id="password" placeholder="Password" disabled>
+                <button type="button" id="toggle-password" disabled title="Show / hide password">👁</button>
+            </div>
+        </label>
+        <label>
+            Location
+            <input type="text" id="location" placeholder="e.g. library" disabled>
+        </label>
+        <div class="btn-row">
+            <button type="submit" id="submit-btn" disabled>Apply WiFi Settings</button>
+            <button type="button" id="refresh-btn" disabled title="Re-read response">↻</button>
+        </div>
+    </form>
+
+    <button type="button" id="register-btn" disabled>Register Device</button>
+
+    <div id="response">—</div>
+
+    <div id="indicators">
+        <div class="indicator"><div class="dot" id="dot-tx"></div> sent</div>
+        <div class="indicator"><div class="dot" id="dot-rx"></div> received</div>
+    </div>
+
+</div>
+
+<script>
+    const SERVICE_UUID = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
+    const CMD_UUID     = 'a1b2c3d4-e5f6-7890-abcd-ef1234567891';
+    const RESP_UUID    = 'a1b2c3d4-e5f6-7890-abcd-ef1234567892';
+
+    const encoder = new TextEncoder();
+    const decoder = new TextDecoder();
+
+    let bleDevice           = null;
+    let writeCharacteristic = null;
+    let readCharacteristic  = null;
+
+    const gadget          = document.getElementById('gadget');
+    const icon            = document.getElementById('connect-icon');
+    const statusEl        = document.getElementById('status');
+    const machineInfo     = document.getElementById('machine-info');
+    const machineIdEl     = document.getElementById('machine-id-val');
+    const machineLocEl    = document.getElementById('machine-location-val');
+    const machineRegEl    = document.getElementById('machine-registered-val');
+    const form            = document.getElementById('cmd-form');
+    const ssidInput       = document.getElementById('ssid');
+    const passwordInput   = document.getElementById('password');
+    const locationInput   = document.getElementById('location');
+    const submitBtn          = document.getElementById('submit-btn');
+    const refreshBtn         = document.getElementById('refresh-btn');
+    const registerBtn        = document.getElementById('register-btn');
+    const togglePasswordBtn  = document.getElementById('toggle-password');
+    const responseEl      = document.getElementById('response');
+    const dotTx           = document.getElementById('dot-tx');
+    const dotRx           = document.getElementById('dot-rx');
+
+    function flash(dot, cls = 'active') {
+        dot.classList.add(cls);
+        setTimeout(() => dot.classList.remove(cls), 350);
+    }
+
+    function setConnected(connected) {
+        gadget.classList.toggle('connected', connected);
+        gadget.classList.remove('error-state');
+        statusEl.className = connected ? 'connected' : '';
+        statusEl.textContent = connected
+            ? 'Connected to Gifograf'
+            : 'Click to connect via Bluetooth';
+        [ssidInput, passwordInput, locationInput, submitBtn, refreshBtn, registerBtn, togglePasswordBtn]
+            .forEach(el => el.disabled = !connected);
+        if (!connected) machineInfo.classList.remove('visible');
+    }
+
+    let _pollTimer = null;
+
+    function stopPolling() {
+        if (_pollTimer) { clearInterval(_pollTimer); _pollTimer = null; }
+    }
+
+    function showResponse(text) {
+        responseEl.textContent = text;
+        responseEl.className =
+            text.startsWith('OK')          ? 'ok'
+          : text.startsWith('ERROR')       ? 'error'
+          : text.startsWith('Applying')    ? 'pending'
+          : text.startsWith('Registering') ? 'pending'
+          : '';
+        flash(dotRx);
+        // Auto-poll while the server is still applying settings or registering
+        if (text.startsWith('Applying') || text.startsWith('Registering')) {
+            if (!_pollTimer) {
+                _pollTimer = setInterval(async () => {
+                    if (!readCharacteristic) { stopPolling(); return; }
+                    try {
+                        const value = await readCharacteristic.readValue();
+                        const t = decoder.decode(value);
+                        if (!t.startsWith('Applying')) {
+                            stopPolling();
+                            showResponse(t);
+                        }
+                    } catch (_) { stopPolling(); }
+                }, 3000);
+            }
+        } else {
+            stopPolling();
+        }
+    }
+
+    // Try to parse machine info JSON; returns true if recognised.
+    function tryParseMachineInfo(text) {
+        try {
+            const data = JSON.parse(text);
+            if (data.machine_id !== undefined) {
+                machineIdEl.textContent  = data.machine_id || '—';
+                machineLocEl.textContent = data.location   || '—';
+                machineRegEl.textContent = data.registered ? '✓ yes' : 'no';
+                machineRegEl.style.color = data.registered ? '#007700' : '#888';
+                machineInfo.classList.add('visible');
+                if (data.location)     locationInput.value = data.location;
+                if (data.wifi_network) ssidInput.value     = data.wifi_network;
+                if (data.wifi_password) passwordInput.value = data.wifi_password;
+                return true;
+            }
+        } catch (_) {}
+        return false;
+    }
+
+    function onDisconnected() {
+        stopPolling();
+        writeCharacteristic = null;
+        readCharacteristic  = null;
+        setConnected(false);
+        showResponse('Disconnected');
+    }
+
+    icon.addEventListener('click', async () => {
+        if (bleDevice && bleDevice.gatt.connected) {
+            bleDevice.gatt.disconnect();
+            return;
+        }
+
+        statusEl.textContent = 'Scanning…';
+        statusEl.className   = '';
+
+        try {
+            bleDevice = await navigator.bluetooth.requestDevice({
+                filters: [{ services: [SERVICE_UUID] }],
+                // acceptAllDevices: true,
+            });
+
+            bleDevice.addEventListener('gattserverdisconnected', onDisconnected);
+
+            const server  = await bleDevice.gatt.connect();
+            const service = await server.getPrimaryService(SERVICE_UUID);
+
+            writeCharacteristic = await service.getCharacteristic(CMD_UUID);
+            readCharacteristic  = await service.getCharacteristic(RESP_UUID);
+
+            // Read machine info on connect
+            const initial = await readCharacteristic.readValue();
+            const text    = decoder.decode(initial);
+            if (!tryParseMachineInfo(text)) showResponse(text);
+
+            setConnected(true);
+
+        } catch (err) {
+            gadget.classList.add('error-state');
+            statusEl.className   = 'errored';
+            statusEl.textContent = 'Connection failed: ' + err.message;
+            writeCharacteristic  = null;
+        }
+    });
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (!writeCharacteristic) return;
+
+        const payload = JSON.stringify({
+            command:  'wifi',
+            ssid:     ssidInput.value,
+            password: passwordInput.value,
+            location: locationInput.value,
+        });
+
+        try {
+            await writeCharacteristic.writeValueWithResponse(
+                encoder.encode(payload)
+            );
+            flash(dotTx);
+            const response = await readCharacteristic.readValue();
+            showResponse(decoder.decode(response));
+        } catch (err) {
+            showResponse('ERROR: ' + err.message);
+            flash(dotTx, 'error');
+        }
+    });
+
+    registerBtn.addEventListener('click', async () => {
+        if (!writeCharacteristic) return;
+        try {
+            await writeCharacteristic.writeValueWithResponse(
+                encoder.encode(JSON.stringify({ command: 'register' }))
+            );
+            flash(dotTx);
+            const response = await readCharacteristic.readValue();
+            showResponse(decoder.decode(response));
+        } catch (err) {
+            showResponse('ERROR: ' + err.message);
+            flash(dotTx, 'error');
+        }
+    });
+
+    togglePasswordBtn.addEventListener('click', () => {
+        const showing = passwordInput.type === 'text';
+        passwordInput.type = showing ? 'password' : 'text';
+        togglePasswordBtn.textContent = showing ? '👁' : '🙈';
+    });
+
+    // Re-read response characteristic (useful while wifi is being applied)
+    refreshBtn.addEventListener('click', async () => {
+        if (!readCharacteristic) return;
+        try {
+            const value = await readCharacteristic.readValue();
+            showResponse(decoder.decode(value));
+            flash(dotRx);
+        } catch (err) {
+            showResponse('ERROR: ' + err.message);
+        }
+    });
+</script>
+
+</body>
+</html>

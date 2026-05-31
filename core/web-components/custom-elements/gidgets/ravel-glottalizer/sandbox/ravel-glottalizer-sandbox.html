@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"/>
+    <title>ravel-glottalizer Sandbox</title>
+    <script type="module" src="../ravel-glottalizer.ts"></script>
+    <script type="module" src="../../pink-trombone/pink-trombone.ts"></script>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; }
+        body {
+            background: #0a0a18;
+            color: #c0c0d8;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            font-size: 13px;
+            margin: 0;
+            padding: 20px;
+        }
+        h3 {
+            margin: 0 0 12px;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: #444460;
+        }
+        .panel {
+            background: #07070f;
+            border: 1px solid #1c1c30;
+            border-radius: 8px;
+            padding: 16px 18px;
+            margin-bottom: 14px;
+        }
+        /* ── Elements stage ────────────────────── */
+        #stage {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 24px;
+            align-items: flex-start;
+        }
+        .stage-col {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            align-items: flex-start;
+        }
+        .stage-label {
+            font-size: 10px;
+            color: #333355;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        /* ── Arrow connector ───────────────────── */
+        .connector {
+            display: flex;
+            align-items: center;
+            font-size: 20px;
+            color: #333355;
+            padding-top: 50px;
+        }
+        /* ── Controls ──────────────────────────── */
+        .row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .row:last-child { margin-bottom: 0; }
+        button {
+            background: #1e2a66;
+            color: #aabbdd;
+            border: none;
+            border-radius: 5px;
+            padding: 6px 16px;
+            font-size: 12px;
+            cursor: pointer;
+            font-family: inherit;
+        }
+        button:hover { background: #283888; }
+        button.active {
+            background: #7a2010;
+            color: #ffaa88;
+        }
+        button.active:hover { background: #963220; }
+        button.ghost {
+            background: transparent;
+            border: 1px solid #222236;
+            color: #444466;
+        }
+        button.ghost:hover { border-color: #3344aa; color: #8899cc; }
+        /* ── Checklist ─────────────────────────── */
+        .checklist {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            font-size: 12px;
+        }
+        .check-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            line-height: 1.4;
+        }
+        .check-icon { flex-shrink: 0; font-size: 13px; }
+        .check-text { color: #666688; }
+        .check-code {
+            font-family: monospace;
+            font-size: 11px;
+            background: #0e0e1e;
+            border: 1px solid #222244;
+            border-radius: 3px;
+            padding: 1px 5px;
+            color: #8899bb;
+        }
+        /* ── Event log ─────────────────────────── */
+        #log {
+            height: 130px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 11px;
+            background: #04040c;
+            border: 1px solid #141428;
+            border-radius: 4px;
+            padding: 6px 8px;
+        }
+        .log-line          { padding: 1px 0; color: #25253a; }
+        .log-line.info     { color: #334488; }
+        .log-line.ready    { color: #336644; }
+        .log-line.params   { color: #554422; }
+        .log-line.error    { color: #773333; }
+        .log-line.synth    { color: #3a4488; }
+    </style>
+</head>
+<body>
+
+<!-- ── Pre-flight checklist ──────────────────────────────────────────── -->
+<div class="panel">
+    <h3>Setup checklist</h3>
+    <div class="checklist">
+        <div class="check-item">
+            <span class="check-icon" id="chk-wasm-icon">⬜</span>
+            <span class="check-text" id="chk-wasm-text">
+                libpd WASM built — run
+                <span class="check-code">bash core/libs/libpd-wasm/build.sh</span>
+                (requires Emscripten SDK)
+            </span>
+        </div>
+        <div class="check-item">
+            <span class="check-icon" id="chk-patch-icon">⬜</span>
+            <span class="check-text" id="chk-patch-text">
+                Pd patch present —
+                <span class="check-code">core/libs/libpd-wasm/feral-vocaloid.pd</span>
+            </span>
+        </div>
+        <div class="check-item">
+            <span class="check-icon">ℹ️</span>
+            <span class="check-text">
+                The patch must send floats to:
+                <span class="check-code">out-frequency</span>
+                <span class="check-code">out-tenseness</span>
+                <span class="check-code">out-intensity</span>
+                <span class="check-code">out-loudness</span>
+                <span class="check-code">out-tongue-index</span>
+                <span class="check-code">out-tongue-diameter</span>
+            </span>
+        </div>
+    </div>
+</div>
+
+<!-- ── Elements ──────────────────────────────────────────────────────── -->
+<div class="panel">
+    <h3>Live pipeline</h3>
+    <div id="stage">
+        <div class="stage-col">
+            <span class="stage-label">Analyzer</span>
+            <ravel-glottalizer id="glottalizer" w="300" h="220"></ravel-glottalizer>
+        </div>
+
+        <div class="connector" title="params forwarded automatically to ravel-pink-trombone">→</div>
+
+        <div class="stage-col">
+            <span class="stage-label">Synthesizer</span>
+            <ravel-pink-trombone id="trombone" w="340" h="140"></ravel-pink-trombone>
+        </div>
+    </div>
+</div>
+
+<!-- ── Transport ─────────────────────────────────────────────────────── -->
+<div class="panel">
+    <h3>Transport</h3>
+    <div class="row">
+        <button id="btn-start">🎤 Start Mic + Analysis</button>
+        <button id="btn-stop" class="ghost">Stop</button>
+        <button id="btn-synth" class="ghost">▶ Start Synthesizer</button>
+        <button id="btn-clear-log" class="ghost" style="margin-left:auto">Clear Log</button>
+    </div>
+    <div class="row" style="font-size:11px; color:#333355; margin-top:4px;">
+        Glottalizer broadcasts params to <code style="font-size:10px; color:#445577">ravel-pink-trombone</code>
+        automatically via the <code style="font-size:10px; color:#445577">broadcast-to</code> attribute.
+    </div>
+</div>
+
+<!-- ── Event log ─────────────────────────────────────────────────────── -->
+<div class="panel">
+    <h3>Event Log</h3>
+    <div id="log"></div>
+</div>
+
+<script>
+    const glottalizer = document.getElementById('glottalizer');
+    const trombone    = document.getElementById('trombone');
+    const log         = document.getElementById('log');
+
+    // ── Pre-flight checks ───────────────────────────────────────────────
+    async function checkSetup() {
+        // Check WASM
+        try {
+            const r = await fetch('/libs/libpd-glottalizer.js', { method: 'HEAD' });
+            if (r.ok) {
+                document.getElementById('chk-wasm-icon').textContent = '✅';
+                document.getElementById('chk-wasm-text').style.color = '#447766';
+            } else throw new Error();
+        } catch {
+            document.getElementById('chk-wasm-icon').textContent = '❌';
+            document.getElementById('chk-wasm-text').style.color = '#774444';
+        }
+
+        // Check patch
+        try {
+            const r = await fetch('/core/libs/libpd-wasm/feral-vocaloid.pd', { method: 'HEAD' });
+            if (r.ok) {
+                document.getElementById('chk-patch-icon').textContent = '✅';
+                document.getElementById('chk-patch-text').style.color = '#447766';
+            } else throw new Error();
+        } catch {
+            document.getElementById('chk-patch-icon').textContent = '❌';
+            document.getElementById('chk-patch-text').style.color = '#774444';
+        }
+    }
+    checkSetup();
+
+    // ── Transport ───────────────────────────────────────────────────────
+    const startBtn = document.getElementById('btn-start');
+    const stopBtn  = document.getElementById('btn-stop');
+    const synthBtn = document.getElementById('btn-synth');
+
+    startBtn.addEventListener('click', () => {
+        window.dispatchEvent(new CustomEvent('ravel-glottalizer', { detail: { cmd: 'start' } }));
+        startBtn.classList.add('active');
+        stopBtn.classList.remove('active');
+        addLog('→ ravel-glottalizer  cmd=start', 'info');
+    });
+
+    stopBtn.addEventListener('click', () => {
+        window.dispatchEvent(new CustomEvent('ravel-glottalizer', { detail: { cmd: 'stop' } }));
+        window.dispatchEvent(new CustomEvent('ravel-pink-trombone', { detail: { cmd: 'stop' } }));
+        startBtn.classList.remove('active');
+        synthBtn.classList.remove('active');
+        addLog('→ stop both elements', 'info');
+    });
+
+    synthBtn.addEventListener('click', () => {
+        window.dispatchEvent(new CustomEvent('ravel-pink-trombone', { detail: { cmd: 'start' } }));
+        synthBtn.classList.add('active');
+        addLog('→ ravel-pink-trombone  cmd=start', 'synth');
+    });
+
+    // ── Listen for glottalizer events ───────────────────────────────────
+    let paramLogCount = 0;
+    window.addEventListener('ravel-glottalizer', (e) => {
+        const { cmd, content } = e.detail ?? {};
+        if (cmd === 'ready') {
+            addLog(`← glottalizer ready  sr=${content?.sampleRate}  patch=${content?.patchUrl?.split('/').pop()}`, 'ready');
+        } else if (cmd === 'error') {
+            addLog(`← glottalizer error  ${content?.message}`, 'error');
+        } else if (cmd === 'params') {
+            // Log every 10th params message to avoid flooding
+            if (++paramLogCount % 10 === 1) {
+                const p = content;
+                addLog(
+                    `← params  f=${Math.round(p.frequency)}Hz  tens=${p.tenseness?.toFixed(2)}  int=${p.intensity?.toFixed(2)}  loud=${p.loudness?.toFixed(2)}  ti=${p.tongue?.index?.toFixed(1)}  td=${p.tongue?.diameter?.toFixed(2)}`,
+                    'params'
+                );
+            }
+        }
+    });
+
+    // ── Listen for pink-trombone events ────────────────────────────────
+    window.addEventListener('ravel-pink-trombone', (e) => {
+        const { cmd, content } = e.detail ?? {};
+        if (cmd === 'ready') {
+            addLog(`← trombone ready  sr=${content?.sampleRate}`, 'synth');
+        } else if (cmd === 'error') {
+            addLog(`← trombone error  ${content?.message}`, 'error');
+        }
+    });
+
+    // ── Log helper ──────��───────────────────────────────────────────────
+    function addLog(text, cls = '') {
+        const d = document.createElement('div');
+        d.className = 'log-line ' + cls;
+        const t = new Date().toLocaleTimeString('en', { hour12: false });
+        d.textContent = `[${t}] ${text}`;
+        log.prepend(d);
+    }
+
+    document.getElementById('btn-clear-log').addEventListener('click', () => log.innerHTML = '');
+
+    addLog('sandbox ready — complete the checklist above, then click Start', 'info');
+</script>
+</body>
+</html>

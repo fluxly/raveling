@@ -5,20 +5,25 @@ import { RavelElement } from '../../../../common/RavelElement';
  * Triggered by a window message; responds with a button selection or
  * auto-dissolves when used as an interstitial notification.
  *
+ * When a `followup` message is set, the alert alternates between the
+ * primary and followup text every 5 s after the first 5 s of display —
+ * useful for long-running operations where the user needs reassurance.
+ *
  * ### Attributes
- * | Attribute  | Type                              | Default  | Description                           |
- * |------------|-----------------------------------|----------|---------------------------------------|
- * | `text`     | string                            | `''`     | Message text                          |
- * | `color`    | `red\|yellow\|green\|blue`        | `blue`   | Dominant color variant                |
- * | `buttons`  | comma-separated string            | `''`     | Visible buttons: cancel, ok, continue |
- * | `timeout`  | number (ms)                       | `3000`   | Default interstitial duration         |
- * | `visible`  | boolean (presence)                | —        | Show the alert (no timeout)           |
+ * | Attribute  | Type                              | Default  | Description                                  |
+ * |------------|-----------------------------------|----------|----------------------------------------------|
+ * | `text`     | string                            | `''`     | Primary message text                         |
+ * | `followup` | string                            | `''`     | Secondary message shown after 5 s            |
+ * | `color`    | `red\|yellow\|green\|blue`        | `blue`   | Dominant color variant                       |
+ * | `buttons`  | comma-separated string            | `''`     | Visible buttons: cancel, ok, continue        |
+ * | `timeout`  | number (ms)                       | `3000`   | Default interstitial duration                |
+ * | `visible`  | boolean (presence)                | —        | Show the alert (no timeout)                  |
  *
  * ### Messages received (on `'ravel-alert'` channel)
- * | cmd    | content                                                    | Effect                           |
- * |--------|------------------------------------------------------------|----------------------------------|
- * | `show` | `{ text, color, buttons?, interstitial?, timeout? }`       | Show alert; dissolves if interstitial |
- * | `hide` | —                                                          | Dismiss the alert                |
+ * | cmd    | content                                                              | Effect                                |
+ * |--------|----------------------------------------------------------------------|---------------------------------------|
+ * | `show` | `{ text, color, buttons?, interstitial?, timeout?, followup? }`      | Show alert; dissolves if interstitial |
+ * | `hide` | —                                                                    | Dismiss the alert                     |
  *
  * ### Messages broadcast (on `'ravel-alert'` channel)
  * | cmd        | content                       | Trigger             |
@@ -59,6 +64,7 @@ export class RavelAlert extends RavelElement {
             line-height: 1.45;
             letter-spacing: 0.2px;
             font-family: 'Segoe UI', system-ui, sans-serif;
+            transition: opacity 0.28s ease;
         }
         #buttons {
             display: flex;
@@ -111,10 +117,13 @@ export class RavelAlert extends RavelElement {
         blue:   'rgba(24,  72,  218, 0.93)',
     };
 
+    private static readonly FOLLOWUP_DELAY_MS = 5000;
+    private static readonly FOLLOWUP_INTERVAL_MS = 5000;
+
     static get observedAttributes(): string[] {
         return [
             ...RavelElement.baseObservedAttributes,
-            'text', 'color', 'buttons', 'timeout', 'visible',
+            'text', 'followup', 'color', 'buttons', 'timeout', 'visible',
         ];
     }
 
@@ -124,12 +133,17 @@ export class RavelAlert extends RavelElement {
     private progressEl!: HTMLElement;
 
     private _text         = '';
+    private _followup     = '';
     private _color        = 'blue';
     private _buttons:       string[] = [];
     private _interstitial = false;
     private _timeout      = 3000;
     private _visible      = false;
-    private _timeoutHandle: ReturnType<typeof setTimeout> | null = null;
+
+    private _timeoutHandle:  ReturnType<typeof setTimeout>  | null = null;
+    private _followupHandle: ReturnType<typeof setTimeout>  | null = null;
+    private _alternateHandle: ReturnType<typeof setInterval> | null = null;
+    private _showingFollowup = false;
 
     protected initialize(): void {
         super.initialize();
@@ -173,10 +187,10 @@ export class RavelAlert extends RavelElement {
         if (cmd === 'show') {
             this._clearTimer();
             if (content?.text         != null) this._text         = content.text;
+            if (content?.followup     != null) this._followup     = content.followup;
             if (content?.color        != null) this._color        = content.color;
             if (content?.buttons      != null) this._buttons      = this._parseButtons(content.buttons);
             if (content?.timeout      != null) this._timeout      = Number(content.timeout) || 3000;
-            // interstitial defaults to false each show so a follow-up show without it resets to button mode
             this._interstitial = Boolean(content?.interstitial);
             this._render();
             this._setVisible(true);
@@ -187,20 +201,52 @@ export class RavelAlert extends RavelElement {
                     this.broadcastMessage('ravel-alert', 'dissolve', { id: this.id });
                 }, this._timeout);
             }
+            this._startFollowup();
         } else if (cmd === 'hide') {
             this._setVisible(false);
         }
     };
 
+    // Clears all active timers and resets followup state.
     private _clearTimer(): void {
         if (this._timeoutHandle !== null) {
             clearTimeout(this._timeoutHandle);
             this._timeoutHandle = null;
         }
+        if (this._followupHandle !== null) {
+            clearTimeout(this._followupHandle);
+            this._followupHandle = null;
+        }
+        if (this._alternateHandle !== null) {
+            clearInterval(this._alternateHandle);
+            this._alternateHandle = null;
+        }
+        this._showingFollowup = false;
+    }
+
+    // Fades the message out, swaps text, fades back in.
+    private _fadeMessage(text: string): void {
+        this.messageEl.style.opacity = '0';
+        setTimeout(() => {
+            this.messageEl.textContent = text;
+            this.messageEl.style.opacity = '1';
+        }, 280);
+    }
+
+    // Starts the followup alternation cycle if a followup message is set.
+    private _startFollowup(): void {
+        if (!this._followup) return;
+        this._followupHandle = setTimeout(() => {
+            this._showingFollowup = true;
+            this._fadeMessage(this._followup);
+            this._alternateHandle = setInterval(() => {
+                this._showingFollowup = !this._showingFollowup;
+                this._fadeMessage(this._showingFollowup ? this._followup : this._text);
+            }, RavelAlert.FOLLOWUP_INTERVAL_MS);
+        }, RavelAlert.FOLLOWUP_DELAY_MS);
     }
 
     private _startProgress(ms: number): void {
-        // Restart CSS animation by forcing a reflow between animation: none and the real value
         this.progressEl.style.animation = 'none';
         void this.progressEl.offsetWidth;
         this.progressEl.style.animation = `ra-progress ${ms}ms linear forwards`;
@@ -215,9 +261,7 @@ export class RavelAlert extends RavelElement {
     private _setVisible(on: boolean, animate = true): void {
         if (!on) this._clearTimer();
         this._visible = on;
-        if (!animate) {
-            this.style.transition = 'none';
-        }
+        if (!animate) this.style.transition = 'none';
         if (on) {
             this.style.opacity = '1';
             this.style.pointerEvents = 'auto';
@@ -234,10 +278,10 @@ export class RavelAlert extends RavelElement {
 
     private _render(): void {
         this.messageEl.textContent = this._text;
+        this.messageEl.style.opacity = '1';
         this.alertBoxEl.style.background =
             RavelAlert.COLOR_BG[this._color] ?? RavelAlert.COLOR_BG.blue;
 
-        // Buttons — hidden in interstitial mode
         this.buttonsEl.style.display = this._interstitial ? 'none' : 'flex';
         this.buttonsEl.innerHTML = '';
         if (!this._interstitial) {
@@ -250,7 +294,6 @@ export class RavelAlert extends RavelElement {
             }
         }
 
-        // Progress bar — only shown in interstitial mode
         this.progressEl.style.display = this._interstitial ? 'block' : 'none';
     }
 
@@ -265,7 +308,10 @@ export class RavelAlert extends RavelElement {
         switch (name) {
             case 'text':
                 this._text = newValue ?? '';
-                if (this.messageEl) this.messageEl.textContent = this._text;
+                if (this.messageEl && !this._showingFollowup) this.messageEl.textContent = this._text;
+                break;
+            case 'followup':
+                this._followup = newValue ?? '';
                 break;
             case 'color':
                 this._color = newValue ?? 'blue';

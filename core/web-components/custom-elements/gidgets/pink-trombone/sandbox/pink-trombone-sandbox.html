@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"/>
+    <title>ravel-pink-trombone Sandbox</title>
+    <script type="module" src="../pink-trombone.ts"></script>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; }
+        body {
+            background: #0d0d1e;
+            color: #c8c8e0;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            font-size: 13px;
+            margin: 0;
+            padding: 20px;
+        }
+        h3 {
+            margin: 0 0 14px;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: #555577;
+        }
+        .panel {
+            background: #090918;
+            border: 1px solid #22223a;
+            border-radius: 8px;
+            padding: 16px 18px;
+            margin-bottom: 16px;
+        }
+        /* ── Stage ─────────────────────────────────────── */
+        #stage {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            align-items: flex-start;
+        }
+
+        /* ── Controls ──────────────────────────────────── */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 12px;
+        }
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .field label {
+            font-size: 10px;
+            color: #666688;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .field label span { color: #8899cc; font-variant-numeric: tabular-nums; }
+        input[type="range"] {
+            width: 100%;
+            accent-color: #4466dd;
+            cursor: pointer;
+        }
+        .row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .row:last-child { margin-bottom: 0; }
+        button {
+            background: #2c3faa;
+            color: #dde;
+            border: none;
+            border-radius: 5px;
+            padding: 6px 16px;
+            font-size: 12px;
+            cursor: pointer;
+            font-family: inherit;
+        }
+        button:hover  { background: #3b52cc; }
+        button.active { background: #1a6640; color: #88ffcc; }
+        button.active:hover { background: #1d7a4c; }
+        button.ghost {
+            background: transparent;
+            border: 1px solid #2a2a44;
+            color: #666688;
+        }
+        button.ghost:hover { border-color: #4466dd; color: #aabbdd; }
+
+        /* ── Preset pills ──────────────────────────────── */
+        .presets { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+        .preset-btn {
+            background: #14142a;
+            border: 1px solid #252545;
+            border-radius: 14px;
+            padding: 4px 12px;
+            font-size: 11px;
+            color: #7788aa;
+            cursor: pointer;
+        }
+        .preset-btn:hover { border-color: #4466dd; color: #aabbdd; }
+
+        /* ── Event log ─────────────────────────────────── */
+        #log {
+            height: 110px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 11px;
+            background: #05050e;
+            border: 1px solid #181830;
+            border-radius: 4px;
+            padding: 6px 8px;
+        }
+        .log-line          { padding: 1px 0; color: #333355; }
+        .log-line.info     { color: #3355aa; }
+        .log-line.event    { color: #446688; }
+        .log-line.ready    { color: #44bb77; }
+        .log-line.error    { color: #cc4444; }
+        .log-line.sent     { color: #7755aa; }
+    </style>
+</head>
+<body>
+
+<!-- ── Stage ────────────────────────────────────────────────────── -->
+<div class="panel">
+    <h3>Element</h3>
+    <div id="stage">
+        <ravel-pink-trombone id="trombone" w="400" h="140"></ravel-pink-trombone>
+    </div>
+</div>
+
+<!-- ── Transport ────────────────────────────────────────────────── -->
+<div class="panel">
+    <h3>Transport</h3>
+    <div class="row">
+        <button id="btn-start">Start Audio</button>
+        <button id="btn-stop" class="ghost">Stop Audio</button>
+        <button id="btn-send" class="ghost">Send params via Message</button>
+        <button id="btn-clear-log" class="ghost" style="margin-left:auto">Clear Log</button>
+    </div>
+</div>
+
+<!-- ── Parameters ───────────────────────────────────────────────── -->
+<div class="panel">
+    <h3>Parameters</h3>
+
+    <div class="presets">
+        <button class="preset-btn" data-preset="neutral">Neutral</button>
+        <button class="preset-btn" data-preset="a">Vowel /ɑ/</button>
+        <button class="preset-btn" data-preset="e">Vowel /e/</button>
+        <button class="preset-btn" data-preset="i">Vowel /i/</button>
+        <button class="preset-btn" data-preset="u">Vowel /u/</button>
+        <button class="preset-btn" data-preset="breathy">Breathy</button>
+        <button class="preset-btn" data-preset="pressed">Pressed</button>
+        <button class="preset-btn" data-preset="whisper">Whisper</button>
+        <button class="preset-btn" data-preset="high">High pitch</button>
+        <button class="preset-btn" data-preset="low">Low pitch</button>
+    </div>
+
+    <div class="grid">
+        <div class="field">
+            <label>Frequency (Hz)<span id="lbl-freq">140</span></label>
+            <input type="range" id="sl-freq" min="80" max="1100" step="1" value="140">
+        </div>
+        <div class="field">
+            <label>Tenseness<span id="lbl-tens">0.60</span></label>
+            <input type="range" id="sl-tens" min="0" max="1" step="0.01" value="0.6">
+        </div>
+        <div class="field">
+            <label>Intensity<span id="lbl-int">1.00</span></label>
+            <input type="range" id="sl-int" min="0" max="1" step="0.01" value="1.0">
+        </div>
+        <div class="field">
+            <label>Loudness<span id="lbl-loud">0.50</span></label>
+            <input type="range" id="sl-loud" min="0" max="1" step="0.01" value="0.5">
+        </div>
+        <div class="field">
+            <label>Tongue index<span id="lbl-tidx">12.90</span></label>
+            <input type="range" id="sl-tidx" min="12" max="29" step="0.1" value="12.9">
+        </div>
+        <div class="field">
+            <label>Tongue diameter<span id="lbl-tdia">2.43</span></label>
+            <input type="range" id="sl-tdia" min="2.05" max="3.5" step="0.01" value="2.43">
+        </div>
+    </div>
+</div>
+
+<!-- ── Attribute control ─────────────────────────────────────────── -->
+<div class="panel">
+    <h3>Live Attribute Control</h3>
+    <div class="row">
+        <button id="btn-attr-start">Set active attribute</button>
+        <button id="btn-attr-stop" class="ghost">Remove active attribute</button>
+        <button id="btn-attr-freq" class="ghost">Set frequency="440" attribute</button>
+    </div>
+</div>
+
+<!-- ── Event log ─────────────────────────────────────────────────── -->
+<div class="panel">
+    <h3>Event Log</h3>
+    <div id="log"></div>
+</div>
+
+<script>
+    const el  = document.getElementById('trombone');
+    const log = document.getElementById('log');
+
+    // ── Presets ──────────────────────────────────────────────────────────────
+    const PRESETS = {
+        neutral: { frequency: 140,  tenseness: 0.6,  intensity: 1.0, loudness: 0.5, tongue: { index: 12.9, diameter: 2.43 } },
+        a:       { frequency: 140,  tenseness: 0.6,  intensity: 1.0, loudness: 0.5, tongue: { index: 13.0, diameter: 2.43 } },
+        e:       { frequency: 160,  tenseness: 0.65, intensity: 1.0, loudness: 0.5, tongue: { index: 20.0, diameter: 3.00 } },
+        i:       { frequency: 200,  tenseness: 0.7,  intensity: 1.0, loudness: 0.5, tongue: { index: 27.0, diameter: 3.50 } },
+        u:       { frequency: 140,  tenseness: 0.65, intensity: 1.0, loudness: 0.5, tongue: { index: 23.0, diameter: 2.05 } },
+        breathy: { frequency: 160,  tenseness: 0.2,  intensity: 0.8, loudness: 0.5, tongue: { index: 15.0, diameter: 2.8  } },
+        pressed: { frequency: 140,  tenseness: 0.9,  intensity: 1.0, loudness: 0.5, tongue: { index: 12.9, diameter: 2.43 } },
+        whisper: { frequency: 140,  tenseness: 0.3,  intensity: 0.4, loudness: 0.4, tongue: { index: 14.0, diameter: 2.6  } },
+        high:    { frequency: 550,  tenseness: 0.65, intensity: 1.0, loudness: 0.5, tongue: { index: 20.0, diameter: 3.0  } },
+        low:     { frequency: 90,   tenseness: 0.6,  intensity: 1.0, loudness: 0.5, tongue: { index: 12.9, diameter: 2.43 } },
+    };
+
+    // ── Sliders ───────────────────────────────────────────────────────────────
+    const sliders = {
+        freq: { el: document.getElementById('sl-freq'), lbl: document.getElementById('lbl-freq'),  fmt: v => String(Math.round(v)),         key: 'frequency' },
+        tens: { el: document.getElementById('sl-tens'), lbl: document.getElementById('lbl-tens'),  fmt: v => v.toFixed(2),                  key: 'tenseness' },
+        int:  { el: document.getElementById('sl-int'),  lbl: document.getElementById('lbl-int'),   fmt: v => v.toFixed(2),                  key: 'intensity' },
+        loud: { el: document.getElementById('sl-loud'), lbl: document.getElementById('lbl-loud'),  fmt: v => v.toFixed(2),                  key: 'loudness'  },
+        tidx: { el: document.getElementById('sl-tidx'), lbl: document.getElementById('lbl-tidx'),  fmt: v => v.toFixed(2),                  key: 'tongue.index' },
+        tdia: { el: document.getElementById('sl-tdia'), lbl: document.getElementById('lbl-tdia'),  fmt: v => v.toFixed(2),                  key: 'tongue.diameter' },
+    };
+
+    function getCurrentParams() {
+        return {
+            frequency: parseFloat(document.getElementById('sl-freq').value),
+            tenseness: parseFloat(document.getElementById('sl-tens').value),
+            intensity: parseFloat(document.getElementById('sl-int').value),
+            loudness:  parseFloat(document.getElementById('sl-loud').value),
+            tongue: {
+                index:    parseFloat(document.getElementById('sl-tidx').value),
+                diameter: parseFloat(document.getElementById('sl-tdia').value),
+            },
+        };
+    }
+
+    function sendParams(params, source = 'slider') {
+        window.dispatchEvent(new CustomEvent('ravel-pink-trombone', {
+            detail: { cmd: 'params', content: params }
+        }));
+        addLog(`sent params  freq=${Math.round(params.frequency)} tens=${params.tenseness.toFixed(2)} int=${params.intensity.toFixed(2)} loud=${params.loudness.toFixed(2)} tongue=[${params.tongue.index.toFixed(1)}, ${params.tongue.diameter.toFixed(2)}]  (${source})`, 'sent');
+    }
+
+    // Update label + send on each slider move
+    Object.entries(sliders).forEach(([id, cfg]) => {
+        cfg.el.addEventListener('input', () => {
+            const v = parseFloat(cfg.el.value);
+            cfg.lbl.textContent = cfg.fmt(v);
+            sendParams(getCurrentParams(), 'slider');
+        });
+    });
+
+    function applyPreset(key) {
+        const p = PRESETS[key];
+        if (!p) return;
+        document.getElementById('sl-freq').value = p.frequency;
+        document.getElementById('sl-tens').value = p.tenseness;
+        document.getElementById('sl-int').value  = p.intensity;
+        document.getElementById('sl-loud').value = p.loudness;
+        document.getElementById('sl-tidx').value = p.tongue.index;
+        document.getElementById('sl-tdia').value = p.tongue.diameter;
+        sliders.freq.lbl.textContent = sliders.freq.fmt(p.frequency);
+        sliders.tens.lbl.textContent = sliders.tens.fmt(p.tenseness);
+        sliders.int.lbl.textContent  = sliders.int.fmt(p.intensity);
+        sliders.loud.lbl.textContent = sliders.loud.fmt(p.loudness);
+        sliders.tidx.lbl.textContent = sliders.tidx.fmt(p.tongue.index);
+        sliders.tdia.lbl.textContent = sliders.tdia.fmt(p.tongue.diameter);
+        sendParams(p, `preset:${key}`);
+    }
+
+    document.querySelectorAll('.preset-btn').forEach(btn => {
+        btn.addEventListener('click', () => applyPreset(btn.dataset.preset));
+    });
+
+    // ── Transport ─────────────────────────────────────────────────────────────
+    const startBtn = document.getElementById('btn-start');
+    const stopBtn  = document.getElementById('btn-stop');
+
+    startBtn.addEventListener('click', () => {
+        window.dispatchEvent(new CustomEvent('ravel-pink-trombone', { detail: { cmd: 'start' } }));
+        startBtn.classList.add('active');
+        stopBtn.classList.remove('active');
+        addLog('dispatched  cmd=start', 'info');
+    });
+
+    stopBtn.addEventListener('click', () => {
+        window.dispatchEvent(new CustomEvent('ravel-pink-trombone', { detail: { cmd: 'stop' } }));
+        stopBtn.classList.add('active');
+        startBtn.classList.remove('active');
+        addLog('dispatched  cmd=stop', 'info');
+    });
+
+    document.getElementById('btn-send').addEventListener('click', () => {
+        sendParams(getCurrentParams(), 'button');
+    });
+
+    // ── Attribute control ─────────────────────────────────────────────────────
+    document.getElementById('btn-attr-start').addEventListener('click', () => {
+        el.setAttribute('active', '');
+        addLog('setAttribute  active=""', 'info');
+    });
+    document.getElementById('btn-attr-stop').addEventListener('click', () => {
+        el.removeAttribute('active');
+        addLog('removeAttribute  active', 'info');
+    });
+    document.getElementById('btn-attr-freq').addEventListener('click', () => {
+        el.setAttribute('frequency', '440');
+        document.getElementById('sl-freq').value = '440';
+        sliders.freq.lbl.textContent = '440';
+        addLog('setAttribute  frequency="440"', 'info');
+    });
+
+    // ── Listen for broadcasts back from element ───────────────────────────────
+    window.addEventListener('ravel-pink-trombone', (e) => {
+        const { cmd, content } = e.detail ?? {};
+        if (cmd === 'ready') {
+            addLog(`event  cmd=ready  sampleRate=${content?.sampleRate}`, 'ready');
+        } else if (cmd === 'error') {
+            addLog(`event  cmd=error  ${content?.message}`, 'error');
+        } else if (cmd === 'params' || cmd === 'start' || cmd === 'stop') {
+            // don't echo our own sends
+        } else if (cmd) {
+            addLog(`event  cmd=${cmd}  ${JSON.stringify(content ?? {})}`, 'event');
+        }
+    });
+
+    // ── Log helper ────────────────────────────────────────────────────────────
+    function addLog(text, cls = '') {
+        const d = document.createElement('div');
+        d.className = 'log-line ' + cls;
+        const t = new Date().toLocaleTimeString('en', { hour12: false });
+        d.textContent = `[${t}] ${text}`;
+        log.prepend(d);
+    }
+
+    document.getElementById('btn-clear-log').addEventListener('click', () => {
+        log.innerHTML = '';
+    });
+
+    addLog('sandbox ready — click Start Audio to begin synthesis', 'info');
+</script>
+</body>
+</html>

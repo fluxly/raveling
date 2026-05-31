@@ -1,0 +1,286 @@
+{
+  "name": "BBC Symphony Orchestra",
+  "tempo": 100,
+  "timeSignature": "4/4",
+  "tracks": [
+    {
+      "name": "Flute 1+2",
+      "group": "Woodwinds",
+      "color": "teal",
+      "gmProgram": 73,
+      "instrument": {
+        "manufacturer": "Spitfire Audio",
+        "au": "BBC Symphony Orchestra",
+        "channelStrip": "BBCSO - Flute 1+2",
+        "preset": "Flutes - Long"
+      }
+    },
+    {
+      "name": "Piccolo",
+      "group": "Woodwinds",
+      "color": "teal",
+      "gmProgram": 72,
+      "instrument": {
+        "manufacturer": "Spitfire Audio",
+        "au": "BBC Symphony Orchestra",
+        "channelStrip": "BBCSO - Piccolo"
+      }
+    },
+    {
+      "name": "Oboe 1+2",
+      "group": "Woodwinds",
+      "color": "teal",
+      "gmProgram": 68,
+      "instrument": {
+        "manufacturer": "Spitfire Audio",
+        "au": "BBC Symphony Orchestra",
+        "channelStrip": "BBCSO - Oboe 1+2"
+      }
+    },
+    {
+      "name": "Cor Anglais",
+      "group": "Woodwinds",
+      "color": "teal",
+      "gmProgram": 69,
+      "instrument": {
+        "manufacturer": "Spitfire Audio",
+        "au": "BBC Symphony Orchestra",
+        "channelStrip": "BBCSO - Cor Anglais"
+      }
+    },
+    {
+      "name": "Clarinet 1+2",
+      "group": "Woodwinds",
+      "color": "teal",
+      "gmProgram": 71,
+      "instrument": {
+        "manufacturer": "Spitfire Audio",
+        "au": "BBC Symphony Orchestra",
+        "channelStrip": "BBCSO - Clarinet 1+2"
+      }
+    },
+    {
+      "name": "Bass Clarinet",
+      "group": "Woodwinds",
+      "color": "teal",
+      "gmProgram": 71,
+      "instrument": {
+        "manufacturer": "Spitfire Audio",
+        "au": "BBC Symphony Orchestra",
+        "channelStrip": "BBCSO - Bass Clarinet"
+      }
+    },
+    {
+      "name": "Bassoon 1+2",
+      "group": "Woodwinds",
+      "color": "teal",
+      "gmProgram": 70,
+      "instrument": {
+        "manufacturer": "Spitfire Audio",
+        "au": "BBC Symphony Orchestra",
+        "channelStrip": "BBCSO - Bassoon 1+2"
+      }
+    },
+    {
+      "name": "Contrabassoon",
+      "group": "Woodwinds",
+      "color": "teal",
+      "gmProgram": 70,
+      "instrument": {
+        "manufacturer": "Spitfire Audio",
+        "au": "BBC Symphony Orchestra",
+        "channelStrip": "BBCSO - Contrabassoon"
+      }
+    },
+
+    {
+      "name": "Horn 1-4",
+      "group": "Brass",
+      "color": "orange",
+      "gmProgram": 60,
+      "instrument": {
+        "manufacturer": "Spitfire Audio",
+        "au": "BBC Symphony Orchestra",
+        "channelStrip": "BBCSO - Horn 1-4"
+      }
+    },
+    {
+      "name": "Trumpet 1+2+3",
+      "group": "Brass",
+      "color": "orange",
+      "gmProgram": 56,
+      "instrument": {
+        "manufacturer": "Spitfire Audio",
+        "au": "BBC Symphony Orchestra",
+        "channelStrip": "BBCSO - Trumpet 1+2+3"
+      }
+    },
+    {
+      "name": "Trombone 1+2+3",
+      "group": "Brass",
+      "color": "orange",
+      "gmProgram": 57,
+      "instrument": {
+        "manufacturer": "Spitfire Audio",
+        "au": "BBC Symphony Orchestra",
+        "channelStrip": "BBCSO - Trombone 1+2+3"
+      }
+    },
+    {
+      "name": "Bass Trombone",
+      "group": "Brass",
+      "color": "orange",
+      "gmProgram": 57,
+      "instrument": {
+        "manufacturer": "Spitfire Audio",
+        "au": "BBC Symphony Orchestra",
+        "channelStrip": "BBCSO - Bass Trombone"
+      }
+    },
+    {
+      "name": "Tuba",
+      "group": "Brass",
+      "color": "orange",
+      "gmProgram": 58,
+      "instrument": {
+        "manufacturer": "Spitfire Audio",
+        "au": "BBC Symphony Orchestra",
+        "channelStrip": "BBCSO - Tuba"
+      }
+    },
+
+    {
+      "name": "Violins I",
+      "group": "Strings",
+      "color": "blue",
+      "gmProgram": 40,
+      "instrument": {
+        "manufacturer": "Spitfire Audio",
+        "au": "BBC Symphony Orchestra",
+        "channelStrip": "BBCSO - Violins I",
+        "preset": "Violins I - Long"
+      }
+    },
+    {
+      "name": "Violins II",
+      "group": "Strings",
+      "color": "blue",
+      "gmProgram": 40,
+      "instrument": {
+        "manufacturer": "Spitfire Audio",
+        "au": "BBC Symphony Orchestra",
+        "channelStrip": "BBCSO - Violins II"
+      }
+    },
+    {
+      "name": "Violas",
+      "group": "Strings",
+      "color": "blue",
+      "gmProgram": 41,
+      "instrument": {
+        "manufacturer": "Spitfire Audio",
+        "au": "BBC Symphony Orchestra",
+        "channelStrip": "BBCSO - Violas"
+      }
+    },
+    {
+      "name": "Cellos",
+      "group": "Strings",
+      "color": "blue",
+      "gmProgram": 42,
+      "instrument": {
+        "manufacturer": "Spitfire Audio",
+        "au": "BBC Symphony Orchestra",
+        "channelStrip": "BBCSO - Cellos"
+      }
+    },
+    {
+      "name": "Double Basses",
+      "group": "Strings",
+      "color": "blue",
+      "gmProgram": 43,
+      "instrument": {
+        "manufacturer": "Spitfire Audio",
+        "au": "BBC Symphony Orchestra",
+        "channelStrip": "BBCSO - Double Basses"
+      }
+    },
+
+    {
+      "name": "Harp",
+      "group": "Keyboard & Pitched",
+      "color": "yellow",
+      "gmProgram": 46,
+      "instrument": {
+        "manufacturer": "Spitfire Audio",
+        "au": "BBC Symphony Orchestra",
+        "channelStrip": "BBCSO - Harp"
+      }
+    },
+    {
+      "name": "Piano",
+      "group": "Keyboard & Pitched",
+      "color": "yellow",
+      "gmProgram": 0,
+      "instrument": {
+        "manufacturer": "Apple",
+        "au": "Steinway Grand Piano",
+        "channelStrip": "Steinway Grand"
+      }
+    },
+    {
+      "name": "Celesta",
+      "group": "Keyboard & Pitched",
+      "color": "yellow",
+      "gmProgram": 8,
+      "instrument": {
+        "manufacturer": "Apple",
+        "au": "Alchemy",
+        "channelStrip": "Alchemy - Celesta"
+      }
+    },
+    {
+      "name": "Tuned Percussion",
+      "group": "Keyboard & Pitched",
+      "color": "yellow",
+      "gmProgram": 12,
+      "instrument": {
+        "manufacturer": "Spitfire Audio",
+        "au": "BBC Symphony Orchestra",
+        "channelStrip": "BBCSO - Tuned Perc"
+      }
+    },
+
+    {
+      "name": "Timpani",
+      "group": "Percussion",
+      "color": "red",
+      "gmProgram": 47,
+      "instrument": {
+        "manufacturer": "Spitfire Audio",
+        "au": "BBC Symphony Orchestra",
+        "channelStrip": "BBCSO - Timpani"
+      }
+    },
+    {
+      "name": "Percussion 1",
+      "group": "Percussion",
+      "color": "red",
+      "instrument": {
+        "manufacturer": "Spitfire Audio",
+        "au": "BBC Symphony Orchestra",
+        "channelStrip": "BBCSO - Perc 1"
+      }
+    },
+    {
+      "name": "Percussion 2",
+      "group": "Percussion",
+      "color": "red",
+      "instrument": {
+        "manufacturer": "Spitfire Audio",
+        "au": "BBC Symphony Orchestra",
+        "channelStrip": "BBCSO - Perc 2"
+      }
+    }
+  ]
+}
