@@ -193,9 +193,10 @@ export class RavelGlottalizer extends RavelElement {
     private _initPromise: Promise<void> | null = null;
     private _status: 'idle' | 'loading' | 'ready' | 'active' | 'error' = 'idle';
 
-    private _patchUrl   = '/core/libs/libpd-wasm/feral-vocaloid.pd';
+    private _patchUrl   = '/core/libs/libpd-wasm/ravel-glottalizer.pd'; // for sandbox checklist only
     private _libpdJs    = '/libs/libpd-glottalizer.js';
     private _libpdWasm  = '/libs/libpd-glottalizer.wasm';
+    private _libpdData  = '/libs/libpd-glottalizer.data';
     private _broadcastTo = 'ravel-pink-trombone';
 
     // Current params (for display)
@@ -391,7 +392,7 @@ export class RavelGlottalizer extends RavelElement {
                 type:       'init',
                 libpdJsUrl: abs(this._libpdJs),
                 wasmUrl:    abs(this._libpdWasm),
-                patchUrl:   abs(this._patchUrl),
+                dataUrl:    abs(this._libpdData),
                 sampleRate: this._ctx.sampleRate,
             });
 

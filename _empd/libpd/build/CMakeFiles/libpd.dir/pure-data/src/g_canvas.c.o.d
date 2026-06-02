@@ -1,0 +1,33 @@
+CMakeFiles/libpd.dir/pure-data/src/g_canvas.c.o: \
+  /Users/shawn/Documents/_Ravel-2/_empd/libpd/pure-data/src/g_canvas.c \
+  /Users/shawn/Documents/_Ravel-2/_empd/emsdk/upstream/emscripten/cache/sysroot/include/compat/stdlib.h \
+  /Users/shawn/Documents/_Ravel-2/_empd/emsdk/upstream/emscripten/cache/sysroot/include/stdlib.h \
+  /Users/shawn/Documents/_Ravel-2/_empd/emsdk/upstream/emscripten/cache/sysroot/include/features.h \
+  /Users/shawn/Documents/_Ravel-2/_empd/emsdk/upstream/emscripten/cache/sysroot/include/bits/alltypes.h \
+  /Users/shawn/Documents/_Ravel-2/_empd/emsdk/upstream/emscripten/cache/sysroot/include/alloca.h \
+  /Users/shawn/Documents/_Ravel-2/_empd/emsdk/upstream/emscripten/cache/sysroot/include/stdio.h \
+  /Users/shawn/Documents/_Ravel-2/_empd/emsdk/upstream/emscripten/cache/sysroot/include/wasi/api.h \
+  /Users/shawn/Documents/_Ravel-2/_empd/emsdk/upstream/lib/clang/19/include/stddef.h \
+  /Users/shawn/Documents/_Ravel-2/_empd/emsdk/upstream/emscripten/cache/sysroot/include/stddef.h \
+  /Users/shawn/Documents/_Ravel-2/_empd/emsdk/upstream/lib/clang/19/include/__stddef_header_macro.h \
+  /Users/shawn/Documents/_Ravel-2/_empd/emsdk/upstream/lib/clang/19/include/__stddef_ptrdiff_t.h \
+  /Users/shawn/Documents/_Ravel-2/_empd/emsdk/upstream/lib/clang/19/include/__stddef_size_t.h \
+  /Users/shawn/Documents/_Ravel-2/_empd/emsdk/upstream/lib/clang/19/include/__stddef_wchar_t.h \
+  /Users/shawn/Documents/_Ravel-2/_empd/emsdk/upstream/lib/clang/19/include/__stddef_null.h \
+  /Users/shawn/Documents/_Ravel-2/_empd/emsdk/upstream/lib/clang/19/include/__stddef_max_align_t.h \
+  /Users/shawn/Documents/_Ravel-2/_empd/emsdk/upstream/lib/clang/19/include/__stddef_offsetof.h \
+  /Users/shawn/Documents/_Ravel-2/_empd/emsdk/upstream/lib/clang/19/include/stdint.h \
+  /Users/shawn/Documents/_Ravel-2/_empd/emsdk/upstream/emscripten/cache/sysroot/include/stdint.h \
+  /Users/shawn/Documents/_Ravel-2/_empd/emsdk/upstream/emscripten/cache/sysroot/include/bits/stdint.h \
+  /Users/shawn/Documents/_Ravel-2/_empd/libpd/pure-data/src/m_pd.h \
+  /Users/shawn/Documents/_Ravel-2/_empd/libpd/pure-data/src/m_imp.h \
+  /Users/shawn/Documents/_Ravel-2/_empd/libpd/pure-data/src/s_stuff.h \
+  /Users/shawn/Documents/_Ravel-2/_empd/libpd/pure-data/src/g_canvas.h \
+  /Users/shawn/Documents/_Ravel-2/_empd/libpd/pure-data/src/s_utf8.h \
+  /Users/shawn/Documents/_Ravel-2/_empd/emsdk/upstream/emscripten/cache/sysroot/include/compat/string.h \
+  /Users/shawn/Documents/_Ravel-2/_empd/emsdk/upstream/emscripten/cache/sysroot/include/string.h \
+  /Users/shawn/Documents/_Ravel-2/_empd/emsdk/upstream/emscripten/cache/sysroot/include/strings.h \
+  /Users/shawn/Documents/_Ravel-2/_empd/libpd/pure-data/src/g_undo.h \
+  /Users/shawn/Documents/_Ravel-2/_empd/libpd/pure-data/src/m_private_utils.h \
+  /Users/shawn/Documents/_Ravel-2/_empd/emsdk/upstream/emscripten/cache/sysroot/include/unistd.h \
+  /Users/shawn/Documents/_Ravel-2/_empd/emsdk/upstream/emscripten/cache/sysroot/include/bits/posix.h

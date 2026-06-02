@@ -1,0 +1,36 @@
+CMakeFiles/libpd.dir/pure-data/src/d_soundfile.c.o: \
+  /Users/shawn/Documents/_Ravel-2/_empd/libpd/pure-data/src/d_soundfile.c \
+  /Users/shawn/Documents/_Ravel-2/_empd/libpd/pure-data/src/d_soundfile.h \
+  /Users/shawn/Documents/_Ravel-2/_empd/libpd/pure-data/src/m_pd.h \
+  /Users/shawn/Documents/_Ravel-2/_empd/emsdk/upstream/lib/clang/19/include/stddef.h \
+  /Users/shawn/Documents/_Ravel-2/_empd/emsdk/upstream/emscripten/cache/sysroot/include/stddef.h \
+  /Users/shawn/Documents/_Ravel-2/_empd/emsdk/upstream/lib/clang/19/include/__stddef_header_macro.h \
+  /Users/shawn/Documents/_Ravel-2/_empd/emsdk/upstream/lib/clang/19/include/__stddef_ptrdiff_t.h \
+  /Users/shawn/Documents/_Ravel-2/_empd/emsdk/upstream/lib/clang/19/include/__stddef_size_t.h \
+  /Users/shawn/Documents/_Ravel-2/_empd/emsdk/upstream/lib/clang/19/include/__stddef_wchar_t.h \
+  /Users/shawn/Documents/_Ravel-2/_empd/emsdk/upstream/lib/clang/19/include/__stddef_null.h \
+  /Users/shawn/Documents/_Ravel-2/_empd/emsdk/upstream/lib/clang/19/include/__stddef_max_align_t.h \
+  /Users/shawn/Documents/_Ravel-2/_empd/emsdk/upstream/lib/clang/19/include/__stddef_offsetof.h \
+  /Users/shawn/Documents/_Ravel-2/_empd/emsdk/upstream/lib/clang/19/include/stdint.h \
+  /Users/shawn/Documents/_Ravel-2/_empd/emsdk/upstream/emscripten/cache/sysroot/include/stdint.h \
+  /Users/shawn/Documents/_Ravel-2/_empd/emsdk/upstream/emscripten/cache/sysroot/include/bits/alltypes.h \
+  /Users/shawn/Documents/_Ravel-2/_empd/emsdk/upstream/emscripten/cache/sysroot/include/bits/stdint.h \
+  /Users/shawn/Documents/_Ravel-2/_empd/emsdk/upstream/emscripten/cache/sysroot/include/stdio.h \
+  /Users/shawn/Documents/_Ravel-2/_empd/emsdk/upstream/emscripten/cache/sysroot/include/wasi/api.h \
+  /Users/shawn/Documents/_Ravel-2/_empd/emsdk/upstream/emscripten/cache/sysroot/include/features.h \
+  /Users/shawn/Documents/_Ravel-2/_empd/emsdk/upstream/emscripten/cache/sysroot/include/unistd.h \
+  /Users/shawn/Documents/_Ravel-2/_empd/emsdk/upstream/emscripten/cache/sysroot/include/bits/posix.h \
+  /Users/shawn/Documents/_Ravel-2/_empd/emsdk/upstream/emscripten/cache/sysroot/include/compat/string.h \
+  /Users/shawn/Documents/_Ravel-2/_empd/emsdk/upstream/emscripten/cache/sysroot/include/string.h \
+  /Users/shawn/Documents/_Ravel-2/_empd/emsdk/upstream/emscripten/cache/sysroot/include/strings.h \
+  /Users/shawn/Documents/_Ravel-2/_empd/emsdk/upstream/lib/clang/19/include/limits.h \
+  /Users/shawn/Documents/_Ravel-2/_empd/emsdk/upstream/emscripten/cache/sysroot/include/limits.h \
+  /Users/shawn/Documents/_Ravel-2/_empd/emsdk/upstream/emscripten/cache/sysroot/include/bits/limits.h \
+  /Users/shawn/Documents/_Ravel-2/_empd/emsdk/upstream/emscripten/cache/sysroot/include/errno.h \
+  /Users/shawn/Documents/_Ravel-2/_empd/emsdk/upstream/emscripten/cache/sysroot/include/bits/errno.h \
+  /Users/shawn/Documents/_Ravel-2/_empd/emsdk/upstream/emscripten/cache/sysroot/include/fcntl.h \
+  /Users/shawn/Documents/_Ravel-2/_empd/emsdk/upstream/emscripten/cache/sysroot/include/bits/fcntl.h \
+  /Users/shawn/Documents/_Ravel-2/_empd/emsdk/upstream/emscripten/cache/sysroot/include/pthread.h \
+  /Users/shawn/Documents/_Ravel-2/_empd/emsdk/upstream/emscripten/cache/sysroot/include/sched.h \
+  /Users/shawn/Documents/_Ravel-2/_empd/emsdk/upstream/emscripten/cache/sysroot/include/compat/time.h \
+  /Users/shawn/Documents/_Ravel-2/_empd/emsdk/upstream/emscripten/cache/sysroot/include/time.h

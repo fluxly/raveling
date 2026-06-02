@@ -2,8 +2,12 @@
  * Web Worker that runs the libpd WebAssembly module and processes audio blocks
  * forwarded from the AudioWorklet tap.
  *
+ * Patches are loaded via --preload-file in build.sh, which generates a
+ * .data file fetched at module init time — same approach as the working
+ * _empd/patches/nessie example.
+ *
  * Protocol (messages in from main thread):
- *   { type: 'init',  libpdJsUrl, wasmUrl, patchUrl, sampleRate }
+ *   { type: 'init',  libpdJsUrl, wasmUrl, dataUrl, sampleRate }
  *   { type: 'audio', buf: Float32Array }   — transferred ownership
  *
  * Protocol (messages out to main thread):
@@ -15,14 +19,11 @@ export const WORKER_CODE = `
 let Module = null;
 let ready = false;
 
-// Throttle: emit params at most every ~50ms (~20 Hz) to avoid flooding the
-// main thread — fast enough for real-time vocal control.
 let lastEmitTime = 0;
 const EMIT_INTERVAL_MS = 50;
 
 self.onmessage = async (e) => {
     const { type } = e.data;
-
     if (type === 'init') {
         await initLibPD(e.data);
     } else if (type === 'audio' && ready) {
@@ -30,48 +31,35 @@ self.onmessage = async (e) => {
     }
 };
 
-async function initLibPD({ libpdJsUrl, wasmUrl, patchUrl, sampleRate }) {
+async function initLibPD({ libpdJsUrl, wasmUrl, dataUrl, sampleRate }) {
     try {
-        // Dynamically import the Emscripten ES-module factory.
-        // (Works in module-type workers created from a blob URL.)
         const { default: createLibPD } = await import(libpdJsUrl);
 
         Module = await createLibPD({
-            // Tell Emscripten where the .wasm file lives.
-            locateFile: (path) => path.endsWith('.wasm') ? wasmUrl : path,
+            // Tell Emscripten where to fetch the .wasm and .data files.
+            locateFile: (path) => {
+                if (path.endsWith('.wasm')) return wasmUrl;
+                if (path.endsWith('.data')) return dataUrl;
+                return path;
+            },
         });
 
-        // Fetch the Pd patch and write it into libpd's virtual filesystem.
-        const patchRes = await fetch(patchUrl);
-        if (!patchRes.ok) {
-            throw new Error(\`Cannot fetch patch \${patchUrl}: HTTP \${patchRes.status}\`);
-        }
-        const patchBytes = new Uint8Array(await patchRes.arrayBuffer());
+        // Sanity-check: the .data preload puts ravel-glottalizer.pd at the root.
+        const probe = (p) => Module.ccall('test_file_read', 'number', ['string'], [p]);
+        console.log('[glottalizer] preload probe  ravel-glottalizer.pd:', probe('ravel-glottalizer.pd'));
 
-        // Write patch into libpd's virtual filesystem.
-        // Use /tmp — always present in Emscripten's default FS mounts.
-        // Avoid dir="/" because libpd constructs "//filename" (double-slash)
-        // which Emscripten's FS path lookup does not normalise correctly.
-        const patchName = patchUrl.split('/').pop() || 'patch.pd';
-        const baseName = patchName.endsWith('.pd') ? patchName.slice(0, -3) : patchName;
-
-        console.log('[glottalizer] patch fetched:', patchName, patchBytes.length, 'bytes');
-        console.log('[glottalizer] FS root before write:', Module.FS.readdir('/'));
-
-        try { Module.FS.mkdir('/tmp'); } catch (_) {}
-        Module.FS.writeFile('/tmp/' + patchName, patchBytes);
-
-        console.log('[glottalizer] FS /tmp after write:', Module.FS.readdir('/tmp'));
-
+        // Matches the nessie/_empd pattern: bare filename + "." as dir.
+        // --preload-file src@name places each file at name in the FS root,
+        // and libpd_openfile("name", ".") finds it as ./name.pd.
         const result = Module.ccall(
             'setup_patch', 'number',
             ['string', 'string', 'number'],
-            ['/tmp/' + baseName, '', sampleRate]
+            ['ravel-glottalizer', '.', sampleRate]
         );
 
         if (result !== 0) {
             const reason = result === -1 ? 'libpd_init_audio failed'
-                         : result === -2 ? 'patch file could not be opened'
+                         : result === -2 ? 'patch not found in WASM — rebuild with ravel-glottalizer.pd present'
                          : 'unknown error ' + result;
             throw new Error('libpd setup_patch: ' + reason);
         }
@@ -85,19 +73,14 @@ async function initLibPD({ libpdJsUrl, wasmUrl, patchUrl, sampleRate }) {
 }
 
 function processBlock(buf /* Float32Array, transferred */) {
-    // Ensure length is a multiple of 64 (libpd block size)
     const n = Math.floor(buf.length / 64) * 64;
     if (n === 0) return;
 
-    // Copy samples into WASM heap
     const ptr = Module._malloc(n * 4);
     Module.HEAPF32.set(buf.subarray(0, n), ptr >> 2);
-
     Module.ccall('process_audio', null, ['number', 'number'], [ptr, n]);
-
     Module._free(ptr);
 
-    // Throttled param emit
     const now = Date.now();
     if (now - lastEmitTime < EMIT_INTERVAL_MS) return;
     lastEmitTime = now;

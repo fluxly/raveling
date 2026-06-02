@@ -1,0 +1,25 @@
+CMakeFiles/libpd.dir/libpd_wrapper/s_libpdmidi.c.o: \
+  /Users/shawn/Documents/_Ravel-2/_empd/libpd/libpd_wrapper/s_libpdmidi.c \
+  /Users/shawn/Documents/_Ravel-2/_empd/libpd/pure-data/src/m_pd.h \
+  /Users/shawn/Documents/_Ravel-2/_empd/emsdk/upstream/lib/clang/19/include/stddef.h \
+  /Users/shawn/Documents/_Ravel-2/_empd/emsdk/upstream/emscripten/cache/sysroot/include/stddef.h \
+  /Users/shawn/Documents/_Ravel-2/_empd/emsdk/upstream/lib/clang/19/include/__stddef_header_macro.h \
+  /Users/shawn/Documents/_Ravel-2/_empd/emsdk/upstream/lib/clang/19/include/__stddef_ptrdiff_t.h \
+  /Users/shawn/Documents/_Ravel-2/_empd/emsdk/upstream/lib/clang/19/include/__stddef_size_t.h \
+  /Users/shawn/Documents/_Ravel-2/_empd/emsdk/upstream/lib/clang/19/include/__stddef_wchar_t.h \
+  /Users/shawn/Documents/_Ravel-2/_empd/emsdk/upstream/lib/clang/19/include/__stddef_null.h \
+  /Users/shawn/Documents/_Ravel-2/_empd/emsdk/upstream/lib/clang/19/include/__stddef_max_align_t.h \
+  /Users/shawn/Documents/_Ravel-2/_empd/emsdk/upstream/lib/clang/19/include/__stddef_offsetof.h \
+  /Users/shawn/Documents/_Ravel-2/_empd/emsdk/upstream/lib/clang/19/include/stdint.h \
+  /Users/shawn/Documents/_Ravel-2/_empd/emsdk/upstream/emscripten/cache/sysroot/include/stdint.h \
+  /Users/shawn/Documents/_Ravel-2/_empd/emsdk/upstream/emscripten/cache/sysroot/include/bits/alltypes.h \
+  /Users/shawn/Documents/_Ravel-2/_empd/emsdk/upstream/emscripten/cache/sysroot/include/bits/stdint.h \
+  /Users/shawn/Documents/_Ravel-2/_empd/emsdk/upstream/emscripten/cache/sysroot/include/stdio.h \
+  /Users/shawn/Documents/_Ravel-2/_empd/emsdk/upstream/emscripten/cache/sysroot/include/wasi/api.h \
+  /Users/shawn/Documents/_Ravel-2/_empd/emsdk/upstream/emscripten/cache/sysroot/include/features.h \
+  /Users/shawn/Documents/_Ravel-2/_empd/libpd/libpd_wrapper/z_libpd.h \
+  /Users/shawn/Documents/_Ravel-2/_empd/libpd/libpd_wrapper/z_hooks.h \
+  /Users/shawn/Documents/_Ravel-2/_empd/libpd/pure-data/src/s_stuff.h \
+  /Users/shawn/Documents/_Ravel-2/_empd/emsdk/upstream/emscripten/cache/sysroot/include/compat/string.h \
+  /Users/shawn/Documents/_Ravel-2/_empd/emsdk/upstream/emscripten/cache/sysroot/include/string.h \
+  /Users/shawn/Documents/_Ravel-2/_empd/emsdk/upstream/emscripten/cache/sysroot/include/strings.h

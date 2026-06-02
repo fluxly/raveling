@@ -15,7 +15,7 @@
  *
  * Exported JS API (via ccall / cwrap):
  *   int  setup_patch(filename, dir, sample_rate)  -> 0=ok, <0=error
- *        filename must be WITHOUT the .pd extension — libpd_openfile appends it.
+ *        filename must be WITHOUT the .pd extension — setup_patch appends it.
  *   void process_audio(float* samples, int n)
  *   float get_frequency / get_tenseness / get_intensity
  *         get_loudness / get_tongue_index / get_tongue_diameter
@@ -25,6 +25,8 @@
 #include "z_libpd.h"
 #include <string.h>
 #include <stdlib.h>
+#include <fcntl.h>
+#include <unistd.h>
 #include <emscripten.h>
 
 /* ── Parameter storage ──────────────────────────────────────────────────── */
@@ -83,12 +85,15 @@ EMSCRIPTEN_KEEPALIVE int setup_patch(const char *filename, const char *dir, int 
         return -1;
     }
 
-    /* Enable DSP */
+    /* Enable DSP — nessie/_empd example does this before openfile */
     libpd_start_message(1);
     libpd_add_float(1.0f);
     libpd_finish_message("pd", "dsp");
 
-    g_patch = libpd_openfile(filename, dir);
+    /* libpd_openfile (glob_evalfile) needs the full filename with extension */
+    char pd_filename[4096];
+    snprintf(pd_filename, sizeof(pd_filename), "%s.pd", filename);
+    g_patch = libpd_openfile(pd_filename, dir);
     if (!g_patch) {
         return -2;
     }
@@ -116,6 +121,26 @@ EMSCRIPTEN_KEEPALIVE void process_audio(const float *input_samples, int n_sample
     libpd_process_float(ticks, input_samples, out);
 
     free(out);
+}
+
+/* ── Diagnostics ────────────────────────────────────────────────────────── */
+
+/* Returns file size via fopen, or -1 on failure. */
+EMSCRIPTEN_KEEPALIVE int test_file_read(const char *path) {
+    FILE *f = fopen(path, "rb");
+    if (!f) return -1;
+    fseek(f, 0, SEEK_END);
+    int size = (int)ftell(f);
+    fclose(f);
+    return size;
+}
+
+/* Returns 0 via POSIX open(), or -1 on failure. */
+EMSCRIPTEN_KEEPALIVE int test_file_open(const char *path) {
+    int fd = open(path, O_RDONLY);
+    if (fd < 0) return -1;
+    close(fd);
+    return 0;
 }
 
 /* ── Parameter getters ──────────────────────────────────────────────────── */

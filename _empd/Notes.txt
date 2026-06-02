@@ -1,0 +1,39 @@
+Notes on Empd, libPd with Emscripten 
+
+From:
+https://mathr.co.uk/empd/
+
+get
+First install and activate the emscripten environment.
+
+brew install cmake
+git clone https://github.com/emscripten-core/emsdk.git
+cd emsdk
+./emsdk install latest
+./emsdk activate latest
+source ./emsdk_env.sh
+cd ..
+build core
+git clone --recursive https://github.com/claudeha/libpd.git
+cd libpd
+git checkout emscripten
+cd pure-data
+git remote add claudeha https://github.com/claudeha/pure-data.git
+git fetch claudeha
+git checkout claudeha/emscripten
+cd ..
+mkdir build
+cd build
+emcmake cmake .. -DPD_UTILS:BOOL=OFF -DCMAKE_BUILD_TYPE=Release
+emmake make
+cd ..
+build examples
+cd samples/emscripten/pdtest
+emmake make
+cd ..
+To load in a browser you need a web server (local filesystem might not work). For example:
+
+python -m SimpleHTTPServer 8080 &
+firefox http://localhost:8080/pdtest/pdtest.html
+chromium http://localhost:8080/pdtest/index.html
+Google requires interaction with the page for audio (which drives the Pd scheduler) to start, so if nothing is happening try clicking.

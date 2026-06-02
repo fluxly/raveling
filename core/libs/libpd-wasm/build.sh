@@ -1,105 +1,98 @@
 #!/usr/bin/env bash
 # =============================================================================
-# build.sh — Compile libpd to WebAssembly for ravel-glottalizer
+# build.sh — Compile libpd + feral-vocaloid patch to WebAssembly
+#
+# Uses the pre-built libpd.a from _empd/libpd/build/libs/ and follows the
+# same --preload-file approach as the working nessie/_empd example patches.
 #
 # Prerequisites:
-#   - Emscripten SDK ≥ 3.1  (https://emscripten.org/docs/getting_started/downloads.html)
-#     Activate it first:   source /path/to/emsdk/emsdk_env.sh
-#   - CMake ≥ 3.15
-#   - git
-#   - The feral-vocaloid patch must be in:
-#       core/libs/libpd-wasm/feral-vocaloid.pd
+#   - Emscripten SDK activated:  source /path/to/emsdk/emsdk_env.sh
+#   - _empd/libpd/build/libs/libpd.a  (pre-built by the _empd project)
+#   - .pd patch files in core/libs/libpd-wasm/
 #
 # Usage:
-#   cd core/libs/libpd-wasm
-#   bash build.sh
+#   bash core/libs/libpd-wasm/build.sh
 #
-# Outputs (served by Vite from public/):
+# Outputs (served by Vite from public/libs/):
 #   public/libs/libpd-glottalizer.js    — Emscripten ES-module loader
 #   public/libs/libpd-glottalizer.wasm  — WebAssembly binary
+#   public/libs/libpd-glottalizer.data  — Preloaded patch filesystem image
 # =============================================================================
 
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
-BUILD_DIR="$SCRIPT_DIR/_build"
-LIBPD_DIR="$BUILD_DIR/libpd"
-LIBPD_BUILD="$BUILD_DIR/libpd-wasm-build"
+EMPD_DIR="$REPO_ROOT/_empd"
+LIBPD_DIR="$EMPD_DIR/libpd"
+LIBPD_A="$LIBPD_DIR/build/libs/libpd.a"
 OUT_DIR="$REPO_ROOT/public/libs"
 
-# ── Pre-flight checks ──────────────────────────────────────────────────────
 echo "=== ravel-glottalizer: libpd → WASM build ==="
 
+# ── Pre-flight: emcc ───────────────────────────────────────────────────────
 if ! command -v emcc &>/dev/null; then
-  echo ""
   echo "  ERROR: emcc not found."
-  echo "  Install Emscripten SDK and run:  source /path/to/emsdk/emsdk_env.sh"
-  echo "  Docs: https://emscripten.org/docs/getting_started/downloads.html"
+  echo "  Activate emsdk first:  source /path/to/emsdk/emsdk_env.sh"
+  exit 1
+fi
+echo "  emcc:  $(emcc --version | head -1)"
+
+# ── Pre-flight: libpd.a ───────────────────────────────────────────────────
+if [ ! -f "$LIBPD_A" ]; then
+  echo ""
+  echo "  libpd.a not found at $LIBPD_A"
+  echo "  Building it from _empd/libpd..."
+  mkdir -p "$LIBPD_DIR/build"
+  cd "$LIBPD_DIR/build"
+  emcmake cmake .. -DPD_UTILS:BOOL=OFF -DCMAKE_BUILD_TYPE=Release
+  emmake make
+  cd "$SCRIPT_DIR"
+  LIBPD_A=$(find "$LIBPD_DIR/build" -name "*.a" | head -1)
+  [ -z "$LIBPD_A" ] && { echo "ERROR: libpd build failed"; exit 1; }
+fi
+echo "  libpd: $LIBPD_A"
+
+# ── Pre-flight: .pd files ─────────────────────────────────────────────────
+PD_FILES=()
+for f in "$SCRIPT_DIR"/*.pd; do
+  [ -f "$f" ] && PD_FILES+=("$f")
+done
+
+if [ ${#PD_FILES[@]} -eq 0 ]; then
+  echo "  ERROR: No .pd files found in $SCRIPT_DIR"
+  exit 1
+fi
+if [ ! -f "$SCRIPT_DIR/ravel-glottalizer.pd" ]; then
+  echo "  ERROR: ravel-glottalizer.pd missing from $SCRIPT_DIR"
   exit 1
 fi
 
-if ! command -v cmake &>/dev/null; then
-  echo "ERROR: cmake not found. Install CMake ≥ 3.15."
-  exit 1
-fi
-
-EMCC_VER=$(emcc --version | head -1)
-echo "  emcc:  $EMCC_VER"
-echo "  cmake: $(cmake --version | head -1)"
+echo "  patches: ${#PD_FILES[@]} file(s)"
+for f in "${PD_FILES[@]}"; do echo "    $(basename "$f")  ($(wc -c < "$f" | tr -d ' ') bytes)"; done
 echo ""
 
-# ── Clone / update libpd ───────────────────────────────────────────────────
-mkdir -p "$BUILD_DIR"
+# ── Preload flags ─────────────────────────────────────────────────────────
+# Mirrors the nessie/_empd Makefile exactly: cd to the patch directory so
+# --preload-file uses bare filenames (no @ path needed). Emscripten then
+# places each file at its basename in the virtual FS root, and
+# libpd_openfile("feral-vocaloid", ".") finds it as ./feral-vocaloid.pd.
+cd "$SCRIPT_DIR"
+PRELOAD_FLAGS=()
+for f in "${PD_FILES[@]}"; do
+  PRELOAD_FLAGS+=("--preload-file" "$(basename "$f")")
+done
+echo "  Preload flags: ${PRELOAD_FLAGS[*]}"
 
-if [ ! -d "$LIBPD_DIR/.git" ]; then
-  echo ">>> Cloning libpd..."
-  git clone --depth 1 --recurse-submodules \
-    https://github.com/libpd/libpd.git "$LIBPD_DIR"
-else
-  echo ">>> Updating libpd..."
-  git -C "$LIBPD_DIR" pull --rebase
-  git -C "$LIBPD_DIR" submodule update --init --recursive
-fi
-
-# ── Configure libpd with Emscripten ───────────────────────────────────────
-echo ""
-echo ">>> Configuring libpd (emcmake cmake)..."
-mkdir -p "$LIBPD_BUILD"
-cd "$LIBPD_BUILD"
-
-emcmake cmake "$LIBPD_DIR" \
-  -DCMAKE_BUILD_TYPE=MinSizeRel \
-  -DPD_UTILS=OFF        \
-  -DPD_EXTRA=ON         \
-  -DPD_LOCALE=OFF       \
-  -DLIBPD_SETLOCALE=OFF \
-  -DPD_MULTI=OFF        \
-  -DCMAKE_C_FLAGS="-fPIC -DUSEAPI_DUMMY=1"
-
-# ── Build libpd static library ─────────────────────────────────────────────
-echo ""
-echo ">>> Building libpd_static..."
-NPROC=$(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 4)
-emmake make -j"$NPROC" libpd_static
-
-# Find the static lib
-LIBPD_A=$(find "$LIBPD_BUILD" -name "*.a" | head -1)
-if [ -z "$LIBPD_A" ]; then
-  echo "ERROR: Could not find libpd static library after build."
-  exit 1
-fi
-echo "  Found: $LIBPD_A"
-
-# ── Link the final WASM module ─────────────────────────────────────────────
-echo ""
+# ── Link ──────────────────────────────────────────────────────────────────
 echo ">>> Linking WASM module..."
 mkdir -p "$OUT_DIR"
 
 emcc \
   "$SCRIPT_DIR/libpd_wrapper.c" \
   "$LIBPD_A" \
-  -I"$LIBPD_DIR/libpd_wrapper" \
   -I"$LIBPD_DIR/pure-data/src"  \
+  -I"$LIBPD_DIR/libpd_wrapper"  \
+  -lm \
   \
   -s WASM=1                     \
   -s MODULARIZE=1               \
@@ -107,9 +100,13 @@ emcc \
   -s EXPORT_ES6=1               \
   -s ENVIRONMENT='worker'       \
   \
+  "${PRELOAD_FLAGS[@]}"         \
+  \
   -s EXPORTED_FUNCTIONS='[
     "_setup_patch",
     "_process_audio",
+    "_test_file_read",
+    "_test_file_open",
     "_get_frequency",
     "_get_tenseness",
     "_get_intensity",
@@ -126,6 +123,7 @@ emcc \
   -s MAXIMUM_MEMORY=268435456   \
   -s STACK_SIZE=5242880         \
   -s FILESYSTEM=1               \
+  -s ASSERTIONS=1               \
   -O2                           \
   -o "$OUT_DIR/libpd-glottalizer.js"
 
@@ -133,6 +131,4 @@ echo ""
 echo "=== Build complete ==="
 echo "  $OUT_DIR/libpd-glottalizer.js"
 echo "  $OUT_DIR/libpd-glottalizer.wasm"
-echo ""
-echo "The component will serve these from /libs/ via Vite's public/ directory."
-echo "Drop core/libs/libpd-wasm/feral-vocaloid.pd in place and open the sandbox."
+echo "  $OUT_DIR/libpd-glottalizer.data  ← patch files"

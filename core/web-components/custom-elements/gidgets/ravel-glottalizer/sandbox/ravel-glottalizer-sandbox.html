@@ -149,7 +149,7 @@
             <span class="check-icon" id="chk-patch-icon">⬜</span>
             <span class="check-text" id="chk-patch-text">
                 Pd patch present —
-                <span class="check-code">core/libs/libpd-wasm/feral-vocaloid.pd</span>
+                <span class="check-code">core/libs/libpd-wasm/ravel-glottalizer.pd</span>
             </span>
         </div>
         <div class="check-item">
@@ -227,7 +227,7 @@
 
         // Check patch
         try {
-            const r = await fetch('/core/libs/libpd-wasm/feral-vocaloid.pd', { method: 'HEAD' });
+            const r = await fetch('/core/libs/libpd-wasm/ravel-glottalizer.pd', { method: 'HEAD' });
             if (r.ok) {
                 document.getElementById('chk-patch-icon').textContent = '✅';
                 document.getElementById('chk-patch-text').style.color = '#447766';

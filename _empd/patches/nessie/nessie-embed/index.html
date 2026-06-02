@@ -1,0 +1,51 @@
+ <!DOCTYPE html>
+<html>
+<body>
+  <iframe allow-scripts src="./nessie-iframe.html"></iframe>
+Volume: <input id="volume" type="range" min="0" max="1" step="0.01" data-param="control2">
+
+<script>
+   // UI container
+    const wrapper = document.createElement("div");
+    wrapper.style.display = "grid";
+    wrapper.style.gridTemplateColumns = "repeat(8, 1fr)";
+    wrapper.style.gap = "0.5rem";
+
+    // create 8 sliders
+    this.sliders = [];
+    for (let i = 0; i < 8; i++) {
+      const input = document.createElement("input");
+      input.type = "range";
+      input.min = "0";
+      input.max = "1";
+      input.step = "0.01";
+      input.value = "0";
+      input.dataset.param = `control${i}`;
+      input.addEventListener("input", () => {
+          sendParam(input.dataset.param, parseFloat(input.value));
+      });
+      this.sliders.push(input);
+      wrapper.appendChild(input);
+    }
+    /*
+    document.querySelector('#volume').addEventListener('input', (evt) => {
+      sendParam('masterVolume', 1);   // parseFloat(evt.target.value)
+    })
+      */
+    document.body.append(wrapper);
+
+    const iframe = document.querySelector('iframe');
+    // iframe sandbox
+    //this.iframe = document.createElement("iframe");
+    //this.iframe.setAttribute("sandbox", "allow-scripts");
+    //this.iframe.style.display = "none"; // invisible
+    //
+    function sendParam(name, value) {
+        console.log('send param');
+        if (iframe && iframe.contentWindow) {
+            iframe.contentWindow.postMessage({ type: "param", name, value }, "*");
+        }
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<body>
+<script>
+  // Define Module before loading nessie.js
+  var Module = {
+    onRuntimeInitialized: function() {
+      console.log("Empd/Pd Module ready");
+    }
+  };
+</script>
+<script src="./nessie.js"></script>
+
+<script>
+  window.addEventListener("message", (e) => {
+    const msg = e.data;
+    if (msg.type === "param") {
+      if (typeof Module !== "undefined" && Module.ccall) {
+        Module.ccall("sendfloat", null,
+          ["string","number"],
+          [msg.name, msg.value]
+        );
+        console.log("Sent param:", msg.name, msg.value);
+      } else {
+        console.warn("Module not ready yet");
+      }
+    }
+  });
+</script>
+</body>
+</html>

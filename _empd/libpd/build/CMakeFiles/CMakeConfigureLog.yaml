@@ -1,0 +1,47 @@
+
+---
+events:
+  -
+    kind: "message-v1"
+    backtrace:
+      - "/opt/homebrew/Cellar/cmake/3.30.0/share/cmake/Modules/CMakeDetermineSystem.cmake:200 (message)"
+      - "CMakeLists.txt:2 (project)"
+    message: |
+      The target system is: Emscripten - 1 - x86
+      The host system is: Darwin - 22.4.0 - arm64
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/opt/homebrew/Cellar/cmake/3.30.0/share/cmake/Modules/Internal/CheckSourceCompiles.cmake:101 (try_compile)"
+      - "/opt/homebrew/Cellar/cmake/3.30.0/share/cmake/Modules/CheckCSourceCompiles.cmake:52 (cmake_check_source_compiles)"
+      - "/opt/homebrew/Cellar/cmake/3.30.0/share/cmake/Modules/FindThreads.cmake:97 (CHECK_C_SOURCE_COMPILES)"
+      - "/opt/homebrew/Cellar/cmake/3.30.0/share/cmake/Modules/FindThreads.cmake:163 (_threads_check_libc)"
+      - "CMakeLists.txt:186 (find_package)"
+    checks:
+      - "Performing Test CMAKE_HAVE_LIBC_PTHREAD"
+    directories:
+      source: "/Users/shawn/Documents/_Ravel-2/_empd/libpd/build/CMakeFiles/CMakeScratch/TryCompile-tklUx1"
+      binary: "/Users/shawn/Documents/_Ravel-2/_empd/libpd/build/CMakeFiles/CMakeScratch/TryCompile-tklUx1"
+    cmakeVariables:
+      CMAKE_C_FLAGS: " -Wno-int-to-pointer-cast -Wno-pointer-to-int-cast -Wno-#warnings"
+      CMAKE_MODULE_PATH: "/Users/shawn/Documents/_Ravel-2/_empd/emsdk/upstream/emscripten/cmake/Modules;/Users/shawn/Documents/_Ravel-2/_empd/emsdk/upstream/emscripten/cmake/Modules;/Users/shawn/Documents/_Ravel-2/_empd/emsdk/upstream/emscripten/cmake/Modules;/Users/shawn/Documents/_Ravel-2/_empd/emsdk/upstream/emscripten/cmake/Modules"
+      CMAKE_POSITION_INDEPENDENT_CODE: "ON"
+    buildResult:
+      variable: "CMAKE_HAVE_LIBC_PTHREAD"
+      cached: true
+      stdout: |
+        Change Dir: '/Users/shawn/Documents/_Ravel-2/_empd/libpd/build/CMakeFiles/CMakeScratch/TryCompile-tklUx1'
+        
+        Run Build Command(s): /opt/homebrew/Cellar/cmake/3.30.0/bin/cmake -E env VERBOSE=1 /usr/bin/make -f Makefile cmTC_b012b/fast
+        /Applications/Xcode.app/Contents/Developer/usr/bin/make  -f CMakeFiles/cmTC_b012b.dir/build.make CMakeFiles/cmTC_b012b.dir/build
+        Building C object CMakeFiles/cmTC_b012b.dir/src.c.o
+        /Users/shawn/Documents/_Ravel-2/_empd/emsdk/upstream/emscripten/emcc -DCMAKE_HAVE_LIBC_PTHREAD  -Wno-int-to-pointer-cast -Wno-pointer-to-int-cast -Wno-#warnings  -fPIE -MD -MT CMakeFiles/cmTC_b012b.dir/src.c.o -MF CMakeFiles/cmTC_b012b.dir/src.c.o.d -o CMakeFiles/cmTC_b012b.dir/src.c.o -c /Users/shawn/Documents/_Ravel-2/_empd/libpd/build/CMakeFiles/CMakeScratch/TryCompile-tklUx1/src.c
+        shared:INFO: (Emscripten: Running sanity checks)
+        Linking C executable cmTC_b012b.js
+        /opt/homebrew/Cellar/cmake/3.30.0/bin/cmake -E cmake_link_script CMakeFiles/cmTC_b012b.dir/link.txt --verbose=1
+        /Users/shawn/Documents/_Ravel-2/_empd/emsdk/upstream/emscripten/emcc  -Wno-int-to-pointer-cast -Wno-pointer-to-int-cast -Wno-#warnings  @CMakeFiles/cmTC_b012b.dir/objects1.rsp -o cmTC_b012b.js
+        cache:INFO: generating system asset: symbol_lists/1ffb8ae9989c0d6bd939b0535f818460be3553a6.json... (this will be cached in "/Users/shawn/Documents/_Ravel-2/_empd/emsdk/upstream/emscripten/cache/symbol_lists/1ffb8ae9989c0d6bd939b0535f818460be3553a6.json" for subsequent builds)
+        cache:INFO:  - ok
+        
+      exitCode: 0
+...
