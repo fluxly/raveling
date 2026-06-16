@@ -6,18 +6,399 @@
     <link rel="icon" type="image/x-icon" href="./images/favicon.ico">
     <title>Raveling Dashboard</title>
     <meta name="description" content="Raveling Dashboard">
-	<link rel="stylesheet" href="./styles/styles.css">
+	<script src="/core/libs/p5.min.js"></script>
     <script type="module" src="./core/index.ts"></script>
     <script type="module" src="./index.ts"></script>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 20px;
+      background-color: #1a1a2e;
+      color: #e0e0e0;
+      font-family: 'Quantico', monospace, sans-serif;
+    }
+    h1 {
+      color: #8bc34a;
+      font-size: 2rem;
+      margin-bottom: 4px;
+    }
+    p.subtitle {
+      color: #666;
+      margin-top: 0;
+      margin-bottom: 30px;
+      font-size: 0.9rem;
+    }
+    .section {
+      margin-bottom: 40px;
+      border: 1px solid #2a2a4a;
+      border-radius: 8px;
+      padding: 20px;
+      background: #16213e;
+    }
+    .section h2 {
+      margin-top: 0;
+      color: #4fc3f7;
+      font-size: 1rem;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      border-bottom: 1px solid #2a2a4a;
+      padding-bottom: 8px;
+      margin-bottom: 16px;
+    }
+    .element-label {
+      font-size: 0.75rem;
+      color: #888;
+      margin-bottom: 6px;
+    }
+    .element-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 40px;
+      align-items: flex-start;
+    }
+    .element-cell {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    /* give positioned elements a visible stage */
+    .stage {
+      position: relative;
+      width: 300px;
+      height: 180px;
+      background: #0f3460;
+      border-radius: 4px;
+      overflow: visible;
+    }
+    .stage-tall {
+      position: relative;
+      width: 300px;
+      height: 260px;
+      background: #0f3460;
+      border-radius: 4px;
+      overflow: visible;
+    }
+  </style>
 </head>
 <body>
-    <div id="page">
-        <!--custom element sandbox section-->
-        <ravel-button>foo</ravel-button>
-        <ravel-button>bar</ravel-button>
+
+<h1>🍩 Raveling</h1>
+<p class="subtitle">Web Component Element Sandbox</p>
+
+<!-- ─── BUTTON ─── -->
+<div class="section">
+  <h2>ravel-button</h2>
+  <div class="element-row">
+    <div class="element-cell">
+      <div class="element-label">Default (50×50, red)</div>
+      <div class="stage">
+        <ravel-button id="btn1" x="20" y="20" w="50" h="50" color="#ff4444" pixel-size="8"></ravel-button>
+      </div>
+    </div>
+    <div class="element-cell">
+      <div class="element-label">Large (80×80, green)</div>
+      <div class="stage">
+        <ravel-button id="btn2" x="20" y="20" w="80" h="80" color="#44ff88" pixel-size="12"></ravel-button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─── POT ─── -->
+<div class="section">
+  <h2>ravel-pot</h2>
+  <div class="element-row">
+    <div class="element-cell">
+      <div class="element-label">Knob (60×60)</div>
+      <div class="stage">
+        <ravel-pot id="pot1" x="40" y="40" w="60" h="60" icon="white-circle" signal-out="pot-signal"></ravel-pot>
+      </div>
+    </div>
+    <div class="element-cell">
+      <div class="element-label">Knob with marker</div>
+      <div class="stage">
+        <ravel-pot id="pot2" x="40" y="40" w="80" h="80" icon="orange-circle" marker="white-circle" signal-out="pot-signal-2"></ravel-pot>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─── SLIDER ─── -->
+<div class="section">
+  <h2>ravel-slider-2</h2>
+  <div class="element-row">
+    <div class="element-cell">
+      <div class="element-label">Horizontal slider (240×60)</div>
+      <div class="stage">
+        <ravel-slider-2 id="slider1" x="20" y="60" w="240" h="60" color="#4fc3f7" pixel-size="8" margin="20" min="0" max="1" step="0.01" value="0.5" signal-out="slider-signal"></ravel-slider-2>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─── SWITCH ─── -->
+<div class="section">
+  <h2>ravel-switch</h2>
+  <div class="element-row">
+    <div class="element-cell">
+      <div class="element-label">2-state toggle</div>
+      <div class="stage">
+        <ravel-switch id="sw1" x="30" y="50" w="80" h="60" states="2" color="#ffff00" signals="sig-a,sig-b"></ravel-switch>
+      </div>
+    </div>
+    <div class="element-cell">
+      <div class="element-label">4-state horizontal</div>
+      <div class="stage">
+        <ravel-switch id="sw2" x="20" y="50" w="160" h="60" states="4" color="#ff8800" signals="s1,s2,s3,s4"></ravel-switch>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─── LED ─── -->
+<div class="section">
+  <h2>ravel-led</h2>
+  <div class="element-row">
+    <div class="element-cell">
+      <div class="element-label">Green LED (48px)</div>
+      <div class="stage">
+        <ravel-led id="led1" x="20" y="20" size="48" color="#00cc00" glow="#00ff00" message-id="led-msg-1"></ravel-led>
+      </div>
+    </div>
+    <div class="element-cell">
+      <div class="element-label">Red LED (64px)</div>
+      <div class="stage">
+        <ravel-led id="led2" x="20" y="20" size="64" color="#cc0000" glow="#ff4444" message-id="led-msg-2"></ravel-led>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─── LED ARRAY ─── -->
+<div class="section">
+  <h2>ravel-led-array</h2>
+  <div class="element-row">
+    <div class="element-cell">
+      <div class="element-label">4×8 grid (click to toggle)</div>
+      <ravel-led-array id="ledarray1" rows="4" cols="8" address="aa0001"></ravel-led-array>
+    </div>
+    <div class="element-cell">
+      <div class="element-label">2×16 grid</div>
+      <ravel-led-array id="ledarray2" rows="2" cols="16" address="aa0002"></ravel-led-array>
+    </div>
+  </div>
+</div>
+
+<!-- ─── LCD ─── -->
+<div class="section">
+  <h2>ravel-lcd</h2>
+  <div class="element-row">
+    <div class="element-cell">
+      <div class="element-label">LCD display with slot content</div>
+      <ravel-lcd id="lcd1">8.8.8.8</ravel-lcd>
+    </div>
+  </div>
+</div>
+
+<!-- ─── BOX ─── -->
+<div class="section">
+  <h2>ravel-box</h2>
+  <p style="color:#888;font-size:0.8rem;margin:0 0 12px;">
+    Pixel-art bordered panel. Acts as a CSS containing block — child gidget x/y are box-relative.
+    Content area begins at (margin + pixel-size, pixel-size) within the box.
+  </p>
+  <div class="element-row">
+
+    <div class="element-cell">
+      <div class="element-label">Box frame only (Night Bloom, pixel-size 8)</div>
+      <div class="stage">
+        <ravel-box id="box1" x="20" y="20" w="200" h="120" color="#4A4E9E" pixel-size="8" margin="12">
+        </ravel-box>
+      </div>
     </div>
 
-    <div id="controls">
+    <div class="element-cell">
+      <div class="element-label">Box as container — slider + pot, box-relative x/y</div>
+      <div class="stage">
+        <ravel-box id="box2" x="20" y="20" w="256" h="100" color="#4A4E9E" pixel-size="8" margin="12">
+          <!-- content area: x=[20..236], y=[8..92] within box -->
+          <ravel-slider-2
+            id="box-slider"
+            x="20" y="28"
+            w="140" h="44"
+            color="#D95763" pixel-size="6" margin="10"
+            min="0" max="100" step="1" value="50"
+            signal-out="box-slider-sig">
+          </ravel-slider-2>
+          <ravel-pot
+            id="box-pot"
+            x="176" y="20"
+            w="60" h="60"
+            color="#8CCF8A"
+            min="0" max="1" step="0.01" value="0.5"
+            signal-out="box-pot-sig">
+          </ravel-pot>
+        </ravel-box>
+      </div>
     </div>
+
+  </div>
+</div>
+
+<!-- ─── CRANK ─── -->
+<div class="section">
+  <h2>ravel-crank</h2>
+  <div class="element-row">
+    <div class="element-cell">
+      <div class="element-label">Crank (drag to spin, sends angular velocity)</div>
+      <div class="stage">
+        <ravel-crank id="crank1" x="60" y="20" w="100" h="100" icon="orange-circle" signal-out="crank-signal"></ravel-crank>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─── CGOL GRID ─── -->
+<div class="section">
+  <h2>ravel-cgol-grid</h2>
+  <div class="element-row">
+    <div class="element-cell">
+      <div class="element-label">Conway's Game of Life (6×10, auto-runs, click to start)</div>
+      <div class="stage-tall">
+        <ravel-cgol-grid id="cgol1" x="10" y="10" rows="8" cols="12" coverage="35"></ravel-cgol-grid>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─── CIRCULAR SEQUENCE ─── -->
+<div class="section">
+  <h2>ravel-circular-sequence</h2>
+  <div class="element-row">
+    <div class="element-cell">
+      <div class="element-label">16-step circular sequencer (animated cursor)</div>
+      <ravel-circular-sequence id="circ1" display-count="16" speed="1200"></ravel-circular-sequence>
+    </div>
+  </div>
+</div>
+
+<!-- ─── PROGRESSIVE COMPOSITION ─── -->
+<div class="section">
+  <h2>ravel-progressive-composition-2</h2>
+  <div class="element-row">
+    <div class="element-cell">
+      <div class="element-label">12-section composition grid (click sections to advance performers)</div>
+      <ravel-progressive-composition-2 id="comp1"></ravel-progressive-composition-2>
+    </div>
+  </div>
+</div>
+
+<!-- ─── VISUALIZER 1 ─── -->
+<div class="section">
+  <h2>ravel-visualizer-1</h2>
+  <div class="element-row">
+    <div class="element-cell">
+      <div class="element-label">Waveform visualizer (needs analyser node, shows placeholder)</div>
+      <div class="stage-tall">
+        <ravel-visualizer-1 id="viz1" x="10" y="10" w="260" h="200" color="#001122" pixel-size="8"></ravel-visualizer-1>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─── VISUALIZER 2 ─── -->
+<div class="section">
+  <h2>ravel-visualizer-2</h2>
+  <div class="element-row">
+    <div class="element-cell">
+      <div class="element-label">Audio buffer visualizer (needs AudioBuffer, shows placeholder)</div>
+      <div class="stage-tall">
+        <ravel-visualizer-2 id="viz2" x="10" y="10" w="260" h="200" color="#110022" pixel-size="8"></ravel-visualizer-2>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─── CONTROL ARM ─── -->
+<div class="section">
+  <h2>ravel-control-arm</h2>
+  <p style="color:#888;font-size:0.8rem;margin:0 0 12px;">
+    Drag the arm to hover over controls — they highlight when the sensor (finger tip) overlaps.<br>
+    Drag the arm while hovering to interact continuously (pot / slider).<br>
+    Tap the arm without dragging to click whatever is under the sensor (switch / button).
+  </p>
+  <div class="element-row">
+
+    <!-- Interactive stage: arm + some target elements -->
+    <div class="element-cell">
+      <div class="element-label">Bigfoot arm — drag over the pot and slider below</div>
+      <div class="stage-arm" style="position:relative;width:500px;height:320px;background:#0f3460;border-radius:4px;overflow:hidden;">
+
+        <!-- Target elements inside the same stage -->
+        <ravel-pot
+          id="arm-pot"
+          x="200" y="100" w="80" h="80"
+          icon="orange-circle" marker="white-circle"
+          signal-out="arm-pot-signal">
+        </ravel-pot>
+
+        <ravel-slider-2
+          id="arm-slider"
+          x="280" y="220" w="180" h="60"
+          color="#4fc3f7" pixel-size="6" margin="16"
+          min="0" max="1" step="0.01" value="0.4"
+          signal-out="arm-slider-signal">
+        </ravel-slider-2>
+
+        <ravel-switch
+          id="arm-switch"
+          x="60" y="220" w="100" h="50"
+          states="2" color="#ffff00"
+          signals="arm-sw-a,arm-sw-b">
+        </ravel-switch>
+
+        <!-- The arm itself — sensor-x/y are the finger tip in unscaled image pixels -->
+        <ravel-control-arm
+          id="arm1"
+          src="/core/web-components/custom-elements/gidgets/ravel-control-arm/sandbox/images/bigfoot-left.png"
+          scale="0.5"
+          sensor-x="198" sensor-y="42"
+          sensor-w="24" sensor-h="24"
+          x="20" y="20">
+        </ravel-control-arm>
+
+      </div>
+    </div>
+
+    <!-- Second arm: Nessie -->
+    <div class="element-cell">
+      <div class="element-label">Nessie arm (scale 0.4)</div>
+      <div style="position:relative;width:240px;height:240px;background:#0f3460;border-radius:4px;overflow:hidden;">
+        <ravel-control-arm
+          id="arm2"
+          src="/core/web-components/custom-elements/gidgets/ravel-control-arm/sandbox/images/nessie-left.png"
+          scale="0.4"
+          sensor-x="210" sensor-y="30"
+          sensor-w="20" sensor-h="20"
+          x="10" y="30">
+        </ravel-control-arm>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ─── GADGET ─── -->
+<div class="section">
+  <h2>ravel-gadget</h2>
+  <div class="element-row">
+    <div class="element-cell">
+      <div class="element-label">BLE/Serial hardware gadget connector (requires hardware)</div>
+      <ravel-gadget id="gadget1" type="ble" label="my-gadget" uid="abc123" docked="true"></ravel-gadget>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>

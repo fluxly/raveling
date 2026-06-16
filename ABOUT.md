@@ -18,6 +18,9 @@
 | `gidgets-bespoke` | One-off or toy interactive virtual elements |
 | `toys` | Productized assemblies |
 
++ == still in JS
+++ == ported to TS, still in Cryptid Garden format
+
 ### Artifacts
     ravel-scrapbook
     ravel-notebook
@@ -29,7 +32,7 @@
     + ravel-field-recorder
 ### Brokers
     + ravel-theme-broker
-    + ravel-observer-broker
+    + ravel-observer-broker (bridge relay)
     + ravel-ballyhoo-broker (at-based)
     ravel-messenger
     + ravel-local-broker (local forage)
@@ -39,11 +42,12 @@
     + ravel-gadget
     ravel-glottalizer
     ravel-pink-trombone
-    + ravel-qr-reader
+    ++ ravel-qr-reader
+    ++ ravel-hand-tracker
 ### Gidgets
     ravel-alert
     + ravel-blockly
-    + ravel-box
+    ++ ravel-box
     ravel-button
     ravel-card
     + ravel-carousel
@@ -53,6 +57,7 @@
     + ravel-menu
     + ravel-nonagram
     + ravel-p5-canvas
+    ++ ravel-pd-synth
     + ravel-physics-world
     + ravel-playlist
     + ravel-recorder
@@ -63,34 +68,34 @@
     ravel-sequence
     + ravel-signal
     + ravel-sound (nee ravel-sample)
-    + ravel-visualizer (1 and 2)
+    ++ ravel-visualizer (1 and 2)
 ### Gidgets Bespoke
-    + ravel-cgol-grid
-    + ravel-circular-sequence
+    ++ ravel-cgol-grid
+    ++ ravel-circular-sequence
     + ravel-crossfade-background
     + ravel-emoji-grid
     + ravel-fluxum
     + ravel-lcd
     + ravel-led
     + ravel-led-array
-    + ravel-toy-button (nee ravel-button)
-    + ravel-toy-crank
-    + ravel-toy-pot
-    + ravel-toy-slider-2
-    + ravel-toy-switch
-    + ravel-progressive-composition-2
+    ++ ravel-toy-button (nee ravel-button)
+    ++ ravel-toy-crank
+    ++ ravel-toy-pot
+    ++ ravel-toy-slider-2
+    ++ ravel-toy-switch
+    ++ ravel-progressive-composition-2
     + ravel-tally-grid
     
 ## App Server
-    strict message contracts, browser-owned app state, hardware abstraction, and sandboxed file access
+    strict message contracts, browser-owned app state, hardware abstraction, sandboxed file access
     + ravel-kiosk-app
 
     Possible alternative: 
-    Browser (Web Components)
-        ↓ WebSocket
-    Starlette
-        ↓ asyncio subprocess
-    Hardware Worker
+        Browser (Web Components)
+            ↓ WebSocket
+        Starlette
+            ↓ asyncio subprocess
+        Hardware Worker
    
 
 ## Library 
@@ -129,6 +134,8 @@ Sounds
     
 ## Tools
     Raveling Reader
+        Playlists/Efrobs
+        Scrapbooks and Notebooks
     Raveling Lab
         Sound Studio
             Stem extraction
@@ -144,14 +151,14 @@ Sounds
         Orchestration: Source of Truth tracking (repo and issue wrangler)
     Scheduler
         heartbeats
-        dreaming
-        async research funnel
-        rfc generation
+        dreams
+        ARF: async research funnel
+        RFC generation
     Storyboarder
         Sorting and tagging
         Playlist Wrangler
         Writers Room/Worlding Room
-        MIDI Drawer (vs audio evidence)
+        MIDI Sketch (vs audio evidence)
     Efrob format and tools
     Text Tools
     3D Gen
@@ -169,11 +176,12 @@ Sounds
             Pipes
             Canjo
             Used Foley
+        Cryptid Garden
     Raveling Fantasy Game Console 
         Cryptid Garden
         Childhood and Society
         World Game
         Time Wizards
         Machines of Loving Grace
-    The Computational Printmaker
+    The Computational Printmaker (tiny tool suite)
     Murmurmatic
