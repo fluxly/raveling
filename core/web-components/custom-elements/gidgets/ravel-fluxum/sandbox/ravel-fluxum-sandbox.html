@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0,user-scalable=0"/>
+    <title>Fluxum Test</title>
+    <meta name="description" content="Ravel">
+    
+    <link rel="stylesheet" href="../../../../../../styles/styles.css">
+    <script src="../../../../../../core/libs/Box2d.min.js"></script>
+    <!-- Load libraries <script type="text/javascript" src="./libs/foo.js"></script> -->
+    <script type="module" src="../../../../index.js?version=1.0"></script>
+    <style>
+        body {
+            margin: 0px;
+        }
+        #local-page-wrapper {
+            width: 100vw;
+            height: 100vh;
+        }
+    </style>
+</head>
+<body>
+<div id="local-page-wrapper">
+    <ravel-physics-world>
+        <ravel-fluxum  id="fluxum-1" class="fluxum" size="75" x="300" y="300" use-svg color="#ff0000"></ravel-fluxum>
+        <ravel-fluxum  id="fluxum-1.5" class="fluxum" size="75" x="400" y="400" use-svg color="#0000ff"></ravel-fluxum>
+        <ravel-fluxum  id="fluxum-2" class="fluxum" size="150" x="500" y="500" color="#ffff00"></ravel-fluxum>
+        <ravel-fluxum  id="fluxum-3" class="fluxum" size="75" x="300" y="300" color="#00ffff"></ravel-fluxum>
+        <ravel-fluxum  id="fluxum-5" class="fluxum" size="75" x="300" y="300" color="#0dff0d"></ravel-fluxum>
+        <ravel-fluxum  id="fluxum-6" class="fluxum" size="25" x="500" y="500" color="#ffff00"></ravel-fluxum>
+    </ravel-physics-world>
+</div>
+</body>
+</html>

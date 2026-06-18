@@ -39,7 +39,7 @@ export class RavelButton extends RavelElement {
             cursor: pointer;
             user-select: none;
             box-sizing: border-box;
-            font-family: 'Quantico', monospace, sans-serif;
+            font-family: 'Silkscreen', monospace;
             transition: filter 0.06s ease;
         }
         #container.pressed {
@@ -48,7 +48,6 @@ export class RavelButton extends RavelElement {
         #label {
             font-size: 13px;
             font-weight: bold;
-            color: rgba(255, 255, 255, 0.95);
             pointer-events: none;
             text-align: center;
         }
@@ -78,9 +77,9 @@ export class RavelButton extends RavelElement {
     private _h = 60;
     private _label = '';
     private _color = '#4466dd';
-    private _borderWidth = 2;
+    private _borderWidth = 1;
     private _borderColor = '';
-    private _shadowSize = 4;
+    private _shadowSize = 0;
     private _shadowColor = '';
     private _noClick = false;
 
@@ -129,10 +128,24 @@ export class RavelButton extends RavelElement {
         this.container.style.backgroundColor = this._color;
         this.container.style.border    = `${this._borderWidth}px solid ${borderColor}`;
         this.container.style.boxShadow = `0 0 0 ${this._shadowSize}px ${shadowColor}`;
+        this.container.style.padding   = `${this._borderWidth}px`;
+        if (this.labelEl) this.labelEl.style.color = this._contrastColor(this._color);
     }
 
     private _applyLabel(): void {
         if (this.labelEl) this.labelEl.textContent = this._label;
+    }
+
+    /** Returns #000000 or #ffffff — whichever has better contrast against the given hex color. */
+    private _contrastColor(hex: string): string {
+        const h    = hex.replace('#', '');
+        const full = h.length === 3 ? h.split('').map(c => c + c).join('') : h;
+        const r    = parseInt(full.slice(0, 2), 16);
+        const g    = parseInt(full.slice(2, 4), 16);
+        const b    = parseInt(full.slice(4, 6), 16);
+        // W3C perceived brightness
+        const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+        return brightness > 128 ? '#000000' : '#ffffff';
     }
 
     /** Returns a darkened version of a hex color by reducing each channel by `amount` (0–1). */
@@ -184,18 +197,22 @@ export class RavelButton extends RavelElement {
                 this._color = newValue ?? '#4466dd';
                 if (this.container) this._applyVisuals();
                 break;
-            case 'border-width':
-                this._borderWidth = Number(newValue) || 2;
+            case 'border-width': {
+                const n = Number(newValue);
+                this._borderWidth = (newValue !== null && !isNaN(n)) ? n : 1;
                 if (this.container) this._applyVisuals();
                 break;
+            }
             case 'border-color':
                 this._borderColor = newValue ?? '';
                 if (this.container) this._applyVisuals();
                 break;
-            case 'shadow-size':
-                this._shadowSize = Number(newValue) || 4;
+            case 'shadow-size': {
+                const n = Number(newValue);
+                this._shadowSize = (newValue !== null && !isNaN(n)) ? n : 4;
                 if (this.container) this._applyVisuals();
                 break;
+            }
             case 'shadow-color':
                 this._shadowColor = newValue ?? '';
                 if (this.container) this._applyVisuals();

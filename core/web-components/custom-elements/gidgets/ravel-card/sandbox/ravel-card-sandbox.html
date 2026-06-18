@@ -1,174 +1,215 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"/>
-    <title>ravel-card Sandbox</title>
-    <script type="module" src="../ravel-card.ts"></script>
-    <style>
-        *, *::before, *::after { box-sizing: border-box; }
-        body {
-            margin: 0;
-            background: #13131f;
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            font-size: 13px;
-            color: #d0d0e8;
-        }
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ravel-card sandbox</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Silkscreen&family=Quantico:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+  <script type="module" src="/index.ts"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
 
-        /* ── Floating control panel ────────────────────────── */
-        #controls {
-            position: fixed;
-            top: 16px;
-            right: 16px;
-            z-index: 100;
-            background: #0d0d1eee;
-            border: 1px solid #2a2a44;
-            border-radius: 8px;
-            padding: 14px 16px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            min-width: 220px;
-            backdrop-filter: blur(6px);
-        }
-        h3 {
-            margin: 0 0 4px;
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            color: #666688;
-        }
-        .row {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-            align-items: center;
-        }
-        label {
-            display: flex;
-            flex-direction: column;
-            gap: 3px;
-            color: #8888aa;
-            font-size: 11px;
-        }
-        input[type="color"] {
-            width: 40px;
-            height: 26px;
-            padding: 2px 3px;
-            border: 1px solid #3a3a5a;
-            border-radius: 4px;
-            background: #1a1a30;
-            cursor: pointer;
-        }
-        input[type="text"] {
-            background: #1a1a30;
-            border: 1px solid #3a3a5a;
-            border-radius: 4px;
-            color: #d0d0e8;
-            padding: 3px 7px;
-            font-size: 12px;
-            width: 90px;
-            outline: none;
-        }
-        input[type="number"] {
-            background: #1a1a30;
-            border: 1px solid #3a3a5a;
-            border-radius: 4px;
-            color: #d0d0e8;
-            padding: 3px 7px;
-            font-size: 12px;
-            width: 60px;
-            outline: none;
-        }
-        button {
-            background: #3355cc;
-            color: #fff;
-            border: none;
-            border-radius: 5px;
-            padding: 4px 12px;
-            font-size: 12px;
-            cursor: pointer;
-            height: 26px;
-        }
-        button:hover { background: #4466dd; }
-        button.ghost {
-            background: transparent;
-            border: 1px solid #3a3a5a;
-            color: #8888aa;
-        }
-        button.ghost:hover { border-color: #5577ff; color: #d0d0e8; }
-        .divider {
-            border: none;
-            border-top: 1px solid #2a2a44;
-            margin: 2px 0;
-        }
-    </style>
+    :root {
+      --ground:        #303030;
+      --well:          #1a1a1a;
+      --muted:         #666666;
+      --rule:          rgba(102,102,102,.40);
+      --fluoro-pink:   #FF37A8;
+      --fluoro-orange: #FE6810;
+      --fluoro-lime:   #A7FF00;
+      --fluoro-cyan:   #00F0FF;
+      --fluoro-violet: #B300FF;
+    }
+
+    /* No body padding — the card fills the viewport */
+    body {
+      margin: 0;
+      background: var(--ground);
+      font-family: 'Silkscreen', monospace;
+      font-size: 1rem;
+    }
+
+    /* ── Floating control panel ──────────────────────────────── */
+    #controls {
+      position: fixed;
+      top: 16px;
+      right: 16px;
+      z-index: 100;
+      background: rgba(26,26,26,0.92);
+      border: 2px solid var(--rule);
+      border-radius: 4px;
+      padding: 16px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      min-width: 230px;
+      backdrop-filter: blur(8px);
+    }
+
+    .panel-title {
+      font-size: 0.85rem;
+      color: #ffffff;
+      margin: 0;
+      border-bottom: 4px solid var(--fluoro-cyan);
+      display: inline-block;
+      padding-bottom: 2px;
+    }
+
+    .ctrl-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: flex-end;
+    }
+
+    label {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-family: 'Quantico', monospace;
+      font-size: 0.7rem;
+      color: var(--muted);
+    }
+
+    input[type="color"] {
+      width: 44px;
+      height: 30px;
+      padding: 2px 3px;
+      border: 1px solid var(--rule);
+      border-radius: 4px;
+      background: #111;
+      cursor: pointer;
+    }
+
+    input[type="text"],
+    input[type="number"] {
+      background: #111;
+      border: 1px solid var(--rule);
+      border-radius: 4px;
+      color: rgba(255,255,255,0.8);
+      padding: 4px 8px;
+      font-family: 'Quantico', monospace;
+      font-size: 0.75rem;
+      outline: none;
+      width: 90px;
+    }
+
+    input[type="number"] { width: 60px; }
+
+    .ctrl-btn {
+      background: transparent;
+      border: 1px solid var(--rule);
+      border-radius: 4px;
+      padding: 6px 14px;
+      font-family: 'Silkscreen', monospace;
+      font-size: 0.7rem;
+      color: var(--muted);
+      cursor: pointer;
+      transition: color 0.12s, border-color 0.12s;
+      align-self: flex-end;
+    }
+    .ctrl-btn:hover {
+      color: var(--fluoro-cyan);
+      border-color: var(--fluoro-cyan);
+    }
+
+    .divider {
+      border: none;
+      border-top: 1px solid var(--rule);
+      margin: 0;
+    }
+  </style>
 </head>
 <body>
 
-<!-- ── Card under test ───────────────────────────────────── -->
-<ravel-card id="card">
-    <h1 style="margin:0 0 12px; font-weight:300; letter-spacing:2px">ravel-card</h1>
-    <p style="margin:0; opacity:0.5; font-size:1rem">Arbitrary HTML goes here</p>
-</ravel-card>
+  <!-- ── The card ─────────────────────────────────────────────── -->
+  <ravel-card id="card">
+    <h1 style="margin:0 0 16px;font-family:'Silkscreen',monospace;font-size:2rem;letter-spacing:2px">ravel-card</h1>
+    <p style="margin:0;font-family:'Quantico',monospace;font-size:1rem;opacity:0.55">Arbitrary HTML goes here via slot</p>
+  </ravel-card>
 
-<!-- ── Floating controls ─────────────────────────────────── -->
-<div id="controls">
-    <h3>ravel-card</h3>
+  <!-- ── Floating controls ────────────────────────────────────── -->
+  <div id="controls">
+    <div class="panel-title">ravel-card</div>
 
-    <div class="row">
-        <label>bg color    <input type="color"  id="inp-color"      value="#000000"></label>
-        <label>text color  <input type="color"  id="inp-text-color" value="#ffffff"></label>
+    <div class="ctrl-row">
+      <label>bg color   <input type="color"  id="inp-color"      value="#000000"></label>
+      <label>text color <input type="color"  id="inp-text-color" value="#ffffff"></label>
     </div>
 
-    <div class="row">
-        <label>font-size   <input type="text"   id="inp-font-size"  value="2rem"></label>
-        <label>z-index     <input type="number" id="inp-z-index"    value="10" min="0" step="1"></label>
+    <div class="ctrl-row">
+      <label>font-size  <input type="text"   id="inp-font-size"  value="2rem" placeholder="2rem"></label>
+      <label>z-index    <input type="number" id="inp-z-index"    value="10" min="0" step="1"></label>
+      <button class="ctrl-btn" id="btn-apply">Apply</button>
     </div>
-
-    <button id="btn-apply">Apply</button>
 
     <hr class="divider">
 
-    <h3>Slot content</h3>
-    <div class="row">
-        <button id="btn-add-text">Add paragraph</button>
-        <button class="ghost" id="btn-clear-slot">Clear</button>
+    <div class="ctrl-row">
+      <button class="ctrl-btn" id="btn-add-text">Add paragraph</button>
+      <button class="ctrl-btn" id="btn-clear-slot">Clear slot</button>
     </div>
-</div>
 
-<script>
+    <hr class="divider">
+
+    <!-- Presets -->
+    <div class="ctrl-row">
+      <button class="ctrl-btn" id="pre-dark">Dark</button>
+      <button class="ctrl-btn" id="pre-pink">Pink</button>
+      <button class="ctrl-btn" id="pre-lime">Lime</button>
+      <button class="ctrl-btn" id="pre-cyan">Cyan</button>
+    </div>
+  </div>
+
+  <script type="module">
     const card = document.getElementById('card');
 
+    function applyPreset(bg, text) {
+      card.setAttribute('color',      bg);
+      card.setAttribute('text-color', text);
+      document.getElementById('inp-color').value      = bg;
+      document.getElementById('inp-text-color').value = text;
+    }
+
     document.getElementById('btn-apply').addEventListener('click', () => {
-        card.setAttribute('color',      document.getElementById('inp-color').value);
-        card.setAttribute('text-color', document.getElementById('inp-text-color').value);
-        card.setAttribute('font-size',  document.getElementById('inp-font-size').value);
-        card.setAttribute('z-index',    document.getElementById('inp-z-index').value);
+      card.setAttribute('color',      document.getElementById('inp-color').value);
+      card.setAttribute('text-color', document.getElementById('inp-text-color').value);
+      card.setAttribute('font-size',  document.getElementById('inp-font-size').value);
+      card.setAttribute('z-index',    document.getElementById('inp-z-index').value);
     });
 
-    let paraCount = 0;
-    document.getElementById('btn-add-text').addEventListener('click', () => {
-        const p = document.createElement('p');
-        p.style.margin = '6px 0';
-        p.style.fontSize = '1rem';
-        p.style.opacity = '0.7';
-        p.textContent = `Added paragraph ${++paraCount}`;
-        card.appendChild(p);
-    });
-
-    document.getElementById('btn-clear-slot').addEventListener('click', () => {
-        card.innerHTML = '';
-        paraCount = 0;
-    });
-
-    // Wire up live color inputs
+    // Live color preview
     document.getElementById('inp-color').addEventListener('input', (e) => {
-        card.setAttribute('color', e.target.value);
+      card.setAttribute('color', e.target.value);
     });
     document.getElementById('inp-text-color').addEventListener('input', (e) => {
-        card.setAttribute('text-color', e.target.value);
+      card.setAttribute('text-color', e.target.value);
     });
-</script>
+
+    // Slot manipulation
+    let paraCount = 0;
+    document.getElementById('btn-add-text').addEventListener('click', () => {
+      const p = document.createElement('p');
+      p.style.cssText = 'margin:8px 0;font-family:Quantico,monospace;font-size:1rem;opacity:0.7';
+      p.textContent = `Added paragraph ${++paraCount}`;
+      card.appendChild(p);
+    });
+    document.getElementById('btn-clear-slot').addEventListener('click', () => {
+      card.innerHTML = '';
+      paraCount = 0;
+    });
+
+    // Presets
+    document.getElementById('pre-dark').addEventListener('click',
+      () => applyPreset('#000000', '#ffffff'));
+    document.getElementById('pre-pink').addEventListener('click',
+      () => applyPreset('#FF37A8', '#000000'));
+    document.getElementById('pre-lime').addEventListener('click',
+      () => applyPreset('#A7FF00', '#000000'));
+    document.getElementById('pre-cyan').addEventListener('click',
+      () => applyPreset('#00F0FF', '#000000'));
+  </script>
+
 </body>
 </html>

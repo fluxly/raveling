@@ -53,17 +53,15 @@ export class RavelAlert extends RavelElement {
             overflow: hidden;
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.12);
+            background: rgba(24, 24, 24, 0.93);
+            border: 3px solid var(--alert-accent, #00F0FF);
             box-sizing: border-box;
             text-align: center;
         }
         #message {
-            font-size: 1.6rem;
-            font-weight: 400;
+            font-size: 1.4rem;
             color: #ffffff;
-            line-height: 1.45;
-            letter-spacing: 0.2px;
-            font-family: 'Segoe UI', system-ui, sans-serif;
+            line-height: 1.3;
             transition: opacity 0.28s ease;
         }
         #buttons {
@@ -72,35 +70,34 @@ export class RavelAlert extends RavelElement {
             justify-content: center;
         }
         #buttons button {
-            border: none;
+            border: 1px solid rgba(255, 255, 255, 0.2);
             border-radius: 999px;
             padding: 10px 32px;
-            font-size: 1rem;
+            font-size: 0.9rem;
             cursor: pointer;
-            font-family: inherit;
-            background: rgba(255, 255, 255, 0.15);
+            font: inherit;
+            background: rgba(255, 255, 255, 0.08);
             color: rgba(255, 255, 255, 0.8);
-            letter-spacing: 0.4px;
             transition: background 0.15s;
         }
         #buttons button:hover {
-            background: rgba(255, 255, 255, 0.26);
+            background: rgba(255, 255, 255, 0.18);
         }
         #buttons button.primary {
-            background: rgba(255, 255, 255, 0.26);
-            color: #ffffff;
-            font-weight: 500;
+            background: var(--alert-accent, #00F0FF);
+            border-color: transparent;
+            color: #181818;
         }
         #buttons button.primary:hover {
-            background: rgba(255, 255, 255, 0.38);
+            filter: brightness(1.15);
         }
         #progress {
             position: absolute;
             bottom: 0;
             left: 0;
-            height: 3px;
+            height: 4px;
             width: 100%;
-            background: rgba(255, 255, 255, 0.45);
+            background: var(--alert-accent, #00F0FF);
             transform-origin: left center;
             display: none;
         }
@@ -110,11 +107,11 @@ export class RavelAlert extends RavelElement {
         }
     `;
 
-    private static readonly COLOR_BG: Record<string, string> = {
-        red:    'rgba(214, 28,  28,  0.93)',
-        yellow: 'rgba(196, 138, 0,   0.93)',
-        green:  'rgba(22,  160, 70,  0.93)',
-        blue:   'rgba(24,  72,  218, 0.93)',
+    private static readonly COLOR_ACCENT: Record<string, string> = {
+        red:    '#FF37A8',  // Fluoro Pink   — error / danger
+        yellow: '#FE6810',  // Fluoro Orange — warning / caution
+        green:  '#A7FF00',  // Fluoro Lime   — success / ready
+        blue:   '#00F0FF',  // Fluoro Cyan   — info / active
     };
 
     private static readonly FOLLOWUP_DELAY_MS = 5000;
@@ -279,8 +276,10 @@ export class RavelAlert extends RavelElement {
     private _render(): void {
         this.messageEl.textContent = this._text;
         this.messageEl.style.opacity = '1';
-        this.alertBoxEl.style.background =
-            RavelAlert.COLOR_BG[this._color] ?? RavelAlert.COLOR_BG.blue;
+        this.alertBoxEl.style.setProperty(
+            '--alert-accent',
+            RavelAlert.COLOR_ACCENT[this._color] ?? RavelAlert.COLOR_ACCENT.blue
+        );
 
         this.buttonsEl.style.display = this._interstitial ? 'none' : 'flex';
         this.buttonsEl.innerHTML = '';
@@ -316,8 +315,10 @@ export class RavelAlert extends RavelElement {
             case 'color':
                 this._color = newValue ?? 'blue';
                 if (this.alertBoxEl) {
-                    this.alertBoxEl.style.background =
-                        RavelAlert.COLOR_BG[this._color] ?? RavelAlert.COLOR_BG.blue;
+                    this.alertBoxEl.style.setProperty(
+                        '--alert-accent',
+                        RavelAlert.COLOR_ACCENT[this._color] ?? RavelAlert.COLOR_ACCENT.blue
+                    );
                 }
                 break;
             case 'buttons':

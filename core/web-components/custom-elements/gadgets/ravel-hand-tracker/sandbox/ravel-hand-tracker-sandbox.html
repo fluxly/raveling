@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ravel-hand-tracker sandbox</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Silkscreen&family=Quantico:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+  <script type="module" src="/index.ts"></script>
+  <style>
+    * { box-sizing: border-box; }
+
+    :root {
+      --ground:        #303030;
+      --well:          #1a1a1a;
+      --muted:         #666666;
+      --rule:          rgba(102,102,102,.40);
+      --fluoro-pink:   #FF37A8;
+      --fluoro-orange: #FE6810;
+      --fluoro-lime:   #A7FF00;
+      --fluoro-cyan:   #00F0FF;
+      --fluoro-violet: #B300FF;
+    }
+
+    body {
+      margin: 0;
+      padding: 40px 44px;
+      background: var(--ground);
+      font-family: 'Silkscreen', monospace;
+      font-size: 1rem;
+      line-height: 1.3;
+      border: 10px solid #ff0000;
+      box-shadow: 0px 0px 0px 10px inset #ffcc00;
+      min-height: 100vh;
+    }
+
+    h1 {
+      font-size: 2rem;
+      color: #ffffff;
+      margin: 0 0 8px 0;
+      border-bottom: 10px solid var(--fluoro-cyan);
+      display: inline-block;
+      padding-bottom: 2px;
+    }
+
+    .subtitle {
+      font-family: 'Quantico', monospace;
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin: 0 0 32px 0;
+    }
+
+    .element-col { display: flex; flex-direction: column; gap: 32px; }
+    .element-cell { display: flex; flex-direction: column; gap: 8px; }
+    .element-label { font-size: 0.85rem; color: var(--muted); }
+
+    .stage {
+      position: relative;
+      background: var(--well);
+      border: 2px dotted var(--rule);
+      border-radius: 4px;
+      padding: 24px;
+    }
+
+    .stage.tracker-stage {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 20px;
+    }
+
+    /* Two-column layout: tracker button on left, position mirror on right */
+    .tracker-row {
+      display: flex;
+      gap: 24px;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      width: 100%;
+    }
+
+    .tracker-col {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .overlay-col {
+      flex: 1;
+      min-width: 260px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .overlay-label {
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+
+    #overlay-canvas {
+      display: block;
+      width: 100%;
+      max-width: 480px;
+      aspect-ratio: 4 / 3;
+      background: #111;
+      border: 1px solid var(--rule);
+      border-radius: 8px;
+    }
+
+    .attr-grid {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 4px 16px;
+      font-family: 'Quantico', monospace;
+      font-size: 0.8rem;
+    }
+    .attr-grid dt { color: rgba(255,255,255,0.4); margin: 0; }
+    .attr-grid dd { margin: 0; color: rgba(255,255,255,0.7); }
+
+    .controls-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .ctrl-btn {
+      background: transparent;
+      border: 1px solid var(--rule);
+      border-radius: 4px;
+      padding: 8px 16px;
+      font: inherit;
+      font-size: 0.8rem;
+      color: var(--muted);
+      cursor: pointer;
+      transition: color 0.12s, border-color 0.12s;
+    }
+    .ctrl-btn:hover {
+      color: var(--fluoro-cyan);
+      border-color: var(--fluoro-cyan);
+    }
+
+    #event-log {
+      font-family: 'Quantico', monospace;
+      font-size: 0.75rem;
+      background: #111;
+      border: 1px solid var(--rule);
+      border-radius: 4px;
+      padding: 12px;
+      height: 160px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column-reverse;
+      gap: 3px;
+      width: 100%;
+    }
+
+    .log-line             { color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .log-line.pinch-start { color: var(--fluoro-lime);   }
+    .log-line.pinch-end   { color: var(--fluoro-orange); }
+    .log-line.info        { color: var(--fluoro-cyan);   }
+
+    .note {
+      font-size: 0.75rem;
+      color: var(--muted);
+      border-left: 2px solid var(--rule);
+      padding-left: 10px;
+      line-height: 1.8;
+      font-family: 'Quantico', monospace;
+    }
+    .note code {
+      background: rgba(255,255,255,0.07);
+      border-radius: 3px;
+      padding: 1px 5px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>ravel-hand-tracker</h1>
+  <p class="subtitle">MediaPipe hand tracking — pinch detection, skeleton overlay, arm driving</p>
+
+  <div class="element-col">
+
+    <!-- ── Basic usage ──────────────────────────────────────────── -->
+    <div class="element-cell">
+      <div class="element-label">toggle button — click to open camera + tracking</div>
+      <div class="stage tracker-stage">
+
+        <div class="tracker-row">
+
+          <div class="tracker-col">
+            <ravel-hand-tracker id="tracker" landmark="8" signal-out="ravel-hand-pos"></ravel-hand-tracker>
+            <dl class="attr-grid">
+              <dt>landmark</dt><dd>8 (index tip)</dd>
+              <dt>facing</dt><dd>user (mirrored)</dd>
+              <dt>signal-out</dt><dd>ravel-hand-pos</dd>
+            </dl>
+          </div>
+
+          <div class="overlay-col">
+            <div class="overlay-label">tracked landmark position (from signal-out)</div>
+            <canvas id="overlay-canvas"></canvas>
+          </div>
+
+        </div>
+
+        <div class="controls-row">
+          <button class="ctrl-btn" id="btn-open">open()</button>
+          <button class="ctrl-btn" id="btn-close">close()</button>
+          <button class="ctrl-btn" id="btn-start">start()</button>
+          <button class="ctrl-btn" id="btn-stop">stop()</button>
+        </div>
+
+        <div id="event-log" aria-live="polite" aria-label="Event log"></div>
+
+      </div>
+    </div>
+
+    <!-- ── autoplay ──────────────────────────────────────────────── -->
+    <div class="element-cell">
+      <div class="element-label">autoplay — starts camera immediately on connect</div>
+      <div class="stage">
+        <ravel-hand-tracker autoplay></ravel-hand-tracker>
+      </div>
+    </div>
+
+    <!-- ── API reference ─────────────────────────────────────────── -->
+    <div class="element-cell">
+      <div class="element-label">attributes &amp; events</div>
+      <div class="stage">
+        <p class="note">
+          <code>landmark</code> — MediaPipe landmark index to track (0–20). Default <code>8</code> (index fingertip).<br>
+          <code>facing</code> — <code>user</code> (front cam, auto-mirrored) or <code>environment</code> (rear cam). Default <code>user</code>.<br>
+          <code>autoplay</code> — boolean, starts tracking immediately on connect.<br>
+          <code>arm-id</code> / <code>arm-id-right</code> — ID of a <code>ravel-control-arm</code> to drive with left/right hand data.<br>
+          <code>signal-out</code> — message channel name; broadcasts <code>{ x, y, landmarks }</code> for every frame.<br>
+          <br>
+          Events (bubbling, composed): <code>pinch-start</code> and <code>pinch-end</code> — <code>detail: { slot: 0|1 }</code> (slot 0 = leftmost hand).
+        </p>
+      </div>
+    </div>
+
+  </div>
+
+  <script type="module">
+    const tracker       = document.getElementById('tracker');
+    const log           = document.getElementById('event-log');
+    const overlayCanvas = document.getElementById('overlay-canvas');
+    const ctx           = overlayCanvas.getContext('2d');
+
+    // ── DPR-aware canvas resize ────────────────────────────────────
+    function resizeOverlay() {
+      const dpr  = window.devicePixelRatio || 1;
+      const rect = overlayCanvas.getBoundingClientRect();
+      overlayCanvas.width  = Math.floor(rect.width  * dpr);
+      overlayCanvas.height = Math.floor(rect.height * dpr);
+    }
+    resizeOverlay();
+    new ResizeObserver(resizeOverlay).observe(overlayCanvas);
+
+    // ── Log helper ─────────────────────────────────────────────────
+    function addLog(text, cssClass = '') {
+      const line = document.createElement('div');
+      line.className = 'log-line' + (cssClass ? ' ' + cssClass : '');
+      line.textContent = `[${new Date().toLocaleTimeString()}] ${text}`;
+      log.prepend(line);
+      while (log.children.length > 60) log.removeChild(log.lastChild);
+    }
+
+    // ── Pinch events ───────────────────────────────────────────────
+    tracker.addEventListener('pinch-start', (e) => {
+      addLog(`pinch-start  slot=${e.detail.slot}`, 'pinch-start');
+    });
+    tracker.addEventListener('pinch-end', (e) => {
+      addLog(`pinch-end    slot=${e.detail.slot}`, 'pinch-end');
+    });
+
+    // ── Position mirror via signal-out ─────────────────────────────
+    // signal-out broadcasts a CustomEvent on window with the channel name.
+    window.addEventListener('ravel-hand-pos', (e) => {
+      const { x, y } = e.detail?.content ?? {};
+      if (x == null) return;
+      const w   = overlayCanvas.width;
+      const h   = overlayCanvas.height;
+      const dpr = window.devicePixelRatio || 1;
+      ctx.clearRect(0, 0, w, h);
+      // Grid
+      ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+      ctx.lineWidth   = 1;
+      for (let i = 1; i < 4; i++) {
+        ctx.beginPath(); ctx.moveTo(w * i / 4, 0); ctx.lineTo(w * i / 4, h); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(0, h * i / 4); ctx.lineTo(w, h * i / 4); ctx.stroke();
+      }
+      // Dot
+      ctx.fillStyle   = '#A7FF00';
+      ctx.strokeStyle = 'rgba(255,255,255,0.8)';
+      ctx.lineWidth   = 1.5 * dpr;
+      const r = 8 * dpr;
+      const px = x * w;
+      const py = y * h;
+      ctx.beginPath(); ctx.arc(px, py, r, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(px, py, r, 0, Math.PI * 2); ctx.stroke();
+    });
+
+    // ── Control buttons ────────────────────────────────────────────
+    document.getElementById('btn-open').addEventListener('click', () => {
+      tracker.open().catch(console.error);
+      addLog('open()', 'info');
+    });
+    document.getElementById('btn-close').addEventListener('click', () => {
+      tracker.close();
+      addLog('close()', 'info');
+    });
+    document.getElementById('btn-start').addEventListener('click', () => {
+      tracker.start().catch(console.error);
+      addLog('start()', 'info');
+    });
+    document.getElementById('btn-stop').addEventListener('click', () => {
+      tracker.stop();
+      addLog('stop()', 'info');
+    });
+
+    addLog('ready — click the hand icon button to start tracking', 'info');
+  </script>
+
+</body>
+</html>

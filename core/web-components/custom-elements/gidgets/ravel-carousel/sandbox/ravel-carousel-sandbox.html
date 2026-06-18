@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ravel-carousel sandbox</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Silkscreen&family=Quantico:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+  <script type="module" src="/index.ts"></script>
+  <style>
+    * { box-sizing: border-box; }
+
+    :root {
+      --ground:        #303030;
+      --well:          #1a1a1a;
+      --muted:         #666666;
+      --rule:          rgba(102,102,102,.40);
+      --fluoro-pink:   #FF37A8;
+      --fluoro-orange: #FE6810;
+      --fluoro-lime:   #A7FF00;
+      --fluoro-cyan:   #00F0FF;
+      --fluoro-violet: #B300FF;
+    }
+
+    body {
+      margin: 0;
+      padding: 40px 44px;
+      background: var(--ground);
+      font-family: 'Silkscreen', monospace;
+      font-size: 1rem;
+      line-height: 1.3;
+      border: 10px solid #ff0000;
+      box-shadow: 0px 0px 0px 10px inset #ffcc00;
+      min-height: 100vh;
+    }
+
+    h1 {
+      font-size: 2rem;
+      color: #ffffff;
+      margin: 0 0 8px 0;
+      border-bottom: 10px solid var(--fluoro-cyan);
+      display: inline-block;
+      padding-bottom: 2px;
+    }
+
+    .subtitle {
+      font-family: 'Quantico', monospace;
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin: 0 0 32px 0;
+    }
+
+    .element-col { display: flex; flex-direction: column; gap: 32px; }
+    .element-cell { display: flex; flex-direction: column; gap: 8px; }
+    .element-label { font-size: 0.85rem; color: var(--muted); }
+
+    .stage {
+      position: relative;
+      background: var(--well);
+      border: 2px dotted var(--rule);
+      border-radius: 4px;
+      padding: 24px;
+    }
+
+    /* Carousel items */
+    .card {
+      width: 220px;
+      height: 130px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Silkscreen', monospace;
+      font-size: 0.75rem;
+      font-weight: bold;
+      flex-shrink: 0;
+    }
+
+    .card-sm {
+      width: 140px;
+      height: 100px;
+      border-radius: 6px;
+      flex-shrink: 0;
+    }
+
+    /* Constrain carousel width in sandbox */
+    ravel-carousel {
+      max-width: 700px;
+      display: block;
+    }
+
+    .controls-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-top: 12px;
+    }
+
+    .ctrl-btn {
+      background: transparent;
+      border: 1px solid var(--rule);
+      border-radius: 4px;
+      padding: 7px 14px;
+      font-family: 'Silkscreen', monospace;
+      font-size: 0.7rem;
+      color: var(--muted);
+      cursor: pointer;
+      transition: color 0.12s, border-color 0.12s;
+    }
+    .ctrl-btn:hover {
+      color: var(--fluoro-cyan);
+      border-color: var(--fluoro-cyan);
+    }
+    .ctrl-btn.active {
+      color: var(--fluoro-lime);
+      border-color: var(--fluoro-lime);
+    }
+
+    .note {
+      font-size: 0.75rem;
+      color: var(--muted);
+      border-left: 2px solid var(--rule);
+      padding-left: 10px;
+      line-height: 1.8;
+      font-family: 'Quantico', monospace;
+    }
+    .note code {
+      background: rgba(255,255,255,0.07);
+      border-radius: 3px;
+      padding: 1px 5px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>ravel-carousel</h1>
+  <p class="subtitle">Horizontally-scrolling carousel with scroll-snap and arrow nav</p>
+
+  <div class="element-col">
+
+    <!-- ── Default ───────────────────────────────────────────── -->
+    <div class="element-cell">
+      <div class="element-label">default — snap on, arrows on</div>
+      <div class="stage">
+        <ravel-carousel id="carousel-main" snap="1" arrows="1">
+          <div class="card" style="background:#FF37A8;color:#000">Pink</div>
+          <div class="card" style="background:#FE6810;color:#000">Orange</div>
+          <div class="card" style="background:#A7FF00;color:#000">Lime</div>
+          <div class="card" style="background:#00F0FF;color:#000">Cyan</div>
+          <div class="card" style="background:#B300FF;color:#fff">Violet</div>
+          <div class="card" style="background:#ff0000;color:#fff">Red</div>
+          <div class="card" style="background:#ffcc00;color:#000">Yellow</div>
+          <div class="card" style="background:#ffffff;color:#000">White</div>
+        </ravel-carousel>
+        <div class="controls-row">
+          <button class="ctrl-btn" id="btn-snap">snap: on</button>
+          <button class="ctrl-btn" id="btn-arrows">arrows: on</button>
+          <button class="ctrl-btn" id="btn-prev">← prev page</button>
+          <button class="ctrl-btn" id="btn-next">next page →</button>
+          <button class="ctrl-btn" id="btn-to-0">scrollToIndex(0)</button>
+          <button class="ctrl-btn" id="btn-to-4">scrollToIndex(4)</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── No arrows ─────────────────────────────────────────── -->
+    <div class="element-cell">
+      <div class="element-label">arrows="0" — scroll only</div>
+      <div class="stage">
+        <ravel-carousel arrows="0">
+          <div class="card" style="background:#303030;border:2px solid #FF37A8;color:#FF37A8">01</div>
+          <div class="card" style="background:#303030;border:2px solid #FE6810;color:#FE6810">02</div>
+          <div class="card" style="background:#303030;border:2px solid #A7FF00;color:#A7FF00">03</div>
+          <div class="card" style="background:#303030;border:2px solid #00F0FF;color:#00F0FF">04</div>
+          <div class="card" style="background:#303030;border:2px solid #B300FF;color:#B300FF">05</div>
+          <div class="card" style="background:#303030;border:2px solid #FF37A8;color:#FF37A8">06</div>
+        </ravel-carousel>
+      </div>
+    </div>
+
+    <!-- ── No snap ────────────────────────────────────────────── -->
+    <div class="element-cell">
+      <div class="element-label">snap="0" — free scroll</div>
+      <div class="stage">
+        <ravel-carousel snap="0">
+          <div class="card-sm" style="background:#1a1a1a;border:2px solid #666"></div>
+          <div class="card-sm" style="background:#222;border:2px solid #888"></div>
+          <div class="card-sm" style="background:#2a2a2a;border:2px solid #aaa"></div>
+          <div class="card-sm" style="background:#333;border:2px solid #ccc"></div>
+          <div class="card-sm" style="background:#3a3a3a;border:2px solid #eee"></div>
+          <div class="card-sm" style="background:#444;border:2px solid #fff"></div>
+          <div class="card-sm" style="background:#3a3a3a;border:2px solid #eee"></div>
+          <div class="card-sm" style="background:#333;border:2px solid #ccc"></div>
+        </ravel-carousel>
+      </div>
+    </div>
+
+    <!-- ── ravel-box items ────────────────────────────────────── -->
+    <div class="element-cell">
+      <div class="element-label">ravel-box items</div>
+      <div class="stage">
+        <ravel-carousel>
+          <ravel-box w="120" h="100" color="#FF37A8" border-1="#000" border-2="#ff0000" pixel-size="8"></ravel-box>
+          <ravel-box w="120" h="100" color="#FE6810" border-1="#000" border-2="#ff0000" pixel-size="8"></ravel-box>
+          <ravel-box w="120" h="100" color="#A7FF00" border-1="#000" border-2="#ff0000" pixel-size="8"></ravel-box>
+          <ravel-box w="120" h="100" color="#00F0FF" border-1="#000" border-2="#ff0000" pixel-size="8"></ravel-box>
+          <ravel-box w="120" h="100" color="#B300FF" border-1="#000" border-2="#ff0000" pixel-size="8"></ravel-box>
+          <ravel-box w="120" h="100" color="#ff0000" border-1="#000" border-2="#ffcc00" pixel-size="8"></ravel-box>
+        </ravel-carousel>
+      </div>
+    </div>
+
+    <!-- ── CSS custom properties ─────────────────────────────── -->
+    <div class="element-cell">
+      <div class="element-label">custom --btn-size and --gap via CSS</div>
+      <div class="stage">
+        <ravel-carousel id="custom-css" style="--btn-size:32px;--gap:6px;--pad:20px">
+          <div class="card" style="width:160px;background:#1a1a1a;border:2px solid #FF37A8;color:#FF37A8">A</div>
+          <div class="card" style="width:160px;background:#1a1a1a;border:2px solid #A7FF00;color:#A7FF00">B</div>
+          <div class="card" style="width:160px;background:#1a1a1a;border:2px solid #00F0FF;color:#00F0FF">C</div>
+          <div class="card" style="width:160px;background:#1a1a1a;border:2px solid #B300FF;color:#B300FF">D</div>
+          <div class="card" style="width:160px;background:#1a1a1a;border:2px solid #FE6810;color:#FE6810">E</div>
+        </ravel-carousel>
+      </div>
+    </div>
+
+    <!-- ── Attribute reference ───────────────────────────────── -->
+    <div class="element-cell">
+      <div class="element-label">attributes &amp; API</div>
+      <div class="stage">
+        <p class="note">
+          <code>snap</code> — <code>1</code> (default) enables scroll-snap; <code>0</code> disables it.<br>
+          <code>arrows</code> — <code>1</code> (default) shows prev/next buttons; <code>0</code> hides them.<br>
+          <code>page-size</code> — pixels to scroll per arrow click. <code>viewport</code> (default) uses the visible width.<br>
+          <br>
+          CSS custom properties: <code>--gap</code>, <code>--pad</code>, <code>--btn-size</code>, <code>--btn-bg</code>, <code>--btn-fg</code>, <code>--btn-radius</code>, <code>--fade-width</code>.<br>
+          <br>
+          Methods: <code>scrollByPage(1 | -1)</code>, <code>scrollToIndex(n)</code>.
+        </p>
+      </div>
+    </div>
+
+  </div>
+
+  <script type="module">
+    const c = document.getElementById('carousel-main');
+
+    let snapOn   = true;
+    let arrowsOn = true;
+
+    document.getElementById('btn-snap').addEventListener('click', (e) => {
+      snapOn = !snapOn;
+      c.setAttribute('snap', snapOn ? '1' : '0');
+      e.target.textContent = `snap: ${snapOn ? 'on' : 'off'}`;
+      e.target.classList.toggle('active', snapOn);
+    });
+
+    document.getElementById('btn-arrows').addEventListener('click', (e) => {
+      arrowsOn = !arrowsOn;
+      c.setAttribute('arrows', arrowsOn ? '1' : '0');
+      e.target.textContent = `arrows: ${arrowsOn ? 'on' : 'off'}`;
+      e.target.classList.toggle('active', arrowsOn);
+    });
+
+    document.getElementById('btn-prev').addEventListener('click',  () => c.scrollByPage(-1));
+    document.getElementById('btn-next').addEventListener('click',  () => c.scrollByPage(1));
+    document.getElementById('btn-to-0').addEventListener('click',  () => c.scrollToIndex(0));
+    document.getElementById('btn-to-4').addEventListener('click',  () => c.scrollToIndex(4));
+  </script>
+
+</body>
+</html>

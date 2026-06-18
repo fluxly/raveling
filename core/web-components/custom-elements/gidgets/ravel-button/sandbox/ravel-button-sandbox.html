@@ -1,330 +1,381 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"/>
-    <title>ravel-button Sandbox</title>
-    <script type="module" src="../ravel-button.ts"></script>
-    <style>
-        *, *::before, *::after { box-sizing: border-box; }
-        body {
-            background: #13131f;
-            color: #d0d0e8;
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            font-size: 13px;
-            margin: 0;
-            padding: 20px;
-        }
-        h3 {
-            margin: 0 0 12px;
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            color: #666688;
-        }
-        .panel {
-            background: #0d0d1e;
-            border: 1px solid #2a2a44;
-            border-radius: 8px;
-            padding: 16px 18px;
-            margin-bottom: 16px;
-        }
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ravel-button sandbox</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Silkscreen&family=Quantico:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+  <script type="module" src="/index.ts"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
 
-        /* ── Button stage ──────────────────────────────── */
-        #stage {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 24px;
-            align-items: flex-start;
-            padding: 20px;
-        }
-        .stage-group {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 10px;
-        }
-        .stage-label {
-            font-size: 10px;
-            color: #555577;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        .button-row {
-            display: flex;
-            gap: 16px;
-            align-items: center;
-        }
+    :root {
+      --ground:        #303030;
+      --well:          #1a1a1a;
+      --muted:         #666666;
+      --rule:          rgba(102,102,102,.40);
+      --fluoro-pink:   #FF37A8;
+      --fluoro-orange: #FE6810;
+      --fluoro-lime:   #A7FF00;
+      --fluoro-cyan:   #00F0FF;
+      --fluoro-violet: #B300FF;
+    }
 
-        /* ── Controls ──────────────────────────────────── */
-        .row {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            align-items: flex-end;
-            margin-bottom: 10px;
-        }
-        .row:last-child { margin-bottom: 0; }
-        label {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-            color: #8888aa;
-            font-size: 11px;
-        }
-        input[type="number"],
-        input[type="text"] {
-            background: #1a1a30;
-            border: 1px solid #3a3a5a;
-            border-radius: 4px;
-            color: #d0d0e8;
-            padding: 4px 8px;
-            font-size: 13px;
-            width: 76px;
-            outline: none;
-        }
-        input[type="text"] { width: 110px; }
-        input[type="color"] {
-            width: 40px;
-            height: 28px;
-            padding: 2px 3px;
-            border: 1px solid #3a3a5a;
-            border-radius: 4px;
-            background: #1a1a30;
-            cursor: pointer;
-        }
-        button {
-            background: #3355cc;
-            color: #fff;
-            border: none;
-            border-radius: 5px;
-            padding: 5px 14px;
-            font-size: 13px;
-            cursor: pointer;
-            height: 28px;
-        }
-        button:hover { background: #4466dd; }
-        button.ghost {
-            background: transparent;
-            border: 1px solid #3a3a5a;
-            color: #8888aa;
-            border-radius: 5px;
-            padding: 5px 14px;
-            font-size: 13px;
-            cursor: pointer;
-            height: 28px;
-        }
-        button.ghost:hover { border-color: #5577ff; color: #d0d0e8; }
+    body {
+      margin: 0;
+      padding: 40px 44px;
+      background: var(--ground);
+      font-family: 'Silkscreen', monospace;
+      font-size: 1rem;
+      line-height: 1.3;
+      border: 10px solid #ff0000;
+      box-shadow: 0px 0px 0px 10px inset #ffcc00;
+      min-height: 100vh;
+    }
 
-        /* ── Event log ─────────────────────────────────── */
-        #log {
-            height: 100px;
-            overflow-y: auto;
-            font-family: monospace;
-            font-size: 11px;
-            background: #08080f;
-            border: 1px solid #1e1e36;
-            border-radius: 4px;
-            padding: 6px 8px;
-        }
-        .log-line { padding: 1px 0; color: #4466aa; }
-        .log-line.click { color: #66ddaa; }
-    </style>
+    h1 {
+      font-size: 2rem;
+      color: #ffffff;
+      margin: 0 0 8px 0;
+      border-bottom: 10px solid var(--fluoro-cyan);
+      display: inline-block;
+      padding-bottom: 2px;
+    }
+
+    .subtitle {
+      font-family: 'Quantico', monospace;
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin: 0 0 32px 0;
+    }
+
+    .element-col { display: flex; flex-direction: column; gap: 32px; }
+    .element-cell { display: flex; flex-direction: column; gap: 8px; }
+    .element-label { font-size: 0.85rem; color: var(--muted); }
+
+    .stage {
+      position: relative;
+      background: var(--well);
+      border: 2px dotted var(--rule);
+      border-radius: 4px;
+      padding: 24px;
+    }
+
+    /* Button display rows */
+    .btn-row {
+      display: flex;
+      gap: 20px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .btn-group {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .group-label {
+      font-family: 'Quantico', monospace;
+      font-size: 0.7rem;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    /* Builder controls */
+    .ctrl-row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      margin-bottom: 12px;
+    }
+    .ctrl-row:last-child { margin-bottom: 0; }
+
+    label {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-family: 'Quantico', monospace;
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+
+    input[type="number"],
+    input[type="text"] {
+      background: #111;
+      border: 1px solid var(--rule);
+      border-radius: 4px;
+      color: rgba(255,255,255,0.8);
+      padding: 5px 8px;
+      font-family: 'Quantico', monospace;
+      font-size: 0.8rem;
+      width: 80px;
+      outline: none;
+    }
+    input[type="text"]  { width: 120px; }
+    input[type="color"] {
+      width: 44px;
+      height: 32px;
+      padding: 2px 3px;
+      border: 1px solid var(--rule);
+      border-radius: 4px;
+      background: #111;
+      cursor: pointer;
+    }
+
+    .ctrl-btn {
+      background: transparent;
+      border: 1px solid var(--rule);
+      border-radius: 4px;
+      padding: 7px 16px;
+      font-family: 'Silkscreen', monospace;
+      font-size: 0.75rem;
+      color: var(--muted);
+      cursor: pointer;
+      transition: color 0.12s, border-color 0.12s;
+      height: 32px;
+      align-self: flex-end;
+    }
+    .ctrl-btn:hover {
+      color: var(--fluoro-cyan);
+      border-color: var(--fluoro-cyan);
+    }
+
+    /* Event log */
+    #log {
+      font-family: 'Quantico', monospace;
+      font-size: 0.75rem;
+      background: #111;
+      border: 1px solid var(--rule);
+      border-radius: 4px;
+      padding: 12px;
+      height: 140px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column-reverse;
+      gap: 3px;
+    }
+    .log-line       { color: var(--muted); }
+    .log-line.click { color: var(--fluoro-lime); }
+    .log-line.info  { color: var(--fluoro-cyan); }
+  </style>
 </head>
 <body>
 
-<!-- ── Stage ────────────────────────────────────────────────── -->
-<div class="panel">
-    <h3>Examples</h3>
-    <div id="stage">
+  <h1>ravel-button</h1>
+  <p class="subtitle">Bold square button with inner border and outer box-shadow ring</p>
 
-        <div class="stage-group">
-            <div class="stage-label">Default (60×60)</div>
-            <div class="button-row">
-                <ravel-button id="btn-default" label="OK"></ravel-button>
-            </div>
+  <div class="element-col">
+
+    <!-- ── Examples ──────────────────────────────────────────────── -->
+    <div class="element-cell">
+      <div class="element-label">default (60×60) and colors</div>
+      <div class="stage btn-row">
+        <div class="btn-group">
+          <ravel-button id="btn-default" label="OK"></ravel-button>
+          <div class="group-label">default</div>
         </div>
-
-        <div class="stage-group">
-            <div class="stage-label">Colors</div>
-            <div class="button-row">
-                <ravel-button label="Red"    color="#cc3344"></ravel-button>
-                <ravel-button label="Green"  color="#22aa55"></ravel-button>
-                <ravel-button label="Gold"   color="#cc8822"></ravel-button>
-            </div>
+        <div class="btn-group">
+          <ravel-button label="Pink"   color="#FF37A8"></ravel-button>
+          <div class="group-label">fluoro pink</div>
         </div>
-
-        <div class="stage-group">
-            <div class="stage-label">Custom borders</div>
-            <div class="button-row">
-                <ravel-button label="Thin"  color="#5544cc" border-width="1" shadow-size="2"></ravel-button>
-                <ravel-button label="Thick" color="#5544cc" border-width="4" shadow-size="6"></ravel-button>
-            </div>
+        <div class="btn-group">
+          <ravel-button label="Lime"   color="#A7FF00" border-color="#5a8c00" shadow-color="#2a5000"></ravel-button>
+          <div class="group-label">fluoro lime</div>
         </div>
-
-        <div class="stage-group">
-            <div class="stage-label">Manual border/shadow colors</div>
-            <div class="button-row">
-                <ravel-button
-                    label="Glow"
-                    color="#223366"
-                    border-color="#4488ff"
-                    shadow-color="#88aaff"
-                    shadow-size="5">
-                </ravel-button>
-            </div>
+        <div class="btn-group">
+          <ravel-button label="Cyan"   color="#00F0FF" border-color="#007a88" shadow-color="#003a44"></ravel-button>
+          <div class="group-label">fluoro cyan</div>
         </div>
-
-        <div class="stage-group">
-            <div class="stage-label">Rectangular</div>
-            <div class="button-row">
-                <ravel-button label="Wide" w="120" h="40" color="#3355aa"></ravel-button>
-                <ravel-button label="Tall" w="40"  h="80" color="#3355aa"></ravel-button>
-            </div>
+        <div class="btn-group">
+          <ravel-button label="Violet" color="#B300FF" border-color="#600088" shadow-color="#2a003c"></ravel-button>
+          <div class="group-label">fluoro violet</div>
         </div>
+      </div>
+    </div>
 
-        <div class="stage-group">
-            <div class="stage-label">No-click</div>
-            <div class="button-row">
-                <ravel-button label="Locked" color="#444466" no-click></ravel-button>
-            </div>
+    <div class="element-cell">
+      <div class="element-label">border and shadow thickness</div>
+      <div class="stage btn-row">
+        <div class="btn-group">
+          <ravel-button label="Thin"  color="#4466dd" border-width="1" shadow-size="0"></ravel-button>
+          <div class="group-label">border 1 / no shadow</div>
         </div>
+        <div class="btn-group">
+          <ravel-button label="Med"   color="#4466dd" border-width="10" shadow-size="0"></ravel-button>
+          <div class="group-label">border 10 / no shadow</div>
+        </div>
+        <div class="btn-group">
+          <ravel-button label="Thick" color="#4466dd" border-width="10" shadow-size="10"></ravel-button>
+          <div class="group-label">border 10 / shadow 10</div>
+        </div>
+        <div class="btn-group">
+          <ravel-button label="Glow"
+            color="#223366"
+            border-color="#4488ff"
+            shadow-color="#88aaff"
+            shadow-size="6">
+          </ravel-button>
+          <div class="group-label">manual glow</div>
+        </div>
+      </div>
+    </div>
 
+    <div class="element-cell">
+      <div class="element-label">sizes and no-click</div>
+      <div class="stage btn-row">
+        <div class="btn-group">
+          <ravel-button label="Wide" w="140" h="40"  color="#3355aa"></ravel-button>
+          <div class="group-label">140×40</div>
+        </div>
+        <div class="btn-group">
+          <ravel-button label="Tall" w="40"  h="100" color="#3355aa"></ravel-button>
+          <div class="group-label">40×100</div>
+        </div>
+        <div class="btn-group">
+          <ravel-button label="Locked" color="#444466" no-click></ravel-button>
+          <div class="group-label">no-click</div>
+        </div>
+      </div>
     </div>
-</div>
 
-<!-- ── Builder ───────────────────────────────────────────────── -->
-<div class="panel">
-    <h3>Build a Button</h3>
-    <div class="row">
-        <label>w  <input type="number" id="inp-w"  value="60" min="20" step="10"></label>
-        <label>h  <input type="number" id="inp-h"  value="60" min="20" step="10"></label>
-        <label>label <input type="text"   id="inp-label" value="Click"></label>
-        <label>color <input type="color"  id="inp-color" value="#4466dd"></label>
+    <!-- ── Builder ────────────────────────────────────────────────── -->
+    <div class="element-cell">
+      <div class="element-label">build a button</div>
+      <div class="stage">
+        <div class="ctrl-row">
+          <label>w  <input type="number" id="inp-w"     value="60"      min="20" step="10"></label>
+          <label>h  <input type="number" id="inp-h"     value="60"      min="20" step="10"></label>
+          <label>label <input type="text" id="inp-label" value="Click"></label>
+          <label>color <input type="color" id="inp-color" value="#4466dd"></label>
+        </div>
+        <div class="ctrl-row">
+          <label>border-width <input type="number" id="inp-bw" value="2" min="0" step="1"></label>
+          <label>border-color <input type="color"  id="inp-bc" value="#2233aa"></label>
+          <label>shadow-size  <input type="number" id="inp-ss" value="4" min="0" step="1"></label>
+          <label>shadow-color <input type="color"  id="inp-sc" value="#112266"></label>
+          <button class="ctrl-btn" id="btn-add">Add to Stage</button>
+          <button class="ctrl-btn" id="btn-clear-added">Remove Added</button>
+        </div>
+        <div id="builder-stage" style="display:flex;gap:16px;flex-wrap:wrap;margin-top:16px;min-height:80px;align-items:center"></div>
+      </div>
     </div>
-    <div class="row">
-        <label>border-width <input type="number" id="inp-bw" value="2"  min="0" step="1"></label>
-        <label>border-color <input type="color"  id="inp-bc" value="#2233aa"></label>
-        <label>shadow-size  <input type="number" id="inp-ss" value="4"  min="0" step="1"></label>
-        <label>shadow-color <input type="color"  id="inp-sc" value="#112266"></label>
-    </div>
-    <div class="row">
-        <button id="btn-add">Add to Stage</button>
-        <button class="ghost" id="btn-clear">Remove Added</button>
-    </div>
-</div>
 
-<!-- ── Live tweak ────────────────────────────────────────────── -->
-<div class="panel">
-    <h3>Live-tweak #btn-default</h3>
-    <div class="row">
-        <label>color        <input type="color"  id="tw-color"  value="#4466dd"></label>
-        <label>border-width <input type="number" id="tw-bw"     value="2" min="0" step="1"></label>
-        <label>border-color <input type="color"  id="tw-bc"     value="#2233aa"></label>
-        <label>shadow-size  <input type="number" id="tw-ss"     value="4" min="0" step="1"></label>
-        <label>shadow-color <input type="color"  id="tw-sc"     value="#112266"></label>
-        <label>label        <input type="text"   id="tw-label"  value="OK"></label>
-        <label>w            <input type="number" id="tw-w"      value="60" min="20" step="10"></label>
-        <label>h            <input type="number" id="tw-h"      value="60" min="20" step="10"></label>
+    <!-- ── Live tweak ─────────────────────────────────────────────── -->
+    <div class="element-cell">
+      <div class="element-label">live-tweak #btn-default</div>
+      <div class="stage">
+        <div class="ctrl-row">
+          <label>color        <input type="color"  id="tw-color"  value="#4466dd"></label>
+          <label>border-width <input type="number" id="tw-bw"     value="1" min="0" step="1"></label>
+          <label>border-color <input type="color"  id="tw-bc"     value="#2233aa"></label>
+          <label>shadow-size  <input type="number" id="tw-ss"     value="0" min="0" step="1"></label>
+          <label>shadow-color <input type="color"  id="tw-sc"     value="#112266"></label>
+        </div>
+        <div class="ctrl-row">
+          <label>label <input type="text"   id="tw-label" value="OK"></label>
+          <label>w     <input type="number" id="tw-w"     value="60" min="20" step="10"></label>
+          <label>h     <input type="number" id="tw-h"     value="60" min="20" step="10"></label>
+          <button class="ctrl-btn" id="btn-apply-tw">Apply</button>
+          <button class="ctrl-btn" id="btn-reset-tw">Reset</button>
+        </div>
+      </div>
     </div>
-    <div class="row">
-        <button id="btn-apply-tw">Apply</button>
-        <button class="ghost" id="btn-reset-tw">Reset</button>
+
+    <!-- ── Event log ──────────────────────────────────────────────── -->
+    <div class="element-cell">
+      <div class="element-label">event log</div>
+      <div class="stage" style="padding:0">
+        <div id="log" aria-live="polite" aria-label="Event log"></div>
+      </div>
     </div>
-</div>
 
-<!-- ── Event log ─────────────────────────────────────────────── -->
-<div class="panel">
-    <h3>Event Log <button class="ghost" id="btn-clear-log" style="font-size:11px;padding:2px 8px;height:auto;float:right">Clear</button></h3>
-    <div id="log"></div>
-</div>
+  </div>
 
-<script>
-    const logEl  = document.getElementById('log');
-    const stage  = document.getElementById('stage');
-    const added  = [];
+  <script type="module">
+    const logEl        = document.getElementById('log');
+    const builderStage = document.getElementById('builder-stage');
+    const added        = [];
 
     function addLog(text, cls = '') {
-        const d = document.createElement('div');
-        d.className = 'log-line ' + cls;
-        const t = new Date().toLocaleTimeString('en', { hour12: false });
-        d.textContent = `[${t}] ${text}`;
-        logEl.prepend(d);
+      const d  = document.createElement('div');
+      d.className = 'log-line' + (cls ? ' ' + cls : '');
+      d.textContent = `[${new Date().toLocaleTimeString()}] ${text}`;
+      logEl.prepend(d);
+      while (logEl.children.length > 60) logEl.removeChild(logEl.lastChild);
     }
 
-    document.getElementById('btn-clear-log').addEventListener('click', () => {
-        logEl.innerHTML = '';
-    });
-
-    // Listen for click broadcasts
+    // Button click broadcasts
     window.addEventListener('ravel-button', (e) => {
-        if (e.detail?.cmd !== 'click') return;
-        const el  = e.detail.content;
-        const lbl = el?.getAttribute?.('label') || el?.id || 'ravel-button';
-        addLog(`click  "${lbl}"`, 'click');
+      if (e.detail?.cmd !== 'click') return;
+      const el  = e.detail.content;
+      const lbl = el?.getAttribute?.('label') || el?.id || 'ravel-button';
+      addLog(`click  "${lbl}"`, 'click');
     });
 
-    // ── Add button ────────────────────────────────────────────
+    // Builder
     document.getElementById('btn-add').addEventListener('click', () => {
-        const btn = document.createElement('ravel-button');
-        btn.setAttribute('w',            document.getElementById('inp-w').value);
-        btn.setAttribute('h',            document.getElementById('inp-h').value);
-        btn.setAttribute('label',        document.getElementById('inp-label').value);
-        btn.setAttribute('color',        document.getElementById('inp-color').value);
-        btn.setAttribute('border-width', document.getElementById('inp-bw').value);
-        btn.setAttribute('border-color', document.getElementById('inp-bc').value);
-        btn.setAttribute('shadow-size',  document.getElementById('inp-ss').value);
-        btn.setAttribute('shadow-color', document.getElementById('inp-sc').value);
-
-        const wrap = document.createElement('div');
-        wrap.className = 'stage-group';
-        wrap.innerHTML = '<div class="stage-label">Added</div>';
-        wrap.appendChild(btn);
-        stage.appendChild(wrap);
-        added.push(wrap);
-        addLog(`added  label="${btn.getAttribute('label')}"  ${btn.getAttribute('w')}×${btn.getAttribute('h')}`);
+      const btn = document.createElement('ravel-button');
+      btn.setAttribute('w',            document.getElementById('inp-w').value);
+      btn.setAttribute('h',            document.getElementById('inp-h').value);
+      btn.setAttribute('label',        document.getElementById('inp-label').value);
+      btn.setAttribute('color',        document.getElementById('inp-color').value);
+      btn.setAttribute('border-width', document.getElementById('inp-bw').value);
+      btn.setAttribute('border-color', document.getElementById('inp-bc').value);
+      btn.setAttribute('shadow-size',  document.getElementById('inp-ss').value);
+      btn.setAttribute('shadow-color', document.getElementById('inp-sc').value);
+      builderStage.appendChild(btn);
+      added.push(btn);
+      addLog(`added  label="${btn.getAttribute('label')}"  ${btn.getAttribute('w')}×${btn.getAttribute('h')}`, 'info');
     });
 
-    document.getElementById('btn-clear').addEventListener('click', () => {
-        added.forEach(w => w.remove());
-        added.length = 0;
-        addLog('removed added buttons');
+    document.getElementById('btn-clear-added').addEventListener('click', () => {
+      added.forEach(b => b.remove());
+      added.length = 0;
+      addLog('removed added buttons', 'info');
     });
 
-    // ── Live tweak ────────────────────────────────────────────
+    // Live tweak
     const target = document.getElementById('btn-default');
 
     document.getElementById('btn-apply-tw').addEventListener('click', () => {
-        target.setAttribute('color',        document.getElementById('tw-color').value);
-        target.setAttribute('border-width', document.getElementById('tw-bw').value);
-        target.setAttribute('border-color', document.getElementById('tw-bc').value);
-        target.setAttribute('shadow-size',  document.getElementById('tw-ss').value);
-        target.setAttribute('shadow-color', document.getElementById('tw-sc').value);
-        target.setAttribute('label',        document.getElementById('tw-label').value);
-        target.setAttribute('w',            document.getElementById('tw-w').value);
-        target.setAttribute('h',            document.getElementById('tw-h').value);
-        addLog('applied live tweaks to #btn-default');
+      target.setAttribute('color',        document.getElementById('tw-color').value);
+      target.setAttribute('border-width', document.getElementById('tw-bw').value);
+      target.setAttribute('border-color', document.getElementById('tw-bc').value);
+      target.setAttribute('shadow-size',  document.getElementById('tw-ss').value);
+      target.setAttribute('shadow-color', document.getElementById('tw-sc').value);
+      target.setAttribute('label',        document.getElementById('tw-label').value);
+      target.setAttribute('w',            document.getElementById('tw-w').value);
+      target.setAttribute('h',            document.getElementById('tw-h').value);
+      addLog('applied tweaks to #btn-default', 'info');
     });
 
     document.getElementById('btn-reset-tw').addEventListener('click', () => {
-        target.setAttribute('color',        '#4466dd');
-        target.setAttribute('border-width', '2');
-        target.setAttribute('border-color', '');
-        target.setAttribute('shadow-size',  '4');
-        target.setAttribute('shadow-color', '');
-        target.setAttribute('label',        'OK');
-        target.setAttribute('w',            '60');
-        target.setAttribute('h',            '60');
-        document.getElementById('tw-color').value  = '#4466dd';
-        document.getElementById('tw-bw').value     = '2';
-        document.getElementById('tw-bc').value     = '#2233aa';
-        document.getElementById('tw-ss').value     = '4';
-        document.getElementById('tw-sc').value     = '#112266';
-        document.getElementById('tw-label').value  = 'OK';
-        document.getElementById('tw-w').value      = '60';
-        document.getElementById('tw-h').value      = '60';
-        addLog('reset #btn-default');
+      target.setAttribute('color',        '#4466dd');
+      target.setAttribute('border-width', '1');
+      target.setAttribute('border-color', '');
+      target.setAttribute('shadow-size',  '0');
+      target.setAttribute('shadow-color', '');
+      target.setAttribute('label',        'OK');
+      target.setAttribute('w',            '60');
+      target.setAttribute('h',            '60');
+      ['tw-color','tw-bc','tw-sc'].forEach(id => {
+        const el = document.getElementById(id);
+        el.value = id === 'tw-color' ? '#4466dd' : id === 'tw-bc' ? '#2233aa' : '#112266';
+      });
+      document.getElementById('tw-bw').value    = '1';
+      document.getElementById('tw-ss').value    = '0';
+      document.getElementById('tw-label').value = 'OK';
+      document.getElementById('tw-w').value     = '60';
+      document.getElementById('tw-h').value     = '60';
+      addLog('reset #btn-default', 'info');
     });
-</script>
+
+    addLog('ready', 'info');
+  </script>
+
 </body>
 </html>

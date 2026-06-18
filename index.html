@@ -1,404 +1,309 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0,user-scalable=0"/>
-    <link rel="icon" type="image/x-icon" href="./images/favicon.ico">
-    <title>Raveling Dashboard</title>
-    <meta name="description" content="Raveling Dashboard">
-	<script src="/core/libs/p5.min.js"></script>
-    <script type="module" src="./core/index.ts"></script>
-    <script type="module" src="./index.ts"></script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/x-icon" href="./images/favicon.ico">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Silkscreen&family=Quantico:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+  <title>Raveling</title>
+  <script src="/core/libs/p5.min.js"></script>
+  <script type="module" src="./index.ts"></script>
   <style>
     * { box-sizing: border-box; }
+
+    :root {
+      --ground:   #303030;              /* Dark Ink — slightly lifted ground */
+      --well:     #1a1a1a;              /* near Ink Black — stage wells recede */
+      --text:     #E6E2D3;              /* Paper */
+      --heading:  #FFFFFF;              /* White Paper */
+      --muted:    #666666;              /* Pencil */
+      --rule:     rgba(102,102,102,.40);
+      --gidget:   #A7FF00;              /* Fluoro Lime */
+      --gadget:   #FF37A8;              /* Fluoro Pink */
+      --broker:   #00F0FF;              /* Fluoro Cyan */
+    }
+
     body {
       margin: 0;
-      padding: 20px;
-      background-color: #1a1a2e;
-      color: #e0e0e0;
+      padding: 52px 44px;
+      background: var(--ground);
+      color: var(--text);
+      font-family: 'Silkscreen', monospace;
+      font-size: 1.05rem;
+      line-height: 1.55;
+      border: 10px solid #ff0000;
+      box-shadow: 0px 0px 0px 10px inset #ffcc00;
+    }
+
+    /* Quantico for prose — apply .text to any block of descriptive copy */
+    .text {
       font-family: 'Quantico', monospace, sans-serif;
     }
+
+    .masthead {
+      margin-bottom: 64px;
+    }
+
     h1 {
-      color: #8bc34a;
-      font-size: 2rem;
-      margin-bottom: 4px;
+      font-size: 4rem;
+      color: var(--heading);
+      margin: 0 0 4px 0;
+      letter-spacing: -2px;
+      display: inline-block;
+      border-bottom: 10px solid var(--gidget);
+      padding-bottom: 2px;
     }
-    p.subtitle {
-      color: #666;
-      margin-top: 0;
-      margin-bottom: 30px;
-      font-size: 0.9rem;
+
+    .subtitle {
+      font-size: 1.1rem;
+      color: var(--muted);
+      margin: 14px 0 0 0;
     }
+
     .section {
-      margin-bottom: 40px;
-      border: 1px solid #2a2a4a;
-      border-radius: 8px;
-      padding: 20px;
-      background: #16213e;
+      margin-bottom: 64px;
     }
-    .section h2 {
-      margin-top: 0;
-      color: #4fc3f7;
-      font-size: 1rem;
+
+    hr.section-rule {
+      border: none;
+      border-top: 10px solid var(--rule);
+      margin: 0 0 24px 0;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: baseline;
+      gap: 18px;
+      margin-bottom: 32px;
+    }
+
+    .chip {
+      display: inline-block;
+      font-size: 0.75rem;
       text-transform: uppercase;
       letter-spacing: 2px;
-      border-bottom: 1px solid #2a2a4a;
-      padding-bottom: 8px;
-      margin-bottom: 16px;
+      padding: 4px 14px;
+      border-radius: 999px;
+      color: #181818;
+      background: var(--gidget);
+      position: relative;
+      top: -2px;
     }
-    .element-label {
-      font-size: 0.75rem;
-      color: #888;
-      margin-bottom: 6px;
+
+    .chip.gadgets { background: var(--gadget); }
+    .chip.brokers { background: var(--broker); }
+
+    .section h2 {
+      font-size: 2rem;
+      color: var(--heading);
+      margin: 0;
     }
-    .element-row {
+
+    /* Flex column: one component per row */
+    .element-col {
       display: flex;
-      flex-wrap: wrap;
-      gap: 40px;
-      align-items: flex-start;
+      flex-direction: column;
+      gap: 32px;
     }
+
     .element-cell {
       display: flex;
       flex-direction: column;
-      align-items: flex-start;
+      gap: 10px;
     }
-    /* give positioned elements a visible stage */
+
+    .element-label {
+      font-size: 1rem;
+      color: var(--muted);
+    }
+
+    /* Stage for inline-block and absolute-fill components.
+       position:relative gives absolute children their anchor. */
     .stage {
       position: relative;
-      width: 300px;
-      height: 180px;
-      background: #0f3460;
+      background: var(--well);
+      border: 2px dotted var(--rule);
       border-radius: 4px;
-      overflow: visible;
+      overflow: hidden;
     }
-    .stage-tall {
+
+    /* Stage for block fill-width components (roll, roll-track).
+       position:relative added so any absolute children stay anchored here. */
+    .stage-block {
       position: relative;
-      width: 300px;
-      height: 260px;
-      background: #0f3460;
+      background: var(--well);
+      border: 2px dotted var(--rule);
       border-radius: 4px;
-      overflow: visible;
+      overflow: hidden;
+      width: 100%;
+    }
+
+    /* Stage for 100vw × 100vh full-screen components.
+       Sized to the 50% visual footprint; the scale-wrap does the transform. */
+    .stage-fullscreen {
+      position: relative;
+      background: var(--well);
+      border: 2px dotted var(--rule);
+      border-radius: 4px;
+      overflow: hidden;
+      width: 50vw;
+      height: 50vh;
+    }
+
+    /* Scales the full-screen component to 50% inside its stage.
+       width/height of 200% × parent (50vw/50vh) = 100vw/100vh,
+       then scale(0.5) brings it back to the stage's dimensions visually. */
+    .scale-wrap {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 200%;
+      height: 200%;
+      transform: scale(0.5);
+      transform-origin: top left;
     }
   </style>
 </head>
 <body>
 
-<h1>🍩 Raveling</h1>
-<p class="subtitle">Web Component Element Sandbox</p>
+  <div class="masthead">
+    <h1>Raveling</h1>
+    <p class="subtitle">Web Component Sandbox</p>
+  </div>
 
-<!-- ─── BUTTON ─── -->
-<div class="section">
-  <h2>ravel-button</h2>
-  <div class="element-row">
-    <div class="element-cell">
-      <div class="element-label">Default (50×50, red)</div>
-      <div class="stage">
-        <ravel-button id="btn1" x="20" y="20" w="50" h="50" color="#ff4444" pixel-size="8"></ravel-button>
-      </div>
+  <!-- ─── GIDGETS ─── -->
+  <div class="section">
+    <hr class="section-rule">
+    <div class="section-header">
+      <span class="chip">Gidgets</span>
+      <h2>Interactive Controls</h2>
     </div>
-    <div class="element-cell">
-      <div class="element-label">Large (80×80, green)</div>
-      <div class="stage">
-        <ravel-button id="btn2" x="20" y="20" w="80" h="80" color="#44ff88" pixel-size="12"></ravel-button>
+    <div class="element-col">
+
+      <div class="element-cell">
+        <div class="element-label">ravel-button</div>
+        <div class="stage" style="width:340px; height:160px;">
+          <ravel-button id="btn-1" x="20"  y="20" w="60" h="60" color="#20C8D8"></ravel-button>
+          <ravel-button id="btn-2" x="100" y="20" w="60" h="60" color="#FF4FB3" label="GO"></ravel-button>
+          <ravel-button id="btn-3" x="180" y="20" w="50" h="50" color="#FFCC00"></ravel-button>
+          <ravel-button id="btn-4" x="250" y="20" w="50" h="50" color="#FF0000" label="STOP"></ravel-button>
+        </div>
       </div>
+
+      <div class="element-cell">
+        <div class="element-label">ravel-help</div>
+        <div class="stage" style="width:360px; height:120px; padding:20px;">
+          <ravel-help id="help1"></ravel-help>
+        </div>
+      </div>
+
+      <!-- Full-screen: 100vw × 100vh scaled to 50% -->
+      <div class="element-cell">
+        <div class="element-label">ravel-sequence — scaled 50%</div>
+        <div class="stage-fullscreen">
+          <div class="scale-wrap">
+            <ravel-sequence id="seq1"></ravel-sequence>
+          </div>
+        </div>
+      </div>
+
+      <!-- Full-screen: 100vw × 100vh scaled to 50% -->
+      <div class="element-cell">
+        <div class="element-label">ravel-card — scaled 50%</div>
+        <div class="stage-fullscreen">
+          <div class="scale-wrap">
+            <ravel-card id="card1"></ravel-card>
+          </div>
+        </div>
+      </div>
+
+      <div class="element-cell">
+        <div class="element-label">ravel-roll — block, fill-width</div>
+        <div class="stage-block" style="height:360px;">
+          <ravel-roll id="roll1"></ravel-roll>
+        </div>
+      </div>
+
+      <div class="element-cell">
+        <div class="element-label">ravel-roll-track</div>
+        <div class="stage-block" style="height:80px;">
+          <ravel-roll-track id="track1"></ravel-roll-track>
+        </div>
+      </div>
+
+      <!-- ravel-roll-perf sets position:absolute on itself; needs a positioned stage -->
+      <div class="element-cell">
+        <div class="element-label">ravel-roll-perf — default 200×40px, positioned absolute</div>
+        <div class="stage" style="width:280px; height:80px;">
+          <ravel-roll-perf id="perf1" x="20" y="20"></ravel-roll-perf>
+        </div>
+      </div>
+
+      <div class="element-cell">
+        <div class="element-label">ravel-alert — fixed-position; trigger below</div>
+        <div class="stage" style="width:280px; height:80px;">
+          <ravel-button id="btn-alert" x="20" y="16" w="140" h="44" color="#A7FF00" label="Show Alert"></ravel-button>
+        </div>
+      </div>
+
+      <div class="element-cell">
+        <div class="element-label">ravel-sound — single audio player</div>
+        <div class="stage" style="width:560px; height:76px; padding:14px;">
+          <ravel-sound id="sound1" source="/sounds/ravel-theme-intro.mp3"></ravel-sound>
+        </div>
+      </div>
+
+      <div class="element-cell">
+        <div class="element-label">ravel-playlist — transport + slotted ravel-sound children</div>
+        <div class="stage" style="width:600px; padding:14px;">
+          <ravel-playlist id="playlist1">
+            <ravel-sound source="/sounds/ravel-theme-intro.mp3"></ravel-sound>
+            <ravel-sound source="/sounds/ravel-theme-intro.mp3"></ravel-sound>
+          </ravel-playlist>
+        </div>
+      </div>
+
     </div>
   </div>
-</div>
 
-<!-- ─── POT ─── -->
-<div class="section">
-  <h2>ravel-pot</h2>
-  <div class="element-row">
-    <div class="element-cell">
-      <div class="element-label">Knob (60×60)</div>
-      <div class="stage">
-        <ravel-pot id="pot1" x="40" y="40" w="60" h="60" icon="white-circle" signal-out="pot-signal"></ravel-pot>
-      </div>
+  <!-- ─── GADGETS ─── -->
+  <div class="section">
+    <hr class="section-rule">
+    <div class="section-header">
+      <span class="chip gadgets">Gadgets</span>
+      <h2>Instruments</h2>
     </div>
-    <div class="element-cell">
-      <div class="element-label">Knob with marker</div>
-      <div class="stage">
-        <ravel-pot id="pot2" x="40" y="40" w="80" h="80" icon="orange-circle" marker="white-circle" signal-out="pot-signal-2"></ravel-pot>
+    <div class="element-col">
+
+      <div class="element-cell">
+        <div class="element-label">ravel-pink-trombone — default 320×130</div>
+        <div class="stage" style="width:380px; height:170px;">
+          <ravel-pink-trombone id="trombone1"></ravel-pink-trombone>
+        </div>
       </div>
+
+      <div class="element-cell">
+        <div class="element-label">ravel-glottalizer — default 320×200</div>
+        <div class="stage" style="width:380px; height:240px;">
+          <ravel-glottalizer id="glott1"></ravel-glottalizer>
+        </div>
+      </div>
+
     </div>
   </div>
-</div>
 
-<!-- ─── SLIDER ─── -->
-<div class="section">
-  <h2>ravel-slider-2</h2>
-  <div class="element-row">
-    <div class="element-cell">
-      <div class="element-label">Horizontal slider (240×60)</div>
-      <div class="stage">
-        <ravel-slider-2 id="slider1" x="20" y="60" w="240" h="60" color="#4fc3f7" pixel-size="8" margin="20" min="0" max="1" step="0.01" value="0.5" signal-out="slider-signal"></ravel-slider-2>
-      </div>
-    </div>
-  </div>
-</div>
+  <!-- ravel-alert lives at page level (position: fixed) -->
+  <ravel-alert id="alert1"></ravel-alert>
 
-<!-- ─── SWITCH ─── -->
-<div class="section">
-  <h2>ravel-switch</h2>
-  <div class="element-row">
-    <div class="element-cell">
-      <div class="element-label">2-state toggle</div>
-      <div class="stage">
-        <ravel-switch id="sw1" x="30" y="50" w="80" h="60" states="2" color="#ffff00" signals="sig-a,sig-b"></ravel-switch>
-      </div>
-    </div>
-    <div class="element-cell">
-      <div class="element-label">4-state horizontal</div>
-      <div class="stage">
-        <ravel-switch id="sw2" x="20" y="50" w="160" h="60" states="4" color="#ff8800" signals="s1,s2,s3,s4"></ravel-switch>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ─── LED ─── -->
-<div class="section">
-  <h2>ravel-led</h2>
-  <div class="element-row">
-    <div class="element-cell">
-      <div class="element-label">Green LED (48px)</div>
-      <div class="stage">
-        <ravel-led id="led1" x="20" y="20" size="48" color="#00cc00" glow="#00ff00" message-id="led-msg-1"></ravel-led>
-      </div>
-    </div>
-    <div class="element-cell">
-      <div class="element-label">Red LED (64px)</div>
-      <div class="stage">
-        <ravel-led id="led2" x="20" y="20" size="64" color="#cc0000" glow="#ff4444" message-id="led-msg-2"></ravel-led>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ─── LED ARRAY ─── -->
-<div class="section">
-  <h2>ravel-led-array</h2>
-  <div class="element-row">
-    <div class="element-cell">
-      <div class="element-label">4×8 grid (click to toggle)</div>
-      <ravel-led-array id="ledarray1" rows="4" cols="8" address="aa0001"></ravel-led-array>
-    </div>
-    <div class="element-cell">
-      <div class="element-label">2×16 grid</div>
-      <ravel-led-array id="ledarray2" rows="2" cols="16" address="aa0002"></ravel-led-array>
-    </div>
-  </div>
-</div>
-
-<!-- ─── LCD ─── -->
-<div class="section">
-  <h2>ravel-lcd</h2>
-  <div class="element-row">
-    <div class="element-cell">
-      <div class="element-label">LCD display with slot content</div>
-      <ravel-lcd id="lcd1">8.8.8.8</ravel-lcd>
-    </div>
-  </div>
-</div>
-
-<!-- ─── BOX ─── -->
-<div class="section">
-  <h2>ravel-box</h2>
-  <p style="color:#888;font-size:0.8rem;margin:0 0 12px;">
-    Pixel-art bordered panel. Acts as a CSS containing block — child gidget x/y are box-relative.
-    Content area begins at (margin + pixel-size, pixel-size) within the box.
-  </p>
-  <div class="element-row">
-
-    <div class="element-cell">
-      <div class="element-label">Box frame only (Night Bloom, pixel-size 8)</div>
-      <div class="stage">
-        <ravel-box id="box1" x="20" y="20" w="200" h="120" color="#4A4E9E" pixel-size="8" margin="12">
-        </ravel-box>
-      </div>
-    </div>
-
-    <div class="element-cell">
-      <div class="element-label">Box as container — slider + pot, box-relative x/y</div>
-      <div class="stage">
-        <ravel-box id="box2" x="20" y="20" w="256" h="100" color="#4A4E9E" pixel-size="8" margin="12">
-          <!-- content area: x=[20..236], y=[8..92] within box -->
-          <ravel-slider-2
-            id="box-slider"
-            x="20" y="28"
-            w="140" h="44"
-            color="#D95763" pixel-size="6" margin="10"
-            min="0" max="100" step="1" value="50"
-            signal-out="box-slider-sig">
-          </ravel-slider-2>
-          <ravel-pot
-            id="box-pot"
-            x="176" y="20"
-            w="60" h="60"
-            color="#8CCF8A"
-            min="0" max="1" step="0.01" value="0.5"
-            signal-out="box-pot-sig">
-          </ravel-pot>
-        </ravel-box>
-      </div>
-    </div>
-
-  </div>
-</div>
-
-<!-- ─── CRANK ─── -->
-<div class="section">
-  <h2>ravel-crank</h2>
-  <div class="element-row">
-    <div class="element-cell">
-      <div class="element-label">Crank (drag to spin, sends angular velocity)</div>
-      <div class="stage">
-        <ravel-crank id="crank1" x="60" y="20" w="100" h="100" icon="orange-circle" signal-out="crank-signal"></ravel-crank>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ─── CGOL GRID ─── -->
-<div class="section">
-  <h2>ravel-cgol-grid</h2>
-  <div class="element-row">
-    <div class="element-cell">
-      <div class="element-label">Conway's Game of Life (6×10, auto-runs, click to start)</div>
-      <div class="stage-tall">
-        <ravel-cgol-grid id="cgol1" x="10" y="10" rows="8" cols="12" coverage="35"></ravel-cgol-grid>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ─── CIRCULAR SEQUENCE ─── -->
-<div class="section">
-  <h2>ravel-circular-sequence</h2>
-  <div class="element-row">
-    <div class="element-cell">
-      <div class="element-label">16-step circular sequencer (animated cursor)</div>
-      <ravel-circular-sequence id="circ1" display-count="16" speed="1200"></ravel-circular-sequence>
-    </div>
-  </div>
-</div>
-
-<!-- ─── PROGRESSIVE COMPOSITION ─── -->
-<div class="section">
-  <h2>ravel-progressive-composition-2</h2>
-  <div class="element-row">
-    <div class="element-cell">
-      <div class="element-label">12-section composition grid (click sections to advance performers)</div>
-      <ravel-progressive-composition-2 id="comp1"></ravel-progressive-composition-2>
-    </div>
-  </div>
-</div>
-
-<!-- ─── VISUALIZER 1 ─── -->
-<div class="section">
-  <h2>ravel-visualizer-1</h2>
-  <div class="element-row">
-    <div class="element-cell">
-      <div class="element-label">Waveform visualizer (needs analyser node, shows placeholder)</div>
-      <div class="stage-tall">
-        <ravel-visualizer-1 id="viz1" x="10" y="10" w="260" h="200" color="#001122" pixel-size="8"></ravel-visualizer-1>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ─── VISUALIZER 2 ─── -->
-<div class="section">
-  <h2>ravel-visualizer-2</h2>
-  <div class="element-row">
-    <div class="element-cell">
-      <div class="element-label">Audio buffer visualizer (needs AudioBuffer, shows placeholder)</div>
-      <div class="stage-tall">
-        <ravel-visualizer-2 id="viz2" x="10" y="10" w="260" h="200" color="#110022" pixel-size="8"></ravel-visualizer-2>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ─── CONTROL ARM ─── -->
-<div class="section">
-  <h2>ravel-control-arm</h2>
-  <p style="color:#888;font-size:0.8rem;margin:0 0 12px;">
-    Drag the arm to hover over controls — they highlight when the sensor (finger tip) overlaps.<br>
-    Drag the arm while hovering to interact continuously (pot / slider).<br>
-    Tap the arm without dragging to click whatever is under the sensor (switch / button).
-  </p>
-  <div class="element-row">
-
-    <!-- Interactive stage: arm + some target elements -->
-    <div class="element-cell">
-      <div class="element-label">Bigfoot arm — drag over the pot and slider below</div>
-      <div class="stage-arm" style="position:relative;width:500px;height:320px;background:#0f3460;border-radius:4px;overflow:hidden;">
-
-        <!-- Target elements inside the same stage -->
-        <ravel-pot
-          id="arm-pot"
-          x="200" y="100" w="80" h="80"
-          icon="orange-circle" marker="white-circle"
-          signal-out="arm-pot-signal">
-        </ravel-pot>
-
-        <ravel-slider-2
-          id="arm-slider"
-          x="280" y="220" w="180" h="60"
-          color="#4fc3f7" pixel-size="6" margin="16"
-          min="0" max="1" step="0.01" value="0.4"
-          signal-out="arm-slider-signal">
-        </ravel-slider-2>
-
-        <ravel-switch
-          id="arm-switch"
-          x="60" y="220" w="100" h="50"
-          states="2" color="#ffff00"
-          signals="arm-sw-a,arm-sw-b">
-        </ravel-switch>
-
-        <!-- The arm itself — sensor-x/y are the finger tip in unscaled image pixels -->
-        <ravel-control-arm
-          id="arm1"
-          src="/core/web-components/custom-elements/gidgets/ravel-control-arm/sandbox/images/bigfoot-left.png"
-          scale="0.5"
-          sensor-x="198" sensor-y="42"
-          sensor-w="24" sensor-h="24"
-          x="20" y="20">
-        </ravel-control-arm>
-
-      </div>
-    </div>
-
-    <!-- Second arm: Nessie -->
-    <div class="element-cell">
-      <div class="element-label">Nessie arm (scale 0.4)</div>
-      <div style="position:relative;width:240px;height:240px;background:#0f3460;border-radius:4px;overflow:hidden;">
-        <ravel-control-arm
-          id="arm2"
-          src="/core/web-components/custom-elements/gidgets/ravel-control-arm/sandbox/images/nessie-left.png"
-          scale="0.4"
-          sensor-x="210" sensor-y="30"
-          sensor-w="20" sensor-h="20"
-          x="10" y="30">
-        </ravel-control-arm>
-      </div>
-    </div>
-
-  </div>
-</div>
-
-<!-- ─── GADGET ─── -->
-<div class="section">
-  <h2>ravel-gadget</h2>
-  <div class="element-row">
-    <div class="element-cell">
-      <div class="element-label">BLE/Serial hardware gadget connector (requires hardware)</div>
-      <ravel-gadget id="gadget1" type="ble" label="my-gadget" uid="abc123" docked="true"></ravel-gadget>
-    </div>
-  </div>
-</div>
+  <script type="module">
+    window.addEventListener('ravel-button', (e) => {
+      if (e.detail?.content?.id !== 'btn-alert') return;
+      window.dispatchEvent(new CustomEvent('ravel-alert', {
+        detail: { cmd: 'show', content: { text: 'Hello from Raveling!', color: 'blue', buttons: 'ok' } }
+      }));
+    });
+  </script>
 
 </body>
 </html>

@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ravel-gadget sandbox</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Silkscreen&family=Quantico:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+  <script src="/core/libs/p5.min.js"></script>
+  <script type="module" src="/index.ts"></script>
+  <style>
+    * { box-sizing: border-box; }
+
+    :root {
+      --ground:        #303030;
+      --well:          #1a1a1a;
+      --muted:         #666666;
+      --rule:          rgba(102,102,102,.40);
+      --fluoro-pink:   #FF37A8;
+      --fluoro-orange: #FE6810;
+      --fluoro-lime:   #A7FF00;
+      --fluoro-cyan:   #00F0FF;
+    }
+
+    body {
+      margin: 0;
+      padding: 40px 44px;
+      background: var(--ground);
+      font-family: 'Silkscreen', monospace;
+      font-size: 1rem;
+      line-height: 1.3;
+      border: 10px solid #ff0000;
+      box-shadow: 0px 0px 0px 10px inset #ffcc00;
+      min-height: 100vh;
+    }
+
+    h1 {
+      font-size: 2rem;
+      color: #ffffff;
+      margin: 0 0 32px 0;
+      border-bottom: 10px solid var(--fluoro-orange);
+      display: inline-block;
+      padding-bottom: 2px;
+    }
+
+    .element-col { display: flex; flex-direction: column; gap: 32px; }
+
+    .element-cell { display: flex; flex-direction: column; gap: 8px; }
+
+    .element-label { font-size: 0.85rem; color: var(--muted); }
+
+    .stage {
+      position: relative;
+      background: var(--well);
+      border: 2px dotted var(--rule);
+      border-radius: 4px;
+      padding: 20px;
+    }
+
+    /* Flex row for side-by-side gadgets */
+    .gadget-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 24px;
+      align-items: flex-start;
+    }
+
+    /* ── Event log ─────────────────────────────────────────── */
+    .log-section { display: flex; flex-direction: column; gap: 6px; }
+
+    .log-label { font-size: 0.75rem; color: var(--muted); }
+
+    #log {
+      max-height: 100px;
+      overflow-y: auto;
+      font-size: 0.75rem;
+      background: #111111;
+      border: 1px solid var(--rule);
+      border-radius: 4px;
+      padding: 6px 8px;
+      font-family: 'Quantico', monospace;
+    }
+
+    .log-line           { padding: 2px 0; color: var(--muted); }
+    .log-line.connected { color: var(--fluoro-lime); }
+    .log-line.data      { color: var(--fluoro-cyan); }
+    .log-line.disconnected { color: var(--fluoro-orange); }
+
+    /* ── Notes ─────────────────────────────────────────────── */
+    .note {
+      font-size: 0.75rem;
+      color: var(--muted);
+      border-left: 2px solid var(--rule);
+      padding-left: 10px;
+      line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>ravel-gadget</h1>
+
+  <div class="element-col">
+
+    <div class="element-cell">
+      <div class="element-label">BLE gadget — connects via Web Bluetooth</div>
+      <div class="stage">
+        <div class="gadget-row">
+          <ravel-gadget
+            id="ble-gadget"
+            label="synth-1"
+            type="ble"
+            show-comms
+          ></ravel-gadget>
+          <ravel-gadget
+            id="ble-gadget-uid"
+            label="drum-kit"
+            type="ble"
+            uid="A4:B2:01"
+          ></ravel-gadget>
+        </div>
+      </div>
+    </div>
+
+    <div class="element-cell">
+      <div class="element-label">Serial gadget — connects via Web Serial (USB)</div>
+      <div class="stage">
+        <div class="gadget-row">
+          <ravel-gadget
+            id="serial-gadget"
+            label="controller"
+            type="serial"
+            show-comms
+          ></ravel-gadget>
+        </div>
+      </div>
+    </div>
+
+    <div class="element-cell">
+      <div class="element-label">broadcast events</div>
+      <div class="stage">
+        <div class="log-section">
+          <div class="log-label">ravel-gadget channel</div>
+          <div id="log"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="element-cell">
+      <div class="element-label">notes</div>
+      <div class="stage">
+        <div class="note">
+          Clicking Connect opens the browser's native device picker.<br>
+          BLE: looks for devices with name prefix "Ravel", service 0xff00.<br>
+          Serial: filters for nRF52 (0x2886/0x8045) and ESP32 (0x303A/0x1001).<br>
+          Requires HTTPS or localhost; Web Bluetooth/Serial must be enabled in the browser.
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script type="module">
+    const logEl = document.getElementById('log');
+
+    function addLog(text, cls = '') {
+      const d = document.createElement('div');
+      d.className = 'log-line ' + cls;
+      const t = new Date().toLocaleTimeString('en', { hour12: false });
+      d.textContent = `[${t}] ${text}`;
+      logEl.prepend(d);
+    }
+
+    window.addEventListener('ravel-gadget', (e) => {
+      const { cmd, content } = e.detail ?? {};
+      if (!cmd) return;
+      const label = content?.uid ? `uid:${content.uid}` : `type:${content?.type ?? '?'}`;
+      if (cmd === 'connected')    addLog(`connected    ${label}`, 'connected');
+      if (cmd === 'disconnected') addLog(`disconnected ${label}`, 'disconnected');
+      if (cmd === 'data') {
+        const preview = content?.data instanceof Uint8Array
+          ? `[${content.data.join(',')}]`
+          : JSON.stringify(content?.data ?? '');
+        addLog(`data ${label} → ${preview}`, 'data');
+      }
+    });
+  </script>
+
+</body>
+</html>

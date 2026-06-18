@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ravel-sound sandbox</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Silkscreen&family=Quantico:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+  <script src="/core/libs/p5.min.js"></script>
+  <script type="module" src="/index.ts"></script>
+  <style>
+    * { box-sizing: border-box; }
+
+    :root {
+      --ground: #303030;
+      --well:   #1a1a1a;
+      --muted:  #666666;
+      --rule:   rgba(102,102,102,.40);
+      --accent: #A7FF00;
+    }
+
+    body {
+      margin: 0;
+      padding: 40px 44px;
+      background: var(--ground);
+      color: var(--text);
+      font-family: 'Silkscreen', monospace;
+      font-size: 1rem;
+      line-height: 1.55;
+      border: 10px solid #ff0000;
+      box-shadow: 0px 0px 0px 10px inset #ffcc00;
+    }
+
+    h1 {
+      font-size: 2rem;
+      color: #ffffff;
+      margin: 0 0 32px 0;
+      border-bottom: 10px solid var(--accent);
+      display: inline-block;
+      padding-bottom: 2px;
+    }
+
+    .element-col { display: flex; flex-direction: column; gap: 24px; }
+
+    .element-cell { display: flex; flex-direction: column; gap: 8px; }
+
+    .element-label { font-size: 0.85rem; color: var(--muted); }
+
+    .stage {
+      position: relative;
+      background: var(--well);
+      border: 2px dotted var(--rule);
+      border-radius: 4px;
+      overflow: hidden;
+      padding: 14px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>ravel-sound</h1>
+
+  <div class="element-col">
+
+    <div class="element-cell">
+      <div class="element-label">autoload — fetches on connect</div>
+      <div class="stage">
+        <ravel-sound source="./audio/sample-0.wav" autoload></ravel-sound>
+      </div>
+    </div>
+
+    <div class="element-cell">
+      <div class="element-label">lazy load — fetches on first Play click</div>
+      <div class="stage">
+        <ravel-sound source="./audio/sample-1.wav"></ravel-sound>
+      </div>
+    </div>
+
+    <div class="element-cell">
+      <div class="element-label">show-time — duration shown after load</div>
+      <div class="stage">
+        <ravel-sound source="./audio/sample-0.wav" autoload show-time></ravel-sound>
+      </div>
+    </div>
+
+    <div class="element-cell">
+      <div class="element-label">no source — error state</div>
+      <div class="stage">
+        <ravel-sound></ravel-sound>
+      </div>
+    </div>
+
+  </div>
+
+</body>
+</html>

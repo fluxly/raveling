@@ -1,1 +1,1 @@
-// import './custom-elements/xxxx/index.js';
+import './ravel-scrapbook/ravel-scrapbook';

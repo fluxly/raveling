@@ -1,4 +1,4 @@
-# SOUL-SPEC-MINI: Raveling Web Component Design System
+# CLAUDE.md — Raveling Web Component Design System
 
 > Compact seed document for an AI agent building Raveling components in partnership with a human. Read this before touching code. When rules conflict, the order below is the priority order.
 
@@ -79,6 +79,12 @@ All components support `observable="off | events | state | verbose"`. Default is
 
 ---
 
+## Sandbox & Dashboard HTML
+
+If you are building any HTML page — sandbox, dashboard, or project app — read **`docs/sandbox-style-guide.md`** before writing a single line of HTML or CSS. It covers theme, typography, color roles, stage patterns for every component display mode, and the correct script import order.
+
+---
+
 ## Definition of Done
 
 - TypeScript compiles cleanly (strict)
@@ -92,9 +98,3 @@ All components support `observable="off | events | state | verbose"`. Default is
 ## Failure Policy
 
 If a requirement cannot be met: do not guess, do not silently skip it. Surface the conflict, explain the constraint, and wait for human input.
-
----
-
-## The Spirit
-
-Raveling components should feel like **instruments, not widgets**. When uncertain, ask: *does this increase clarity, accessibility, and joy for everyone?*

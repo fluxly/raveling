@@ -31,7 +31,7 @@ export class RavelCard extends RavelElement {
             width: 100%;
             height: 100%;
             box-sizing: border-box;
-            font-family: 'Segoe UI', system-ui, sans-serif;
+            font-family: 'Silkscreen', monospace;
             background: #000000;
             color: #ffffff;
             font-size: 2rem;

@@ -18,39 +18,44 @@
 | `gidgets-bespoke` | One-off or toy interactive virtual elements |
 | `toys` | Productized assemblies |
 
-+ == still in JS
-++ == ported to TS, still in Cryptid Garden format
+### Status
+    + == still in JS
+    ++ == ported to TS, still in Cryptid Garden format
+    - == todo
 
-### Artifacts
+### Artifacts (Persistent, data-bearing and distibution)
     ravel-scrapbook
-    ravel-notebook
-### Assemblies
+    - ravel-notebook
+
+### Assemblies (Composite elements, desktop accessories, app-in-a-box)
     + ravel-signal-collector
-    + ravel-control-bar
-    + ravel-dashboard
+    - ravel-control-bar
+    - ravel-dashboard
     + ravel-dock
     + ravel-field-recorder
-### Brokers
-    + ravel-theme-broker
-    + ravel-observer-broker (bridge relay)
-    + ravel-ballyhoo-broker (at-based)
-    ravel-messenger
-    + ravel-local-broker (local forage)
-    + ravel-distributed-broker (yjs, webrtc)
-    + ravel-midi-broker
-### Gadgets
-    + ravel-gadget
+
+### Brokers (Protocol and communication wranglers)
+    - ravel-theme-broker
+    - ravel-ballyhoo-broker (at-based)
+    + ravel-message-broker (bridge relay)
+    - ravel-local-broker (local forage)
+    - ravel-distributed-broker (yjs, webrtc)
+    - ravel-midi-broker
+
+### Gadgets (Interactive elements with a physical counterpart)
+    ravel-gadget
     ravel-glottalizer
     ravel-pink-trombone
     ++ ravel-qr-reader
     ++ ravel-hand-tracker
-### Gidgets
+
+### Gidgets (Interactive virtual elements)
     ravel-alert
-    + ravel-blockly
-    ++ ravel-box
+    ravel-blockly
+    ravel-box
     ravel-button
     ravel-card
-    + ravel-carousel
+    ravel-carousel
     + ravel-fluxly-sound-engine
     + ravel-filmstrip
     ravel-help
@@ -69,7 +74,8 @@
     + ravel-signal
     + ravel-sound (nee ravel-sample)
     ++ ravel-visualizer (1 and 2)
-### Gidgets Bespoke
+
+### Gidgets Bespoke (Atypical or one-off gidgets)
     ++ ravel-cgol-grid
     ++ ravel-circular-sequence
     + ravel-crossfade-background
@@ -86,35 +92,27 @@
     ++ ravel-progressive-composition-2
     + ravel-tally-grid
     
-## App Server
-    strict message contracts, browser-owned app state, hardware abstraction, sandboxed file access
-    + ravel-kiosk-app
+## Backend (Services and microservices)
+    + App Server (for running Python processes locally)
+    + Kiosk app server (e.g. Gif-o-graf)
 
-    Possible alternative: 
-        Browser (Web Components)
-            ↓ WebSocket
-        Starlette
-            ↓ asyncio subprocess
-        Hardware Worker
-   
+## Library (Reusable resources)
+    Raveling Inventory (a la Fab Inventory)
+    Local Models
+        ! Stable Audio 3 Medium (https://huggingface.co/stabilityai/stable-audio-3-medium)
+        Flux 2
+    Skills
+        Tool skills (e.g. ! Bitmap to Flexgrid skill)
+    Graphics
+        LibEverything
+        LibCryptid
+        LibOpArt
+        LibEmoji
+    Fonts
+        ! h0b0
+    Sounds
 
-## Library 
-Raveling Inventory (a la Fab Inventory)
-Local Models
-    Stable Audio 3 Medium (https://huggingface.co/stabilityai/stable-audio-3-medium)
-    Flux 2
-Skills
-     Tool skills (e.g. Bitmap to Flexgrid skill)
-Graphics
-    LibEverything
-    LibCryptid
-    LibOpArt
-    LibEmoji
-Fonts
-    h0b0
-Sounds
-
-## Electrokinetic Kit of Parts
+## Electrokinetic Kit of Parts (Physical objects that integrate)
     Power
         PPP
         Crank
@@ -124,20 +122,20 @@ Sounds
         Displays
     ESP Drone
     Companion Robot
-    Bloopnet (lora, LR2021)
+    ! Bloopnet (lora, LR2021)
     Game Fab kit
     Sound IO
         Outrasonics (electroslutch, ultrasonics)
-        Daisy
-        Fluxamasynth
+        ! Daisy
+        ! Fluxamasynth
         Eurorack
     
-## Tools
+## Tools (Dashboards and Tiny Helpers)
     Raveling Reader
         Playlists/Efrobs
         Scrapbooks and Notebooks
-    Raveling Lab
-        Sound Studio
+    ! Raveling Lab
+        ! Sound Studio
             Stem extraction
             Stable Generation
             Sorting and Tagger
@@ -159,26 +157,26 @@ Sounds
         Playlist Wrangler
         Writers Room/Worlding Room
         MIDI Sketch (vs audio evidence)
-    Efrob format and tools
+        Efrob format and tools
     Text Tools
     3D Gen
         openscad
         lego
     
-## Toys
-    Universal Public Instrument
-        Feral Companion Vocal Tools
+## Toys (Productized Assemblies)
+    ! Universal Public Instrument
+        ! Feral Companion Vocal Tools
         MIDI expression tool
         Apocabilly Pawn Shop
-            Chocolate Trumpet
+            ! Chocolate Trumpet
             Urdyhay Urgygay
             Pots
             Pipes
             Canjo
             Used Foley
         Cryptid Garden
-    Raveling Fantasy Game Console 
-        Cryptid Garden
+    ! Raveling Fantasy Game Console 
+        ! Cryptid Garden
         Childhood and Society
         World Game
         Time Wizards

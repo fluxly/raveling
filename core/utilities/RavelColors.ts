@@ -4,23 +4,23 @@ export const RavelColors =
 
   {
     "name": "Thread Red",
-    "hex": "#E73B2D",
-    "rgb": [231, 59, 45]
+    "hex": "#FF0000",
+    "rgb": [255, 0, 0]
   },
   {
     "name": "Thread Orange",
-    "hex": "#FF8A1F",
-    "rgb": [255, 138, 31]
+    "hex": "#FF6600",
+    "rgb": [255, 102, 0]
   },
   {
     "name": "Thread Yellow",
-    "hex": "#FFD93B",
-    "rgb": [255, 217, 59]
+    "hex": "#FFCC00",
+    "rgb": [255, 204, 0]
   },
   {
     "name": "Thread Green",
-    "hex": "#44C553",
-    "rgb": [68, 197, 83]
+    "hex": "#00CC00",
+    "rgb": [0, 255, 0]
   },
   {
     "name": "Thread Cyan",
@@ -29,13 +29,13 @@ export const RavelColors =
   },
   {
     "name": "Thread Blue",
-    "hex": "#2D6BFF",
-    "rgb": [45, 107, 255]
+    "hex": "#0000CC",
+    "rgb": [0, 0, 255]
   },
   {
     "name": "Thread Purple",
-    "hex": "#8C5BFF",
-    "rgb": [140, 91, 255]
+    "hex": "#6401DA",
+    "rgb": [100, 1, 218]
   },
   {
     "name": "Thread Magenta",
@@ -57,8 +57,8 @@ export const RavelColors =
   },
   {
     "name": "Fluoro Orange",
-    "hex": "#FF5A00",
-    "rgb": [255, 90, 0]
+    "hex": "#FE6810",
+    "rgb": [254, 104, 16]
   },
   {
     "name": "Fluoro Cyan",
@@ -90,8 +90,8 @@ export const RavelColors =
   },
   {
     "name": "Paper",
-    "hex": "#F5F3EE",
-    "rgb": [245, 243, 238]
+    "hex": "#E6E2D3",
+    "rgb": [230, 226, 211]
   },
   {
     "name": "White Paper",

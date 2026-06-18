@@ -1,283 +1,313 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"/>
-    <title>ravel-alert Sandbox</title>
-    <script type="module" src="../ravel-alert.ts"></script>
-    <style>
-        *, *::before, *::after { box-sizing: border-box; }
-        html, body {
-            margin: 0;
-            width: 100%;
-            height: 100%;
-            background: #0d0d1a;
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            font-size: 13px;
-            color: #d0d0e8;
-            overflow: hidden;
-        }
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ravel-alert sandbox</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Silkscreen&family=Quantico:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+  <script src="/core/libs/p5.min.js"></script>
+  <script type="module" src="/index.ts"></script>
+  <style>
+    * { box-sizing: border-box; }
 
-        /* ── Scenario grid ─────────────────────────────────── */
-        #stage {
-            position: absolute;
-            inset: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 18px;
-        }
-        #stage h2 {
-            margin: 0 0 6px;
-            font-size: 1rem;
-            font-weight: 300;
-            letter-spacing: 3px;
-            text-transform: uppercase;
-            color: #44445a;
-        }
-        .scenario-row {
-            display: flex;
-            gap: 10px;
-        }
-        .scenario-btn {
-            border: none;
-            border-radius: 999px;
-            padding: 10px 24px;
-            font-size: 0.85rem;
-            cursor: pointer;
-            font-family: inherit;
-            letter-spacing: 0.5px;
-            transition: filter 0.15s;
-        }
-        .scenario-btn:hover { filter: brightness(1.3); }
-        .scenario-btn.red    { background: rgba(214, 28,  28,  0.85); color: #fff; }
-        .scenario-btn.yellow { background: rgba(196, 138, 0,   0.85); color: #fff; }
-        .scenario-btn.green  { background: rgba(22,  160, 70,  0.85); color: #fff; }
-        .scenario-btn.blue   { background: rgba(24,  72,  218, 0.85); color: #fff; }
+    :root {
+      --ground:  #303030;
+      --well:    #1a1a1a;
+      --muted:   #666666;
+      --rule:    rgba(102,102,102,.40);
+      --fluoro-pink:   #FF37A8;
+      --fluoro-orange: #FE6810;
+      --fluoro-lime:   #A7FF00;
+      --fluoro-cyan:   #00F0FF;
+    }
 
-        /* ── Floating control panel ────────────────────────── */
-        #controls {
-            position: fixed;
-            top: 16px;
-            right: 16px;
-            z-index: 200;
-            background: #0d0d1eee;
-            border: 1px solid #2a2a44;
-            border-radius: 8px;
-            padding: 14px 16px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            min-width: 260px;
-            backdrop-filter: blur(6px);
-        }
-        h3 {
-            margin: 0 0 2px;
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            color: #666688;
-        }
-        .row {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-            align-items: center;
-        }
-        label {
-            display: flex;
-            flex-direction: column;
-            gap: 3px;
-            color: #8888aa;
-            font-size: 11px;
-        }
-        input[type="text"] {
-            background: #1a1a30;
-            border: 1px solid #3a3a5a;
-            border-radius: 4px;
-            color: #d0d0e8;
-            padding: 3px 7px;
-            font-size: 12px;
-            width: 160px;
-            outline: none;
-        }
-        select {
-            background: #1a1a30;
-            border: 1px solid #3a3a5a;
-            border-radius: 4px;
-            color: #d0d0e8;
-            padding: 3px 7px;
-            font-size: 12px;
-            outline: none;
-        }
-        .check-row {
-            display: flex;
-            gap: 12px;
-            align-items: center;
-            color: #8888aa;
-            font-size: 11px;
-        }
-        .check-row label {
-            flex-direction: row;
-            align-items: center;
-            gap: 4px;
-        }
-        button.fire {
-            background: #3355cc;
-            color: #fff;
-            border: none;
-            border-radius: 5px;
-            padding: 5px 14px;
-            font-size: 12px;
-            cursor: pointer;
-            height: 28px;
-        }
-        button.fire:hover { background: #4466dd; }
-        hr { border: none; border-top: 1px solid #2a2a44; margin: 2px 0; }
+    body {
+      margin: 0;
+      padding: 40px 44px;
+      background: var(--ground);
+      font-family: 'Silkscreen', monospace;
+      font-size: 1rem;
+      line-height: 1.55;
+      border: 10px solid #ff0000;
+      box-shadow: 0px 0px 0px 10px inset #ffcc00;
+      min-height: 100vh;
+    }
 
-        /* ── Event log ─────────────────────────────────────── */
-        #log {
-            max-height: 90px;
-            overflow-y: auto;
-            font-family: monospace;
-            font-size: 11px;
-            background: #08080f;
-            border: 1px solid #1e1e36;
-            border-radius: 4px;
-            padding: 5px 7px;
-        }
-        .log-line           { padding: 1px 0; color: #4466aa; }
-        .log-line.show      { color: #aaaaee; }
-        .log-line.cancel    { color: #ee8866; }
-        .log-line.ok        { color: #66ddaa; }
-        .log-line.continue  { color: #66ccff; }
-        .log-line.dissolve  { color: #888888; font-style: italic; }
-    </style>
+    h1 {
+      font-size: 2rem;
+      color: #ffffff;
+      margin: 0 0 32px 0;
+      border-bottom: 10px solid var(--fluoro-pink);
+      display: inline-block;
+      padding-bottom: 2px;
+    }
+
+    .element-col { display: flex; flex-direction: column; gap: 32px; }
+
+    .element-cell { display: flex; flex-direction: column; gap: 8px; }
+
+    .element-label { font-size: 0.85rem; color: var(--muted); }
+
+    .stage {
+      position: relative;
+      background: var(--well);
+      border: 2px dotted var(--rule);
+      border-radius: 4px;
+      overflow: hidden;
+      padding: 20px;
+    }
+
+    /* ── Scenario trigger buttons ──────────────────────────── */
+    .scenario-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .scenario-btn {
+      border: none;
+      border-radius: 4px;
+      padding: 10px 20px;
+      font: inherit;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: filter 0.12s;
+      color: #181818;
+    }
+    .scenario-btn:hover { filter: brightness(1.2); }
+
+    .scenario-btn.red    { background: var(--fluoro-pink); }
+    .scenario-btn.yellow { background: var(--fluoro-orange); color: #ffffff; }
+    .scenario-btn.green  { background: var(--fluoro-lime); }
+    .scenario-btn.blue   { background: var(--fluoro-cyan); }
+
+    /* ── Custom controls panel ─────────────────────────────── */
+    .controls {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      max-width: 520px;
+    }
+
+    .controls-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: flex-end;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .field-label {
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+
+    input[type="text"], select {
+      background: #222222;
+      border: 1px solid rgba(102,102,102,.5);
+      border-radius: 4px;
+      color: #E6E2D3;
+      padding: 5px 8px;
+      font: inherit;
+      font-size: 0.8rem;
+      outline: none;
+    }
+
+    input[type="text"]:focus, select:focus {
+      border-color: var(--fluoro-cyan);
+    }
+
+    .check-row {
+      display: flex;
+      gap: 14px;
+      align-items: center;
+      color: var(--muted);
+      font-size: 0.8rem;
+      flex-wrap: wrap;
+    }
+
+    .check-row label {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      cursor: pointer;
+    }
+
+    button.fire {
+      background: var(--fluoro-cyan);
+      color: #181818;
+      border: none;
+      border-radius: 4px;
+      padding: 8px 20px;
+      font: inherit;
+      font-size: 0.85rem;
+      cursor: pointer;
+    }
+    button.fire:hover { filter: brightness(1.15); }
+
+    hr { border: none; border-top: 2px solid var(--rule); margin: 4px 0; }
+
+    /* ── Event log ─────────────────────────────────────────── */
+    #log {
+      max-height: 100px;
+      overflow-y: auto;
+      font-size: 0.75rem;
+      background: #111111;
+      border: 1px solid var(--rule);
+      border-radius: 4px;
+      padding: 6px 8px;
+    }
+
+    .log-line          { padding: 2px 0; color: var(--muted); }
+    .log-line.show     { color: var(--fluoro-cyan); }
+    .log-line.cancel   { color: var(--fluoro-orange); }
+    .log-line.ok       { color: var(--fluoro-lime); }
+    .log-line.continue { color: var(--fluoro-cyan); }
+    .log-line.dissolve { color: var(--muted); font-style: italic; }
+  </style>
 </head>
 <body>
 
-<!-- The alert element lives here; it floats above everything -->
-<ravel-alert id="alert"></ravel-alert>
+  <!-- ravel-alert lives at page level (position: fixed) -->
+  <ravel-alert id="alert"></ravel-alert>
 
-<!-- ── Scenario stage ──────────────────────────────────────── -->
-<div id="stage">
-    <h2>ravel-alert</h2>
-    <div class="scenario-row">
-        <button class="scenario-btn red"    data-color="red"    data-text="Something went wrong. Would you like to try again?" data-buttons="cancel,ok">Error</button>
-        <button class="scenario-btn yellow" data-color="yellow" data-text="This action may have unintended effects. Continue?" data-buttons="cancel,continue">Warning</button>
-        <button class="scenario-btn green"  data-color="green"  data-text="Operation completed successfully."                  data-buttons="ok">Success</button>
-        <button class="scenario-btn blue"   data-color="blue"   data-text="A new version is available. Update now?"            data-buttons="cancel,continue">Info</button>
+  <h1>ravel-alert</h1>
+
+  <div class="element-col">
+
+    <div class="element-cell">
+      <div class="element-label">preset scenarios — with buttons</div>
+      <div class="stage">
+        <div class="scenario-row">
+          <button class="scenario-btn red"    data-color="red"    data-text="Something went wrong. Would you like to try again?"  data-buttons="cancel,ok">Error</button>
+          <button class="scenario-btn yellow" data-color="yellow" data-text="This action may have unintended effects. Continue?"   data-buttons="cancel,continue">Warning</button>
+          <button class="scenario-btn green"  data-color="green"  data-text="Operation completed successfully."                   data-buttons="ok">Success</button>
+          <button class="scenario-btn blue"   data-color="blue"   data-text="A new version is available. Update now?"             data-buttons="cancel,continue">Info</button>
+        </div>
+      </div>
     </div>
-    <div class="scenario-row">
-        <button class="scenario-btn green"  data-color="green"  data-text="Changes saved."            data-interstitial="1" data-timeout="2000">Saved  2s</button>
-        <button class="scenario-btn blue"   data-color="blue"   data-text="Syncing with server…"      data-interstitial="1" data-timeout="3000">Sync  3s</button>
-        <button class="scenario-btn yellow" data-color="yellow" data-text="Reconnecting, please wait…" data-interstitial="1" data-timeout="5000">Reconnecting  5s</button>
-        <button class="scenario-btn red"    data-color="red"    data-text="Connection lost."           data-interstitial="1" data-timeout="4000">Error  4s</button>
+
+    <div class="element-cell">
+      <div class="element-label">interstitial — auto-dissolves</div>
+      <div class="stage">
+        <div class="scenario-row">
+          <button class="scenario-btn green"  data-color="green"  data-text="Changes saved."              data-interstitial="1" data-timeout="2000">Saved 2s</button>
+          <button class="scenario-btn blue"   data-color="blue"   data-text="Syncing with server…"        data-interstitial="1" data-timeout="3000">Sync 3s</button>
+          <button class="scenario-btn yellow" data-color="yellow" data-text="Reconnecting, please wait…"  data-interstitial="1" data-timeout="5000">Reconnecting 5s</button>
+          <button class="scenario-btn red"    data-color="red"    data-text="Connection lost."             data-interstitial="1" data-timeout="4000">Error 4s</button>
+        </div>
+      </div>
     </div>
-</div>
 
-<!-- ── Custom controls ─────────────────────────────────────── -->
-<div id="controls">
-    <h3>Custom alert</h3>
-
-    <label>message
-        <input type="text" id="inp-text" value="Are you sure you want to do this?">
-    </label>
-
-    <div class="row">
-        <label>color
-            <select id="inp-color">
+    <div class="element-cell">
+      <div class="element-label">custom alert</div>
+      <div class="stage">
+        <div class="controls">
+          <div class="controls-row">
+            <div class="field" style="flex:1">
+              <div class="field-label">message</div>
+              <input type="text" id="inp-text" value="Are you sure you want to do this?">
+            </div>
+            <div class="field">
+              <div class="field-label">color</div>
+              <select id="inp-color">
                 <option value="blue">blue</option>
                 <option value="red">red</option>
                 <option value="yellow">yellow</option>
                 <option value="green">green</option>
-            </select>
-        </label>
+              </select>
+            </div>
+          </div>
+
+          <div class="check-row">
+            <span>buttons</span>
+            <label><input type="checkbox" id="chk-cancel"   value="cancel">   cancel</label>
+            <label><input type="checkbox" id="chk-ok"       value="ok" checked> ok</label>
+            <label><input type="checkbox" id="chk-continue" value="continue"> continue</label>
+          </div>
+
+          <div class="controls-row">
+            <label class="check-row" style="gap:6px">
+              <input type="checkbox" id="chk-interstitial">
+              interstitial
+            </label>
+            <div class="field">
+              <div class="field-label">timeout ms</div>
+              <input type="text" id="inp-timeout" value="3000" style="width:80px">
+            </div>
+            <button class="fire" id="btn-show">Show Alert</button>
+          </div>
+
+          <hr>
+          <div class="field-label">event log</div>
+          <div id="log"></div>
+        </div>
+      </div>
     </div>
 
-    <div class="check-row">
-        <span>buttons</span>
-        <label><input type="checkbox" id="chk-cancel"   value="cancel">   cancel</label>
-        <label><input type="checkbox" id="chk-ok"       value="ok" checked> ok</label>
-        <label><input type="checkbox" id="chk-continue" value="continue"> continue</label>
-    </div>
+  </div>
 
-    <div class="row">
-        <label style="flex-direction:row;align-items:center;gap:6px">
-            <input type="checkbox" id="chk-interstitial">
-            <span>interstitial</span>
-        </label>
-        <label>timeout (ms)
-            <input type="text" id="inp-timeout" value="3000" style="width:70px">
-        </label>
-    </div>
-
-    <button class="fire" id="btn-show">Show Alert</button>
-
-    <hr>
-    <h3>Event Log</h3>
-    <div id="log"></div>
-</div>
-
-<script>
-    const alertEl = document.getElementById('alert');
-    const logEl   = document.getElementById('log');
+  <script type="module">
+    const logEl = document.getElementById('log');
 
     function addLog(text, cls = '') {
-        const d = document.createElement('div');
-        d.className = 'log-line ' + cls;
-        const t = new Date().toLocaleTimeString('en', { hour12: false });
-        d.textContent = `[${t}] ${text}`;
-        logEl.prepend(d);
+      const d = document.createElement('div');
+      d.className = 'log-line ' + cls;
+      const t = new Date().toLocaleTimeString('en', { hour12: false });
+      d.textContent = `[${t}] ${text}`;
+      logEl.prepend(d);
     }
 
     function fireAlert(text, color, buttons) {
-        window.dispatchEvent(new CustomEvent('ravel-alert', {
-            detail: { cmd: 'show', content: { text, color, buttons } }
-        }));
-        addLog(`show  [${color}]  "${text.slice(0, 36)}${text.length > 36 ? '…' : ''}"`, 'show');
+      window.dispatchEvent(new CustomEvent('ravel-alert', {
+        detail: { cmd: 'show', content: { text, color, buttons } }
+      }));
+      addLog(`show [${color}] "${text.slice(0, 40)}${text.length > 40 ? '…' : ''}"`, 'show');
     }
 
     function fireInterstitial(text, color, timeout) {
-        window.dispatchEvent(new CustomEvent('ravel-alert', {
-            detail: { cmd: 'show', content: { text, color, interstitial: true, timeout } }
-        }));
-        addLog(`interstitial  [${color}]  ${timeout}ms  "${text}"`, 'show');
+      window.dispatchEvent(new CustomEvent('ravel-alert', {
+        detail: { cmd: 'show', content: { text, color, interstitial: true, timeout } }
+      }));
+      addLog(`interstitial [${color}] ${timeout}ms "${text}"`, 'show');
     }
 
-    // Scenario buttons
     document.querySelectorAll('.scenario-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            if (btn.dataset.interstitial) {
-                fireInterstitial(btn.dataset.text, btn.dataset.color, Number(btn.dataset.timeout));
-            } else {
-                fireAlert(btn.dataset.text, btn.dataset.color, btn.dataset.buttons.split(','));
-            }
-        });
-    });
-
-    // Custom alert
-    document.getElementById('btn-show').addEventListener('click', () => {
-        const text         = document.getElementById('inp-text').value;
-        const color        = document.getElementById('inp-color').value;
-        const interstitial = document.getElementById('chk-interstitial').checked;
-        const timeout      = Number(document.getElementById('inp-timeout').value) || 3000;
-        if (interstitial) {
-            fireInterstitial(text, color, timeout);
+      btn.addEventListener('click', () => {
+        if (btn.dataset.interstitial) {
+          fireInterstitial(btn.dataset.text, btn.dataset.color, Number(btn.dataset.timeout));
         } else {
-            const buttons = ['cancel', 'ok', 'continue']
-                .filter(b => document.getElementById(`chk-${b}`).checked);
-            fireAlert(text, color, buttons);
+          fireAlert(btn.dataset.text, btn.dataset.color, btn.dataset.buttons.split(','));
         }
+      });
     });
 
-    // Response / dissolve log
-    window.addEventListener('ravel-alert', (e) => {
-        const { cmd, content } = e.detail ?? {};
-        if (cmd === 'response') addLog(`response  →  ${content.button}`, content.button);
-        if (cmd === 'dissolve') addLog('dissolved', 'dissolve');
+    document.getElementById('btn-show').addEventListener('click', () => {
+      const text         = document.getElementById('inp-text').value;
+      const color        = document.getElementById('inp-color').value;
+      const interstitial = document.getElementById('chk-interstitial').checked;
+      const timeout      = Number(document.getElementById('inp-timeout').value) || 3000;
+      if (interstitial) {
+        fireInterstitial(text, color, timeout);
+      } else {
+        const buttons = ['cancel', 'ok', 'continue']
+          .filter(b => document.getElementById(`chk-${b}`).checked);
+        fireAlert(text, color, buttons);
+      }
     });
-</script>
+
+    window.addEventListener('ravel-alert', (e) => {
+      const { cmd, content } = e.detail ?? {};
+      if (cmd === 'response') addLog(`response → ${content.button}`, content.button);
+      if (cmd === 'dissolve') addLog('dissolved', 'dissolve');
+    });
+  </script>
+
 </body>
 </html>

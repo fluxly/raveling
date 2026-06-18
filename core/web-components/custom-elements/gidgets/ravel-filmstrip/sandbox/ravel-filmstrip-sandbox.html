@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0,user-scalable=0"/>
+    <title>Fluxum Test</title>
+    <meta name="description" content="Ravel">
+    
+    <link rel="stylesheet" href="../../../../../../styles/styles.css">
+    <script src="../../../../../../core/libs/Box2d.min.js"></script>
+    <!-- Load libraries <script type="text/javascript" src="./libs/foo.js"></script> -->
+    <script type="module" src="../../../../index.js?version=1.0"></script>
+    <style>
+        body {
+            margin: 0px;
+        }
+        #page-wrapper {
+            width: 100vw;
+            height: 100vh;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
+</head>
+<body>
+<div id="page-wrapper">
+    <ravel-filmstrip fps="12" loop id="fs">
+  <img src="./frames/1.png" />
+  <img src="./frames/2.png" />
+  <img src="./frames/3.png" />
+  <img src="./frames/4.png" />
+  <img src="./frames/5.png" />
+  <img src="./frames/6.png" />
+  <img src="./frames/7.png" />
+  <img src="./frames/8.png" />
+  <img src="./frames/9.png" />
+  <img src="./frames/10.png" />
+</ravel-filmstrip>
+
+</div>
+</body>
+<script type="module">
+  const fs = document.querySelector('#fs');
+
+  // Add sound markers to frames
+  fs.addSoundToCurrentFrame("🔴"); // add to frame 1
+  fs.next({ triggerSounds: false });
+  fs.addSoundToCurrentFrame("🔵"); // add to frame 2
+
+  // Listen for sound triggers
+  fs.addEventListener('play-sound', (e) => {
+    console.log('play sound token', e.detail.token, 'on frame', e.detail.frameIndex);
+    // route token -> <ravel-sample> etc.
+  });
+</script>
+</html>
+
