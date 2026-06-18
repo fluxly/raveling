@@ -7,26 +7,26 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Silkscreen&family=Quantico:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
   <title>Raveling</title>
-  <script src="/core/libs/p5.min.js"></script>
-  <script type="module" src="./index.ts"></script>
   <style>
-    * { box-sizing: border-box; }
+    *, *::before, *::after { box-sizing: border-box; }
 
     :root {
-      --ground:   #303030;              /* Dark Ink — slightly lifted ground */
-      --well:     #1a1a1a;              /* near Ink Black — stage wells recede */
-      --text:     #E6E2D3;              /* Paper */
-      --heading:  #FFFFFF;              /* White Paper */
-      --muted:    #666666;              /* Pencil */
+      --ground:   #303030;
+      --well:     #1a1a1a;
+      --text:     #E6E2D3;
+      --heading:  #FFFFFF;
+      --muted:    #666666;
       --rule:     rgba(102,102,102,.40);
-      --gidget:   #A7FF00;              /* Fluoro Lime */
-      --gadget:   #FF37A8;              /* Fluoro Pink */
-      --broker:   #00F0FF;              /* Fluoro Cyan */
+      --gidget:   #A7FF00;
+      --gadget:   #FF37A8;
+      --broker:   #00F0FF;
+      --assembly: #FE6810;
+      --artifact: #B300FF;
     }
 
     body {
       margin: 0;
-      padding: 52px 44px;
+      padding: 52px 44px 80px;
       background: var(--ground);
       color: var(--text);
       font-family: 'Silkscreen', monospace;
@@ -34,16 +34,11 @@
       line-height: 1.55;
       border: 10px solid #ff0000;
       box-shadow: 0px 0px 0px 10px inset #ffcc00;
+      min-height: 100vh;
     }
 
-    /* Quantico for prose — apply .text to any block of descriptive copy */
-    .text {
-      font-family: 'Quantico', monospace, sans-serif;
-    }
-
-    .masthead {
-      margin-bottom: 64px;
-    }
+    /* ── Masthead ────────────────────────────────────────────── */
+    .masthead { margin-bottom: 64px; }
 
     h1 {
       font-size: 4rem;
@@ -61,9 +56,8 @@
       margin: 14px 0 0 0;
     }
 
-    .section {
-      margin-bottom: 64px;
-    }
+    /* ── Section ─────────────────────────────────────────────── */
+    .section { margin-bottom: 56px; }
 
     hr.section-rule {
       border: none;
@@ -75,7 +69,7 @@
       display: flex;
       align-items: baseline;
       gap: 18px;
-      margin-bottom: 32px;
+      margin-bottom: 24px;
     }
 
     .chip {
@@ -89,10 +83,12 @@
       background: var(--gidget);
       position: relative;
       top: -2px;
+      white-space: nowrap;
     }
-
-    .chip.gadgets { background: var(--gadget); }
-    .chip.brokers { background: var(--broker); }
+    .chip.gadgets   { background: var(--gadget); }
+    .chip.brokers   { background: var(--broker); color: #181818; }
+    .chip.assembly  { background: var(--assembly); }
+    .chip.artifacts { background: var(--artifact); color: #fff; }
 
     .section h2 {
       font-size: 2rem;
@@ -100,210 +96,206 @@
       margin: 0;
     }
 
-    /* Flex column: one component per row */
-    .element-col {
-      display: flex;
-      flex-direction: column;
-      gap: 32px;
+    /* ── Link grid ───────────────────────────────────────────── */
+    .link-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 8px;
     }
 
-    .element-cell {
+    .sandbox-link {
       display: flex;
-      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
       gap: 10px;
+      padding: 9px 14px;
+      background: var(--well);
+      border: 1px solid var(--rule);
+      border-radius: 4px;
+      color: var(--text);
+      text-decoration: none;
+      font-family: 'Quantico', monospace, sans-serif;
+      font-size: 0.9rem;
+      transition: color 0.12s, border-color 0.12s, background 0.12s;
+    }
+    .sandbox-link:hover {
+      color: #fff;
+      border-color: rgba(255,255,255,0.3);
+      background: #242424;
+    }
+    .sandbox-link:focus-visible {
+      outline: 2px solid #00F0FF;
+      outline-offset: 2px;
     }
 
-    .element-label {
-      font-size: 1rem;
+    /* accent line on the left by category */
+    .sandbox-link::before {
+      content: '';
+      display: block;
+      width: 3px;
+      height: 18px;
+      border-radius: 2px;
+      flex-shrink: 0;
+      background: var(--rule);
+    }
+    .gidgets  .sandbox-link::before { background: var(--gidget); }
+    .gadgets  .sandbox-link::before { background: var(--gadget); }
+    .assembly .sandbox-link::before { background: var(--assembly); }
+    .artifacts .sandbox-link::before { background: var(--artifact); }
+
+    .link-name { flex: 1; }
+
+    .link-arrow {
+      font-size: 0.75rem;
       color: var(--muted);
+      flex-shrink: 0;
     }
-
-    /* Stage for inline-block and absolute-fill components.
-       position:relative gives absolute children their anchor. */
-    .stage {
-      position: relative;
-      background: var(--well);
-      border: 2px dotted var(--rule);
-      border-radius: 4px;
-      overflow: hidden;
-    }
-
-    /* Stage for block fill-width components (roll, roll-track).
-       position:relative added so any absolute children stay anchored here. */
-    .stage-block {
-      position: relative;
-      background: var(--well);
-      border: 2px dotted var(--rule);
-      border-radius: 4px;
-      overflow: hidden;
-      width: 100%;
-    }
-
-    /* Stage for 100vw × 100vh full-screen components.
-       Sized to the 50% visual footprint; the scale-wrap does the transform. */
-    .stage-fullscreen {
-      position: relative;
-      background: var(--well);
-      border: 2px dotted var(--rule);
-      border-radius: 4px;
-      overflow: hidden;
-      width: 50vw;
-      height: 50vh;
-    }
-
-    /* Scales the full-screen component to 50% inside its stage.
-       width/height of 200% × parent (50vw/50vh) = 100vw/100vh,
-       then scale(0.5) brings it back to the stage's dimensions visually. */
-    .scale-wrap {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 200%;
-      height: 200%;
-      transform: scale(0.5);
-      transform-origin: top left;
-    }
+    .sandbox-link:hover .link-arrow { color: var(--text); }
   </style>
 </head>
 <body>
 
   <div class="masthead">
     <h1>Raveling</h1>
-    <p class="subtitle">Web Component Sandbox</p>
+    <p class="subtitle">Component sandbox directory</p>
   </div>
 
-  <!-- ─── GIDGETS ─── -->
-  <div class="section">
+  <!-- ─── GIDGETS ──────────────────────────────────────────── -->
+  <div class="section gidgets">
     <hr class="section-rule">
     <div class="section-header">
       <span class="chip">Gidgets</span>
       <h2>Interactive Controls</h2>
     </div>
-    <div class="element-col">
-
-      <div class="element-cell">
-        <div class="element-label">ravel-button</div>
-        <div class="stage" style="width:340px; height:160px;">
-          <ravel-button id="btn-1" x="20"  y="20" w="60" h="60" color="#20C8D8"></ravel-button>
-          <ravel-button id="btn-2" x="100" y="20" w="60" h="60" color="#FF4FB3" label="GO"></ravel-button>
-          <ravel-button id="btn-3" x="180" y="20" w="50" h="50" color="#FFCC00"></ravel-button>
-          <ravel-button id="btn-4" x="250" y="20" w="50" h="50" color="#FF0000" label="STOP"></ravel-button>
-        </div>
-      </div>
-
-      <div class="element-cell">
-        <div class="element-label">ravel-help</div>
-        <div class="stage" style="width:360px; height:120px; padding:20px;">
-          <ravel-help id="help1"></ravel-help>
-        </div>
-      </div>
-
-      <!-- Full-screen: 100vw × 100vh scaled to 50% -->
-      <div class="element-cell">
-        <div class="element-label">ravel-sequence — scaled 50%</div>
-        <div class="stage-fullscreen">
-          <div class="scale-wrap">
-            <ravel-sequence id="seq1"></ravel-sequence>
-          </div>
-        </div>
-      </div>
-
-      <!-- Full-screen: 100vw × 100vh scaled to 50% -->
-      <div class="element-cell">
-        <div class="element-label">ravel-card — scaled 50%</div>
-        <div class="stage-fullscreen">
-          <div class="scale-wrap">
-            <ravel-card id="card1"></ravel-card>
-          </div>
-        </div>
-      </div>
-
-      <div class="element-cell">
-        <div class="element-label">ravel-roll — block, fill-width</div>
-        <div class="stage-block" style="height:360px;">
-          <ravel-roll id="roll1"></ravel-roll>
-        </div>
-      </div>
-
-      <div class="element-cell">
-        <div class="element-label">ravel-roll-track</div>
-        <div class="stage-block" style="height:80px;">
-          <ravel-roll-track id="track1"></ravel-roll-track>
-        </div>
-      </div>
-
-      <!-- ravel-roll-perf sets position:absolute on itself; needs a positioned stage -->
-      <div class="element-cell">
-        <div class="element-label">ravel-roll-perf — default 200×40px, positioned absolute</div>
-        <div class="stage" style="width:280px; height:80px;">
-          <ravel-roll-perf id="perf1" x="20" y="20"></ravel-roll-perf>
-        </div>
-      </div>
-
-      <div class="element-cell">
-        <div class="element-label">ravel-alert — fixed-position; trigger below</div>
-        <div class="stage" style="width:280px; height:80px;">
-          <ravel-button id="btn-alert" x="20" y="16" w="140" h="44" color="#A7FF00" label="Show Alert"></ravel-button>
-        </div>
-      </div>
-
-      <div class="element-cell">
-        <div class="element-label">ravel-sound — single audio player</div>
-        <div class="stage" style="width:560px; height:76px; padding:14px;">
-          <ravel-sound id="sound1" source="/sounds/ravel-theme-intro.mp3"></ravel-sound>
-        </div>
-      </div>
-
-      <div class="element-cell">
-        <div class="element-label">ravel-playlist — transport + slotted ravel-sound children</div>
-        <div class="stage" style="width:600px; padding:14px;">
-          <ravel-playlist id="playlist1">
-            <ravel-sound source="/sounds/ravel-theme-intro.mp3"></ravel-sound>
-            <ravel-sound source="/sounds/ravel-theme-intro.mp3"></ravel-sound>
-          </ravel-playlist>
-        </div>
-      </div>
-
+    <div class="link-grid">
+      <a class="sandbox-link" href="/core/web-components/custom-elements/gidgets/ravel-alert/sandbox/ravel-alert-sandbox.html">
+        <span class="link-name">ravel-alert</span><span class="link-arrow">↗</span>
+      </a>
+      <a class="sandbox-link" href="/core/web-components/custom-elements/gidgets/ravel-blockly/sandbox/ravel-blockly-sandbox.html">
+        <span class="link-name">ravel-blockly</span><span class="link-arrow">↗</span>
+      </a>
+      <a class="sandbox-link" href="/core/web-components/custom-elements/gidgets/ravel-bloop-card/sandbox/ravel-bloop-card-sandbox.html">
+        <span class="link-name">ravel-bloop-card</span><span class="link-arrow">↗</span>
+      </a>
+      <a class="sandbox-link" href="/core/web-components/custom-elements/gidgets/ravel-box/sandbox/ravel-box-sandbox.html">
+        <span class="link-name">ravel-box</span><span class="link-arrow">↗</span>
+      </a>
+      <a class="sandbox-link" href="/core/web-components/custom-elements/gidgets/ravel-button/sandbox/ravel-button-sandbox.html">
+        <span class="link-name">ravel-button</span><span class="link-arrow">↗</span>
+      </a>
+      <a class="sandbox-link" href="/core/web-components/custom-elements/gidgets/ravel-card/sandbox/ravel-card-sandbox.html">
+        <span class="link-name">ravel-card</span><span class="link-arrow">↗</span>
+      </a>
+      <a class="sandbox-link" href="/core/web-components/custom-elements/gidgets/ravel-carousel/sandbox/ravel-carousel-sandbox.html">
+        <span class="link-name">ravel-carousel</span><span class="link-arrow">↗</span>
+      </a>
+      <a class="sandbox-link" href="/core/web-components/custom-elements/gidgets/ravel-dock/sandbox/ravel-dock-sandbox.html">
+        <span class="link-name">ravel-dock</span><span class="link-arrow">↗</span>
+      </a>
+      <a class="sandbox-link" href="/core/web-components/custom-elements/gidgets/ravel-filmstrip/sandbox/ravel-filmstrip-sandbox.html">
+        <span class="link-name">ravel-filmstrip</span><span class="link-arrow">↗</span>
+      </a>
+      <a class="sandbox-link" href="/core/web-components/custom-elements/gidgets/ravel-fluxly-sound-engine/sandbox/ravel-fluxly-sound-engine-sandbox.html">
+        <span class="link-name">ravel-fluxly-sound-engine</span><span class="link-arrow">↗</span>
+      </a>
+      <a class="sandbox-link" href="/core/web-components/custom-elements/gidgets/ravel-fluxum/sandbox/ravel-fluxum-sandbox.html">
+        <span class="link-name">ravel-fluxum</span><span class="link-arrow">↗</span>
+      </a>
+      <a class="sandbox-link" href="/core/web-components/custom-elements/gidgets/ravel-help/sandbox/ravel-help-sandbox.html">
+        <span class="link-name">ravel-help</span><span class="link-arrow">↗</span>
+      </a>
+      <a class="sandbox-link" href="/core/web-components/custom-elements/gidgets/ravel-menu/sandbox/ravel-menu-sandbox.html">
+        <span class="link-name">ravel-menu</span><span class="link-arrow">↗</span>
+      </a>
+      <a class="sandbox-link" href="/core/web-components/custom-elements/gidgets/ravel-nonagram/sandbox/ravel-nonagram-sandbox.html">
+        <span class="link-name">ravel-nonagram</span><span class="link-arrow">↗</span>
+      </a>
+      <a class="sandbox-link" href="/core/web-components/custom-elements/gidgets/ravel-p5-canvas/sandbox/ravel-p5-canvas-sandbox.html">
+        <span class="link-name">ravel-p5-canvas</span><span class="link-arrow">↗</span>
+      </a>
+      <a class="sandbox-link" href="/core/web-components/custom-elements/gidgets/ravel-pd-synth/sandbox/ravel-pd-synth-sandbox.html">
+        <span class="link-name">ravel-pd-synth</span><span class="link-arrow">↗</span>
+      </a>
+      <a class="sandbox-link" href="/core/web-components/custom-elements/gidgets/ravel-physics-world/sandbox/ravel-physics-world-sandbox.html">
+        <span class="link-name">ravel-physics-world</span><span class="link-arrow">↗</span>
+      </a>
+      <a class="sandbox-link" href="/core/web-components/custom-elements/gidgets/ravel-playlist/sandbox/ravel-playlist-sandbox.html">
+        <span class="link-name">ravel-playlist</span><span class="link-arrow">↗</span>
+      </a>
+      <a class="sandbox-link" href="/core/web-components/custom-elements/gidgets/ravel-roll/sandbox/ravel-roll-sandbox.html">
+        <span class="link-name">ravel-roll</span><span class="link-arrow">↗</span>
+      </a>
+      <a class="sandbox-link" href="/core/web-components/custom-elements/gidgets/ravel-roll-perf/sandbox/ravel-roll-perf-sandbox.html">
+        <span class="link-name">ravel-roll-perf</span><span class="link-arrow">↗</span>
+      </a>
+      <a class="sandbox-link" href="/core/web-components/custom-elements/gidgets/ravel-roll-track/sandbox/ravel-roll-track-sandbox.html">
+        <span class="link-name">ravel-roll-track</span><span class="link-arrow">↗</span>
+      </a>
+      <a class="sandbox-link" href="/core/web-components/custom-elements/gidgets/ravel-sequence/sandbox/ravel-sequence-sandbox.html">
+        <span class="link-name">ravel-sequence</span><span class="link-arrow">↗</span>
+      </a>
+      <a class="sandbox-link" href="/core/web-components/custom-elements/gidgets/ravel-sound/sandbox/ravel-sound-sandbox.html">
+        <span class="link-name">ravel-sound</span><span class="link-arrow">↗</span>
+      </a>
+      <a class="sandbox-link" href="/core/web-components/custom-elements/gidgets/ravel-visualizer/sandbox/ravel-visualizer-sandbox.html">
+        <span class="link-name">ravel-visualizer</span><span class="link-arrow">↗</span>
+      </a>
     </div>
   </div>
 
-  <!-- ─── GADGETS ─── -->
-  <div class="section">
+  <!-- ─── GADGETS ──────────────────────────────────────────── -->
+  <div class="section gadgets">
     <hr class="section-rule">
     <div class="section-header">
       <span class="chip gadgets">Gadgets</span>
       <h2>Instruments</h2>
     </div>
-    <div class="element-col">
-
-      <div class="element-cell">
-        <div class="element-label">ravel-pink-trombone — default 320×130</div>
-        <div class="stage" style="width:380px; height:170px;">
-          <ravel-pink-trombone id="trombone1"></ravel-pink-trombone>
-        </div>
-      </div>
-
-      <div class="element-cell">
-        <div class="element-label">ravel-glottalizer — default 320×200</div>
-        <div class="stage" style="width:380px; height:240px;">
-          <ravel-glottalizer id="glott1"></ravel-glottalizer>
-        </div>
-      </div>
-
+    <div class="link-grid">
+      <a class="sandbox-link" href="/core/web-components/custom-elements/gadgets/ravel-gadget/sandbox/ravel-gadget-sandbox.html">
+        <span class="link-name">ravel-gadget</span><span class="link-arrow">↗</span>
+      </a>
+      <a class="sandbox-link" href="/core/web-components/custom-elements/gadgets/ravel-glottalizer/sandbox/ravel-glottalizer-sandbox.html">
+        <span class="link-name">ravel-glottalizer</span><span class="link-arrow">↗</span>
+      </a>
+      <a class="sandbox-link" href="/core/web-components/custom-elements/gadgets/ravel-hand-tracker/sandbox/ravel-hand-tracker-sandbox.html">
+        <span class="link-name">ravel-hand-tracker</span><span class="link-arrow">↗</span>
+      </a>
+      <a class="sandbox-link" href="/core/web-components/custom-elements/gadgets/ravel-pink-trombone/sandbox/ravel-pink-trombone-sandbox.html">
+        <span class="link-name">ravel-pink-trombone</span><span class="link-arrow">↗</span>
+      </a>
+      <a class="sandbox-link" href="/core/web-components/custom-elements/gadgets/ravel-qr-reader/sandbox/ravel-qr-reader-sandbox.html">
+        <span class="link-name">ravel-qr-reader</span><span class="link-arrow">↗</span>
+      </a>
     </div>
   </div>
 
-  <!-- ravel-alert lives at page level (position: fixed) -->
-  <ravel-alert id="alert1"></ravel-alert>
+  <!-- ─── ASSEMBLIES ───────────────────────────────────────── -->
+  <div class="section assembly">
+    <hr class="section-rule">
+    <div class="section-header">
+      <span class="chip assembly">Assemblies</span>
+      <h2>Composed Systems</h2>
+    </div>
+    <div class="link-grid">
+      <a class="sandbox-link" href="/core/web-components/custom-elements/assemblies/ravel-signal-collector/sandbox/ravel-signal-collector-sandbox.html">
+        <span class="link-name">ravel-signal-collector</span><span class="link-arrow">↗</span>
+      </a>
+    </div>
+  </div>
 
-  <script type="module">
-    window.addEventListener('ravel-button', (e) => {
-      if (e.detail?.content?.id !== 'btn-alert') return;
-      window.dispatchEvent(new CustomEvent('ravel-alert', {
-        detail: { cmd: 'show', content: { text: 'Hello from Raveling!', color: 'blue', buttons: 'ok' } }
-      }));
-    });
-  </script>
+  <!-- ─── ARTIFACTS ────────────────────────────────────────── -->
+  <div class="section artifacts">
+    <hr class="section-rule">
+    <div class="section-header">
+      <span class="chip artifacts">Artifacts</span>
+      <h2>Outputs</h2>
+    </div>
+    <div class="link-grid">
+      <a class="sandbox-link" href="/core/web-components/custom-elements/artifacts/ravel-scrapbook/sandbox/ravel-scrapbook-sandbox.html">
+        <span class="link-name">ravel-scrapbook</span><span class="link-arrow">↗</span>
+      </a>
+    </div>
+  </div>
 
 </body>
 </html>

@@ -33,7 +33,7 @@
 
 ### Brokers (Protocol and communication wranglers)
     - ravel-theme-broker
-    - ravel-ballyhoo-broker (at-based)
+    - ravel-ballyhoo-broker (at-based, rss)
     + ravel-message-broker (bridge relay)
     - ravel-local-broker (local forage)
     - ravel-distributed-broker (yjs, webrtc)
@@ -49,11 +49,12 @@
 ### Gidgets (Interactive virtual elements)
     ravel-alert
     ravel-blockly
+    ravel-bloop-card
     ravel-box
     ravel-button
     ravel-card
     ravel-carousel
-    + ravel-dock
+    ravel-dock
     ravel-fluxly-sound-engine
     ravel-filmstrip
     ravel-fluxum
@@ -67,7 +68,7 @@
     ravel-roll
     ravel-roll-perf
     ravel-roll-track
-    + rss-card
+    ravel-tweet-card
     ravel-sequence
     ravel-sound
     ravel-visualizer

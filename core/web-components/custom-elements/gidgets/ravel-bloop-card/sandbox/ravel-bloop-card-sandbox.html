@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+  <title>ravel-bloop-card sandbox</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Silkscreen&family=Quantico:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+  <script type="module" src="/index.ts"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+
+    :root {
+      --ground:        #303030;
+      --well:          #222222;
+      --muted:         #666666;
+      --rule:          rgba(102,102,102,.30);
+      --accent:        #20C8D8;
+      --fluoro-lime:   #A7FF00;
+      --fluoro-cyan:   #00F0FF;
+      --fluoro-pink:   #FF37A8;
+      --fluoro-orange: #FE6810;
+    }
+
+    body {
+      margin: 0;
+      padding: 40px 44px;
+      background: #181818;
+      font-family: 'Silkscreen', monospace;
+      font-size: 1rem;
+      line-height: 1.4;
+      color: #E6E2D3;
+      border: 10px solid #ff0000;
+      box-shadow: 0px 0px 0px 10px inset #ffcc00;
+      min-height: 100vh;
+    }
+
+    h1 {
+      font-size: 3rem;
+      color: #ffffff;
+      margin: 0 0 8px 0;
+      border-bottom: 10px solid var(--accent);
+      display: inline-block;
+      padding-bottom: 2px;
+    }
+
+    .subtitle {
+      font-family: 'Quantico', monospace;
+      font-size: 1rem;
+      color: var(--muted);
+      margin: 0 0 40px 0;
+    }
+
+    /* ── Layout ─────────────────────────────────────────────── */
+    .element-col  { display: flex; flex-direction: column; gap: 32px; }
+    .element-cell { display: flex; flex-direction: column; gap: 8px; }
+    .element-label { font-size: 1rem; color: var(--muted); }
+
+    /* ── Feed stage ─────────────────────────────────────────── */
+    .feed-stage {
+      background: var(--well);
+      border: 2px dotted var(--rule);
+      border-radius: 4px;
+      overflow: hidden;
+      max-width: 560px;
+    }
+
+    /* ── Panel ──────────────────────────────────────────────── */
+    .panel {
+      background: var(--ground);
+      border: 2px dotted var(--rule);
+      border-radius: 4px;
+      padding: 18px 20px;
+      max-width: 560px;
+    }
+
+    /* ── Buttons ────────────────────────────────────────────── */
+    .btn-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .ctrl-btn {
+      background: transparent;
+      border: 1px solid var(--rule);
+      border-radius: 4px;
+      padding: 6px 14px;
+      font-family: 'Silkscreen', monospace;
+      font-size: 0.8rem;
+      color: var(--muted);
+      cursor: pointer;
+      transition: color 0.12s, border-color 0.12s;
+      white-space: nowrap;
+    }
+    .ctrl-btn:hover         { color: var(--accent); border-color: var(--accent); }
+    .ctrl-btn.expand-all    { color: var(--fluoro-lime); border-color: var(--fluoro-lime); }
+    .ctrl-btn.collapse-all  { color: var(--fluoro-orange); border-color: var(--fluoro-orange); }
+    .ctrl-btn.spacer        { margin-left: auto; }
+
+    /* ── Source legend ──────────────────────────────────────── */
+    .legend {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-family: 'Quantico', monospace;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+    .swatch {
+      width: 3px;
+      height: 16px;
+      border-radius: 2px;
+    }
+    .swatch.bn  { background: #20C8D8; }
+    .swatch.at  { background: #0085ff; }
+    .swatch.rss { background: #FE6810; }
+
+    /* ── Event log ──────────────────────────────────────────── */
+    #log {
+      height: 110px;
+      overflow-y: auto;
+      font-family: 'Quantico', monospace;
+      font-size: 0.85rem;
+      background: #111111;
+      border: 1px solid var(--rule);
+      border-radius: 4px;
+      padding: 6px 10px;
+      max-width: 560px;
+    }
+    .log-line           { padding: 1px 0; color: #444; }
+    .log-line.expanded  { color: var(--accent); }
+    .log-line.collapsed { color: var(--muted); }
+    .log-line.info      { color: #556; }
+  </style>
+</head>
+<body>
+
+  <h1>ravel-bloop-card</h1>
+  <p class="subtitle">Expandable post card · bloopnet · AT Protocol · RSS</p>
+
+  <div class="element-col">
+
+    <!-- ── Feed stage ──────────────────────────────────────── -->
+    <div class="element-cell">
+      <div class="element-label">feed</div>
+      <div class="feed-stage">
+
+        <!-- bloopnet bloop — emoji avatar + blurb -->
+        <ravel-bloop-card
+          id="bloop-1"
+          feed="sandbox-feed"
+          bloop-id="bn-001"
+          source="bloopnet"
+          author="Twily Luxen"
+          handle="@twily"
+          avatar="✨"
+          blurb="Vocoder breakthrough — it finally sounds like a vowel"
+          timestamp="2026-06-18T10:22:00Z"
+          text="Just finished wiring up the AudioWorklet vocoder. The formant tracking is finally smooth enough that it actually sounds like a vowel and not a haunted modem. Still some work to do on the nasal coupling but this is huge progress.">
+        </ravel-bloop-card>
+
+        <!-- AT Protocol bloop — initials avatar (no avatar attr) + blurb -->
+        <ravel-bloop-card
+          id="bloop-2"
+          feed="sandbox-feed"
+          bloop-id="at-did:plc:exm001"
+          source="at"
+          author="Shawn Axsom"
+          handle="shawnaxsom.bsky.social"
+          blurb="ravel-dock is done. bloop feed is next."
+          timestamp="2026-06-18T08:05:00Z"
+          text="Raveling is starting to feel like a real thing. Built ravel-dock today — fixed-position pill sidebar, CSS-only tooltips, roving tabindex. Next up is the bloop feed.">
+          <!-- expanded slot content -->
+          <span style="font-style:italic;color:#888;font-size:0.8rem;font-family:Quantico,monospace">
+            Originally posted on Bluesky · app.bsky.feed.post
+          </span>
+        </ravel-bloop-card>
+
+        <!-- RSS bloop — emoji avatar + blurb -->
+        <ravel-bloop-card
+          id="bloop-3"
+          feed="sandbox-feed"
+          bloop-id="rss-cryptid-garden-001"
+          source="rss"
+          author="Cryptid Garden"
+          handle="https://cryptidgarden.net/feed.xml"
+          avatar="🌿"
+          blurb="Building a modular synthesis environment with Web Audio API"
+          timestamp="2026-06-17T14:30:00Z"
+          text="Deep dive into AudioWorklet processor design, sample-accurate scheduling, and why the vocoder you found on GitHub doesn't actually work the way the README says it does.">
+          <!-- expanded slot content -->
+          <a href="#" style="color:#FE6810;font-family:Quantico,monospace;font-size:0.85rem;text-decoration:none">
+            → Read full post on cryptidgarden.net
+          </a>
+        </ravel-bloop-card>
+
+      </div>
+    </div>
+
+    <!-- ── Controls ────────────────────────────────────────── -->
+    <div class="element-cell">
+      <div class="element-label">controls</div>
+      <div class="panel">
+        <div class="btn-row">
+          <button class="ctrl-btn expand-all"   id="btn-expand-all">Expand all</button>
+          <button class="ctrl-btn collapse-all" id="btn-collapse-all">Collapse all</button>
+          <button class="ctrl-btn spacer"        id="btn-clear-log">Clear log</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Source legend ─────────────────────────────────────── -->
+    <div class="element-cell">
+      <div class="element-label">source accent colors</div>
+      <div class="panel">
+        <div class="legend">
+          <div class="legend-item"><div class="swatch bn"></div>bloopnet — Thread Cyan</div>
+          <div class="legend-item"><div class="swatch at"></div>AT Protocol — #0085ff</div>
+          <div class="legend-item"><div class="swatch rss"></div>RSS — Fluoro Orange</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Event log ─────────────────────────────────────────── -->
+    <div class="element-cell">
+      <div class="element-label">event log</div>
+      <div id="log"></div>
+    </div>
+
+  </div>
+
+  <script type="module">
+    const log   = document.getElementById('log');
+    const cards = document.querySelectorAll('ravel-bloop-card');
+
+    // Expand / collapse all via direct attribute manipulation
+    document.getElementById('btn-expand-all').addEventListener('click', () => {
+      cards.forEach(c => c.setAttribute('expanded', ''));
+      addLog('expand-all', 'info');
+    });
+    document.getElementById('btn-collapse-all').addEventListener('click', () => {
+      cards.forEach(c => c.removeAttribute('expanded'));
+      addLog('collapse-all', 'info');
+    });
+
+    // Listen for broadcasts from cards
+    window.addEventListener('sandbox-feed', (e) => {
+      const { cmd, content } = e.detail ?? {};
+      if (cmd === 'expanded')  addLog(`expanded   bloopId="${content?.bloopId}"`, 'expanded');
+      if (cmd === 'collapsed') addLog(`collapsed  bloopId="${content?.bloopId}"`, 'collapsed');
+    });
+
+    function addLog(text, cls = '') {
+      const d = document.createElement('div');
+      d.className = 'log-line ' + cls;
+      const t = new Date().toLocaleTimeString('en', { hour12: false });
+      d.textContent = `[${t}] ${text}`;
+      log.prepend(d);
+    }
+
+    document.getElementById('btn-clear-log').addEventListener('click', () => {
+      log.innerHTML = '';
+    });
+
+    addLog('sandbox ready — click a card to expand it', 'info');
+  </script>
+
+</body>
+</html>

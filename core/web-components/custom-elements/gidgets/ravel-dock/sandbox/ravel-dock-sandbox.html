@@ -1,60 +1,367 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0,user-scalable=0"/>
-    <title>Assembly Test</title>
-    <meta name="description" content="Ravel">
-    
-    <link rel="stylesheet" href="../../../../../../styles/styles.css">
-    <script src="../../../../../../core/libs/Box2d.min.js"></script>
-    <!-- Load libraries <script type="text/javascript" src="./libs/foo.js"></script> -->
-    <script type="module" src="../../../../index.js?version=1.0"></script>
-    <style>
-        body {
-            margin: 0px;
-        }
-        #page-wrapper {
-            position: absolute;
-            top: 0px;
-            left: 0px;
-            width: 100vw;
-            height: 100vh;
-            width: 100vw;
-            height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            pointer-events: none; /* Allow clicks to pass through */
-        }
-        #page-wrapper > * {
-            pointer-events: auto; /* Restore pointer events for its children */
-        }
-        #dock-wrapper {
-            position: absolute;
-            top: 0px;
-            left: 0px;
-            width: 100vw;
-            height: 100vh;
-        }
-    </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+  <title>ravel-dock sandbox</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Silkscreen&family=Quantico:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+  <script type="module" src="/index.ts"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+
+    :root {
+      --ground:        #303030;
+      --well:          #222222;
+      --muted:         #666666;
+      --rule:          rgba(102,102,102,.30);
+      --accent:        #20C8D8;
+      --fluoro-lime:   #A7FF00;
+      --fluoro-cyan:   #00F0FF;
+      --fluoro-pink:   #FF37A8;
+    }
+
+    body {
+      margin: 0;
+      padding: 40px 44px;
+      background: #181818;
+      font-family: 'Silkscreen', monospace;
+      font-size: 1rem;
+      line-height: 1.4;
+      color: #E6E2D3;
+      border: 10px solid #ff0000;
+      box-shadow: 0px 0px 0px 10px inset #ffcc00;
+      min-height: 100vh;
+      /* leave room on the right for the docked pill */
+      padding-right: 88px;
+    }
+
+    h1 {
+      font-size: 3rem;
+      color: #ffffff;
+      margin: 0 0 8px 0;
+      border-bottom: 10px solid var(--accent);
+      display: inline-block;
+      padding-bottom: 2px;
+    }
+
+    .subtitle {
+      font-family: 'Quantico', monospace;
+      font-size: 1rem;
+      color: var(--muted);
+      margin: 0 0 40px 0;
+    }
+
+    /* ── Layout ─────────────────────────────────────────────── */
+    .element-col  { display: flex; flex-direction: column; gap: 32px; }
+    .element-cell { display: flex; flex-direction: column; gap: 8px; }
+    .element-label { font-size: 1rem; color: var(--muted); }
+
+    /* ── Panel ──────────────────────────────────────────────── */
+    .panel {
+      background: var(--ground);
+      border: 2px dotted var(--rule);
+      border-radius: 4px;
+      padding: 18px 20px;
+    }
+
+    /* ── Buttons ────────────────────────────────────────────── */
+    .btn-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .ctrl-btn {
+      background: transparent;
+      border: 1px solid var(--rule);
+      border-radius: 4px;
+      padding: 6px 14px;
+      font-family: 'Silkscreen', monospace;
+      font-size: 0.8rem;
+      color: var(--muted);
+      cursor: pointer;
+      transition: color 0.12s, border-color 0.12s;
+      white-space: nowrap;
+    }
+    .ctrl-btn:hover           { color: var(--accent); border-color: var(--accent); }
+    .ctrl-btn.add             { color: var(--fluoro-lime); border-color: var(--fluoro-lime); }
+    .ctrl-btn.add:hover       { background: rgba(167,255,0,0.08); }
+    .ctrl-btn.remove          { color: var(--fluoro-pink); border-color: var(--fluoro-pink); }
+    .ctrl-btn.remove:hover    { background: rgba(255,55,168,0.08); }
+    .ctrl-btn.spacer          { margin-left: auto; }
+
+    /* ── Position picker ────────────────────────────────────── */
+    .pos-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+    .pos-btn {
+      background: transparent;
+      border: 1px solid var(--rule);
+      border-radius: 4px;
+      padding: 8px 4px;
+      font-family: 'Silkscreen', monospace;
+      font-size: 0.75rem;
+      color: var(--muted);
+      cursor: pointer;
+      text-align: center;
+      transition: color 0.12s, border-color 0.12s, background 0.12s;
+    }
+    .pos-btn:hover    { color: var(--accent); border-color: var(--accent); }
+    .pos-btn.selected { color: var(--accent); border-color: var(--accent); background: rgba(32,200,216,0.1); }
+
+    /* ── Preset items ────────────────────────────────────────── */
+    .item-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    .item-chip {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--well);
+      border: 1px solid var(--rule);
+      border-radius: 4px;
+      padding: 6px 10px;
+      font-family: 'Quantico', monospace;
+      font-size: 0.85rem;
+      color: #E6E2D3;
+    }
+    .item-chip .icon { font-size: 18px; }
+
+    /* ── Event log ──────────────────────────────────────────── */
+    #log {
+      height: 120px;
+      overflow-y: auto;
+      font-family: 'Quantico', monospace;
+      font-size: 0.85rem;
+      background: #111111;
+      border: 1px solid var(--rule);
+      border-radius: 4px;
+      padding: 6px 10px;
+    }
+    .log-line         { padding: 1px 0; color: #444; }
+    .log-line.info    { color: #556; }
+    .log-line.add     { color: var(--fluoro-lime); }
+    .log-line.remove  { color: var(--fluoro-pink); }
+    .log-line.max     { color: var(--accent); }
+    .log-line.min     { color: var(--muted); }
+
+    /* ── Note ────────────────────────────────────────────────── */
+    .note {
+      font-family: 'Quantico', monospace;
+      font-size: 0.9rem;
+      color: var(--muted);
+      border-left: 2px solid var(--rule);
+      padding-left: 12px;
+      line-height: 1.8;
+    }
+    .note code {
+      background: rgba(255,255,255,0.07);
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-size: 0.85rem;
+    }
+  </style>
 </head>
 <body>
-    <ravel-dock id="dock-wrapper" label="main-menu"></ravel-dock>
-<div id="page-wrapper">
-    <ravel-assembly label="foo" icon="🐼" docked dock-target="main-menu" size="24">
-        <ravel-switch states="2" state-icons="⛔️,🟢" state-signals="on,off" signals-in="🐼,🟢" size="48"></ravel-switch>
-        <ravel-switch states="2" state-icons="⛔️,🟢" state-signals="on,off" signals-in="🐼,🟪" size="48"></ravel-switch><br/>
-        <ravel-switch states="3" state-icons="⛔️,🟢,🟪" state-signals="on,off,on" signals-in="🐼,🟢,🟪" size="48"></ravel-switch>
-    </ravel-assembly>
-    <ravel-assembly label="foo2" icon="🐼" docked dock-target="main-menu" size="24">
-        <ravel-switch states="2" state-icons="⛔️,🟢" state-signals="on,off" size="48"></ravel-switch>
-        <ravel-switch states="2" state-icons="⛔️,🟢" state-signals="on,off" size="48"></ravel-switch><br/>
-        <ravel-switch states="3" state-icons="⛔️,🟢,🟪" state-signals="on,off,on" size="48"></ravel-switch>
-    </ravel-assembly>
-    <ravel-signal-collector></ravel-signal-collector>
-</div>
-<ravel-dock id="collectors-dock" label="collectors"></ravel-dock>
-</body>
 
+  <!-- The dock lives at the page root, fixed to the viewport edge -->
+  <ravel-dock id="dock" position="right"></ravel-dock>
+
+  <h1>ravel-dock</h1>
+  <p class="subtitle">Fixed-position floating dock · icon buttons · maximize / minimize</p>
+
+  <div class="element-col">
+
+    <!-- ── Position picker ─────────────────────────────────── -->
+    <div class="element-cell">
+      <div class="element-label">position</div>
+      <div class="panel">
+        <div class="pos-grid">
+          <button class="pos-btn" data-pos="top">top</button>
+          <button class="pos-btn" data-pos="left">left</button>
+          <button class="pos-btn selected" data-pos="right">right</button>
+          <button class="pos-btn" data-pos="bottom">bottom</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Add / remove items ──────────────────────────────── -->
+    <div class="element-cell">
+      <div class="element-label">items</div>
+      <div class="panel">
+        <div class="item-grid" id="item-grid">
+          <!-- populated by JS -->
+        </div>
+        <div class="btn-row">
+          <button class="ctrl-btn add" id="btn-add">+ Add next item</button>
+          <button class="ctrl-btn remove" id="btn-remove-last">− Remove last</button>
+          <button class="ctrl-btn spacer" id="btn-clear-log">Clear log</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── External maximize/minimize ─────────────────────── -->
+    <div class="element-cell">
+      <div class="element-label">external messages</div>
+      <div class="panel">
+        <div class="btn-row" id="btn-row-items">
+          <span style="color:var(--muted);font-size:0.8rem">Add items first</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Event log ─────────────────────────────────────────── -->
+    <div class="element-cell">
+      <div class="element-label">event log</div>
+      <div id="log"></div>
+    </div>
+
+    <!-- ── Note ──────────────────────────────────────────────── -->
+    <div class="element-cell">
+      <div class="element-label">usage</div>
+      <div class="panel">
+        <p class="note">
+          Any component can register itself by calling <code>this.dock()</code> (from <code>RavelElement</code>).<br>
+          That sends <code>cmd='dock-me'</code> with the element as content on channel <code>'ravel-dock'</code>.<br>
+          The dock reads the element's <code>icon</code> and <code>label</code> attributes.<br>
+          Use a custom <code>label</code> attribute on <code>&lt;ravel-dock&gt;</code> to support multiple docks per page.
+        </p>
+      </div>
+    </div>
+
+  </div>
+
+  <script type="module">
+    const dock = document.getElementById('dock');
+    const log  = document.getElementById('log');
+
+    // ── Preset items to register ───────────────────────────────────────
+    const ITEMS = [
+      { label: 'Sequencer',   icon: '🎹' },
+      { label: 'Visualizer',  icon: '📊' },
+      { label: 'Synthesizer', icon: '🎛️' },
+      { label: 'Mixer',       icon: '🎚️' },
+      { label: 'Recorder',    icon: '⏺️'  },
+      { label: 'Effects',     icon: '✨' },
+    ];
+
+    let addedCount = 0;
+
+    // Dispatch directly to the dock element (simulates RavelMessenger routing)
+    function dispatchToDock(cmd, content) {
+      dock.dispatchEvent(new CustomEvent('ravel-dock', {
+        detail: { cmd, content }
+      }));
+    }
+
+    // ── Add item ─────────────────────────────────────────────────────────
+    function addItem() {
+      if (addedCount >= ITEMS.length) return;
+      const { label, icon } = ITEMS[addedCount];
+      addedCount++;
+
+      // Simulate an element registering itself
+      const mockEl = document.createElement('div');
+      mockEl.setAttribute('label', label);
+      mockEl.setAttribute('icon', icon);
+      dispatchToDock('dock-me', mockEl);
+
+      // Show in the items grid
+      const chip = document.createElement('div');
+      chip.className = 'item-chip';
+      chip.dataset.label = label;
+      chip.innerHTML = `<span class="icon">${icon}</span>${label}`;
+      document.getElementById('item-grid').appendChild(chip);
+
+      updateExternalButtons();
+      addLog(`dock-me  label="${label}"  icon="${icon}"`, 'add');
+    }
+
+    // ── Remove last item ──────────────────────────────────────────────────
+    function removeLastItem() {
+      if (addedCount === 0) return;
+      addedCount--;
+      const { label } = ITEMS[addedCount];
+      dispatchToDock('undock', { label });
+
+      const chip = document.querySelector(`[data-label="${label}"]`);
+      chip?.remove();
+
+      updateExternalButtons();
+      addLog(`undock  label="${label}"`, 'remove');
+    }
+
+    // ── External maximize/minimize buttons ────────────────────────────────
+    function updateExternalButtons() {
+      const row = document.getElementById('btn-row-items');
+      row.innerHTML = '';
+      if (addedCount === 0) {
+        row.innerHTML = `<span style="color:var(--muted);font-size:0.8rem">Add items first</span>`;
+        return;
+      }
+      for (let i = 0; i < addedCount; i++) {
+        const { label, icon } = ITEMS[i];
+        const btn = document.createElement('button');
+        btn.className = 'ctrl-btn';
+        btn.textContent = `${icon} ${label}`;
+        btn.title = `Toggle maximize for "${label}"`;
+        btn.addEventListener('click', () => {
+          // Send maximize externally — dock will mark it active
+          dispatchToDock('maximize', { label });
+          addLog(`maximize  label="${label}"  (external)`, 'max');
+        });
+        row.appendChild(btn);
+      }
+    }
+
+    document.getElementById('btn-add').addEventListener('click', addItem);
+    document.getElementById('btn-remove-last').addEventListener('click', removeLastItem);
+
+    // ── Position picker ───────────────────────────────────────────────────
+    document.querySelectorAll('.pos-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.pos-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        dock.setAttribute('position', btn.dataset.pos);
+        addLog(`position="${btn.dataset.pos}"`, 'info');
+      });
+    });
+
+    // ── Listen for broadcasts from dock (user clicked an item) ────────────
+    window.addEventListener('ravel-dock', (e) => {
+      const { cmd, content } = e.detail ?? {};
+      if (cmd === 'maximize') {
+        addLog(`broadcast  cmd=maximize  label="${content?.label}"`, 'max');
+      } else if (cmd === 'minimize') {
+        addLog(`broadcast  cmd=minimize  label="${content?.label}"`, 'min');
+      }
+    });
+
+    // ── Log ───────────────────────────────────────────────────────────────
+    function addLog(text, cls = '') {
+      const d = document.createElement('div');
+      d.className = 'log-line ' + cls;
+      const t = new Date().toLocaleTimeString('en', { hour12: false });
+      d.textContent = `[${t}] ${text}`;
+      log.prepend(d);
+    }
+
+    document.getElementById('btn-clear-log').addEventListener('click', () => {
+      log.innerHTML = '';
+    });
+
+    // Pre-add two items so the dock is visible on load
+    addItem();
+    addItem();
+
+    addLog('sandbox ready — dock is fixed to the right edge', 'info');
+  </script>
+
+</body>
 </html>

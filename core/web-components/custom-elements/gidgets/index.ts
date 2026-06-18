@@ -1,10 +1,12 @@
 
 import './ravel-alert/ravel-alert';
+import './ravel-bloop-card/ravel-bloop-card';
 import './ravel-blockly/ravel-blockly';
 import './ravel-box/ravel-box';
 import './ravel-carousel/ravel-carousel'; 
 import './ravel-button/ravel-button';
 import './ravel-card/ravel-card';
+import './ravel-dock/ravel-dock';
 import './ravel-filmstrip/ravel-filmstrip';
 import './ravel-fluxly-sound-engine/ravel-fluxly-sound-engine';
 import './ravel-fluxum/ravel-fluxum';
