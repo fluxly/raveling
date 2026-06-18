@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ravel-pd-synth sandbox</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Silkscreen&family=Quantico:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+  <script type="module" src="/index.ts"></script>
+  <style>
+    * { box-sizing: border-box; }
+
+    :root {
+      --ground:        #303030;
+      --well:          #1a1a1a;
+      --muted:         #666666;
+      --rule:          rgba(102,102,102,.40);
+      --fluoro-pink:   #FF37A8;
+      --fluoro-orange: #FE6810;
+      --fluoro-lime:   #A7FF00;
+      --fluoro-cyan:   #00F0FF;
+    }
+
+    body {
+      margin: 0;
+      padding: 40px 44px;
+      background: var(--ground);
+      font-family: 'Silkscreen', monospace;
+      font-size: 1rem;
+      line-height: 1.3;
+      border: 10px solid #ff0000;
+      box-shadow: 0px 0px 0px 10px inset #ffcc00;
+      min-height: 100vh;
+    }
+
+    h1 {
+      font-size: 2rem;
+      color: #ffffff;
+      margin: 0 0 8px 0;
+      border-bottom: 10px solid var(--fluoro-cyan);
+      display: inline-block;
+      padding-bottom: 2px;
+    }
+
+    .subtitle {
+      font-family: 'Quantico', monospace;
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin: 0 0 40px 0;
+    }
+
+    .element-col  { display: flex; flex-direction: column; gap: 40px; }
+    .element-cell { display: flex; flex-direction: column; gap: 8px; }
+    .element-label { font-size: 0.85rem; color: var(--muted); }
+
+    .stage {
+      background: var(--well);
+      border: 2px dotted var(--rule);
+      border-radius: 4px;
+      padding: 24px;
+    }
+
+    .row { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+
+    /* Status LED states rendered outside the component for demo */
+    .led-demo { display: flex; flex-direction: column; gap: 10px; }
+    .led-row  { display: flex; align-items: center; gap: 12px; }
+    .dot {
+      width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+    }
+    .dot.idle    { background: #444; }
+    .dot.loading { background: var(--fluoro-orange); box-shadow: 0 0 6px var(--fluoro-orange); }
+    .dot.ready   { background: var(--fluoro-lime);   box-shadow: 0 0 6px var(--fluoro-lime); }
+    .dot.error   { background: var(--fluoro-pink);   box-shadow: 0 0 6px var(--fluoro-pink); }
+    .led-lbl {
+      font-family: 'Quantico', monospace;
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+
+    /* Send-float controls */
+    .ctrl-group {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .ctrl-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .ctrl-label {
+      font-family: 'Quantico', monospace;
+      font-size: 0.78rem;
+      color: var(--muted);
+      min-width: 80px;
+    }
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 200px;
+      height: 4px;
+      background: rgba(255,255,255,0.15);
+      border-radius: 2px;
+      outline: none;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      background: var(--fluoro-cyan);
+      cursor: pointer;
+    }
+    .val-readout {
+      font-family: 'Quantico', monospace;
+      font-size: 0.75rem;
+      color: var(--fluoro-cyan);
+      min-width: 40px;
+    }
+
+    .ctrl-btn {
+      background: transparent;
+      border: 1px solid var(--rule);
+      border-radius: 4px;
+      padding: 7px 16px;
+      font-family: 'Silkscreen', monospace;
+      font-size: 0.7rem;
+      color: var(--muted);
+      cursor: pointer;
+      transition: color 0.12s, border-color 0.12s;
+    }
+    .ctrl-btn:hover { color: var(--fluoro-cyan); border-color: var(--fluoro-cyan); }
+
+    .note {
+      font-size: 0.75rem;
+      color: var(--muted);
+      border-left: 2px solid var(--rule);
+      padding-left: 10px;
+      line-height: 1.8;
+      font-family: 'Quantico', monospace;
+    }
+    .note code {
+      background: rgba(255,255,255,0.07);
+      border-radius: 3px;
+      padding: 1px 5px;
+    }
+
+    .warn {
+      font-family: 'Quantico', monospace;
+      font-size: 0.75rem;
+      color: var(--fluoro-orange);
+      background: rgba(254,104,16,0.08);
+      border: 1px solid rgba(254,104,16,0.2);
+      border-radius: 4px;
+      padding: 10px 14px;
+      line-height: 1.7;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>ravel-pd-synth</h1>
+  <p class="subtitle">Runs a Pure Data patch inside an AudioWorklet via Emscripten WASM</p>
+
+  <div class="element-col">
+
+    <!-- ── Component renders ──────────────────────────────────── -->
+    <div class="element-cell">
+      <div class="element-label">component renders — LED reflects audio state</div>
+      <div class="stage">
+        <div class="row">
+
+          <!-- No engine/patch yet → idle -->
+          <ravel-pd-synth id="synth-idle"></ravel-pd-synth>
+
+          <!-- With attributes (won't init until user interaction) -->
+          <ravel-pd-synth
+            id="synth-main"
+            engine="libpd"
+            patch-src="/patches/demo.pd"
+            signals="tempo:tempo-recv, volume:vol-recv">
+          </ravel-pd-synth>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Status LED legend ──────────────────────────────────── -->
+    <div class="element-cell">
+      <div class="element-label">LED status states</div>
+      <div class="stage">
+        <div class="led-demo">
+          <div class="led-row"><div class="dot idle"></div>    <span class="led-lbl"><b>idle</b> — not yet configured or waiting for first interaction</span></div>
+          <div class="led-row"><div class="dot loading"></div> <span class="led-lbl"><b>loading</b> — fetching worklet, engine JS, and patch file</span></div>
+          <div class="led-row"><div class="dot ready"></div>   <span class="led-lbl"><b>ready</b> — AudioWorklet running, PD patch loaded</span></div>
+          <div class="led-row"><div class="dot error"></div>   <span class="led-lbl"><b>error</b> — fetch failed, worklet error, or WASM init failure</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Signal controls ───────────────────────────────────── -->
+    <div class="element-cell">
+      <div class="element-label">send signals to the synth via message channels</div>
+      <div class="stage">
+        <p class="warn">
+          Audio requires real engine + patch files at the configured paths.<br>
+          These controls broadcast on the configured channels — the synth forwards
+          them to PD receivers once the worklet is running.
+        </p>
+        <div class="ctrl-group" style="margin-top:16px">
+          <div class="ctrl-row">
+            <span class="ctrl-label">tempo</span>
+            <input type="range" id="slider-tempo" min="40" max="200" value="120">
+            <span class="val-readout" id="val-tempo">120</span>
+          </div>
+          <div class="ctrl-row">
+            <span class="ctrl-label">volume</span>
+            <input type="range" id="slider-volume" min="0" max="1" step="0.01" value="0.8">
+            <span class="val-readout" id="val-volume">0.80</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Reference ─────────────────────────────────────────── -->
+    <div class="element-cell">
+      <div class="element-label">attributes &amp; signal routing</div>
+      <div class="stage" style="padding:20px">
+        <p class="note">
+          <code>engine</code> — path prefix; loads <code>{engine}/worklet.js</code> and <code>{engine}/engine.js</code>.<br>
+          <code>patch-src</code> — URL of the <code>.pd</code> patch file to fetch and pass to the worklet.<br>
+          <code>signals</code> — comma-separated <code>channel:receiver</code> pairs.<br>
+          &nbsp;&nbsp;e.g. <code>signals="tempo:tempo-recv, volume:vol-recv"</code><br>
+          <br>
+          Audio initializes on the first user interaction (click or pointerdown) due to<br>
+          browser autoplay policy. The LED turns orange while loading, lime when ready.<br>
+          <br>
+          Signal messages arrive as <code>{ cmd: any, content: number }</code>.<br>
+          The <code>content</code> value is forwarded as a float to the named PD receiver.<br>
+          <br>
+          The engine JS must be compiled with Emscripten <code>SINGLE_FILE=1</code> (WASM base64-embedded).<br>
+          The worklet must register a processor named <code>'pd-synth-processor'</code>.
+        </p>
+      </div>
+    </div>
+
+  </div>
+
+  <script type="module">
+    // Broadcast on the channels the demo synth is subscribed to
+    const tempoSlider  = document.getElementById('slider-tempo');
+    const volumeSlider = document.getElementById('slider-volume');
+    const valTempo     = document.getElementById('val-tempo');
+    const valVolume    = document.getElementById('val-volume');
+
+    function broadcast(channel, value) {
+      window.dispatchEvent(new CustomEvent(channel, {
+        detail: { cmd: 'set', content: value },
+      }));
+    }
+
+    tempoSlider.addEventListener('input', () => {
+      const v = Number(tempoSlider.value);
+      valTempo.textContent = String(v);
+      broadcast('tempo', v);
+    });
+
+    volumeSlider.addEventListener('input', () => {
+      const v = Number(volumeSlider.value);
+      valVolume.textContent = v.toFixed(2);
+      broadcast('volume', v);
+    });
+  </script>
+
+</body>
+</html>

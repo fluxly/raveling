@@ -126,6 +126,20 @@ export class RavelSequence extends RavelElement {
         }
         #nav-bar button:not(:disabled):hover { filter: brightness(1.35); }
         #nav-bar button:disabled { opacity: 0.18; cursor: default; }
+        :host(:focus-visible) #nav-bar {
+            box-shadow: 0 0 0 3px var(--ravel-focus, #00F0FF), 0 0 16px rgba(0, 240, 255, 0.3);
+        }
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
     `;
 
     static get observedAttributes(): string[] {
@@ -147,6 +161,7 @@ export class RavelSequence extends RavelElement {
     private nextBtnEl!: HTMLButtonElement;
     private iconEl!: HTMLElement;
     private breadcrumbsEl!: HTMLElement;
+    private _announceEl!: HTMLElement;
 
     // State
 
@@ -185,6 +200,7 @@ export class RavelSequence extends RavelElement {
         this.prevBtnEl = document.createElement('button');
         this.prevBtnEl.id = 'btn-prev';
         this.prevBtnEl.textContent = this._prevLabel;
+        this.prevBtnEl.setAttribute('aria-label', 'Previous frame');
 
         const centerEl = document.createElement('div');
         centerEl.id = 'center';
@@ -201,13 +217,24 @@ export class RavelSequence extends RavelElement {
         this.nextBtnEl = document.createElement('button');
         this.nextBtnEl.id = 'btn-next';
         this.nextBtnEl.textContent = this._nextLabel;
+        this.nextBtnEl.setAttribute('aria-label', 'Next frame');
 
         this.navBarEl.appendChild(this.prevBtnEl);
         this.navBarEl.appendChild(centerEl);
         this.navBarEl.appendChild(this.nextBtnEl);
 
+        this._announceEl = document.createElement('div');
+        this._announceEl.className = 'sr-only';
+        this._announceEl.setAttribute('aria-live', 'polite');
+        this._announceEl.setAttribute('aria-atomic', 'true');
+
         this.container.appendChild(frameArea);
         this.container.appendChild(this.navBarEl);
+        this.container.appendChild(this._announceEl);
+
+        this.tabIndex = 0;
+        this.setAttribute('role', 'region');
+        this.setAttribute('aria-label', 'Sequence');
     }
 
     protected setup(): void {
@@ -215,12 +242,14 @@ export class RavelSequence extends RavelElement {
         this.slotEl.addEventListener('slotchange', this._handleSlotChange);
         this.prevBtnEl.addEventListener('click', this._prev);
         this.nextBtnEl.addEventListener('click', this._next);
+        document.addEventListener('keydown', this._onKeyDown);
     }
 
     protected teardown(): void {
         this.slotEl.removeEventListener('slotchange', this._handleSlotChange);
         this.prevBtnEl.removeEventListener('click', this._prev);
         this.nextBtnEl.removeEventListener('click', this._next);
+        document.removeEventListener('keydown', this._onKeyDown);
         super.teardown();
     }
 
@@ -238,6 +267,25 @@ export class RavelSequence extends RavelElement {
         this._index++;
         this._update();
         this._broadcastChange();
+    };
+
+    private _goTo(index: number): void {
+        const clamped = Math.max(0, Math.min(index, this._frames.length - 1));
+        if (clamped === this._index) return;
+        this._index = clamped;
+        this._update();
+        this._broadcastChange();
+    }
+
+    private _onKeyDown = (e: KeyboardEvent): void => {
+        const tag = (document.activeElement?.tagName ?? '').toLowerCase();
+        if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
+        switch (e.key) {
+            case 'ArrowLeft':  e.preventDefault(); this._prev(); break;
+            case 'ArrowRight': e.preventDefault(); this._next(); break;
+            case 'Home':       e.preventDefault(); this._goTo(0); break;
+            case 'End':        e.preventDefault(); this._goTo(this._frames.length - 1); break;
+        }
     };
 
     private _broadcastChange(): void {
@@ -263,6 +311,9 @@ export class RavelSequence extends RavelElement {
         this.prevBtnEl.disabled = this._index === 0;
         this.nextBtnEl.disabled = this._index >= this._frames.length - 1;
         this._renderBreadcrumbs();
+        if (this._announceEl && this._frames.length) {
+            this._announceEl.textContent = `Frame ${this._index + 1} of ${this._frames.length}`;
+        }
     }
 
     private _renderBreadcrumbs(): void {

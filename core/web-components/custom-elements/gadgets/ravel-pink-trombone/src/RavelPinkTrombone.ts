@@ -107,11 +107,11 @@ export class RavelPinkTrombone extends RavelElement {
 
     private static readonly componentHtml = `
         <div id="viz-wrapper">
-            <canvas id="viz-canvas"></canvas>
+            <canvas id="viz-canvas" role="img" aria-label="Vocal synthesis spectrum — idle"></canvas>
         </div>
         <div id="status-bar">
             <div id="status-dot"></div>
-            <span id="status-text">Idle</span>
+            <span id="status-text" aria-live="polite" aria-atomic="true">Idle</span>
             <span id="freq-display">—</span>
         </div>
     `;
@@ -177,6 +177,7 @@ export class RavelPinkTrombone extends RavelElement {
         this._statusDot   = this.container.querySelector<HTMLElement>('#status-dot')!;
         this._statusText  = this.container.querySelector<HTMLElement>('#status-text')!;
         this._freqDisplay = this.container.querySelector<HTMLElement>('#freq-display')!;
+        this.setAttribute('aria-label', 'Pink Trombone vocal synthesizer');
     }
 
     protected setup(): void {
@@ -314,6 +315,8 @@ export class RavelPinkTrombone extends RavelElement {
         this._statusText.classList.toggle('active', on);
         this._freqDisplay.classList.toggle('active', on);
         this._statusText.textContent = on ? 'Active' : 'Idle';
+        this._canvas.setAttribute('aria-label',
+            on ? `Vocal synthesis spectrum — ${Math.round(this._params.frequency)} Hz` : 'Vocal synthesis spectrum — idle');
 
         if (on) {
             this._initAudio().then(() => {

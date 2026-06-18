@@ -1,341 +1,421 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"/>
-    <title>ravel-roll-track Sandbox</title>
-    <script type="module" src="../ravel-roll-track.ts"></script>
-    <script type="module" src="../../ravel-roll-perf/ravel-roll-perf.ts"></script>
-    <style>
-        *, *::before, *::after { box-sizing: border-box; }
-        body {
-            background: #13131f;
-            color: #d0d0e8;
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            font-size: 13px;
-            margin: 0;
-            padding: 16px;
-        }
-        h3 {
-            margin: 0 0 10px;
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            color: #666688;
-        }
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+  <title>ravel-roll-track sandbox</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Silkscreen&family=Quantico:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+  <script type="module" src="/index.ts"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
 
-        /* ── Roll container ─────────────────────────────── */
-        #roll {
-            width: 100%;
-            background: #0d0d1e;
-            border: 1px solid #2a2a44;
-            border-radius: 8px;
-            overflow: visible;
-            margin-bottom: 14px;
-        }
+    :root {
+      --ground:        #303030;
+      --well:          #1a1a1a;
+      --muted:         #666666;
+      --rule:          rgba(102,102,102,.40);
+      --fluoro-pink:   #FF37A8;
+      --fluoro-orange: #FE6810;
+      --fluoro-lime:   #A7FF00;
+      --fluoro-cyan:   #00F0FF;
+    }
 
-        /* ── Track rows ─────────────────────────────────── */
-        .track-row {
-            display: flex;
-            align-items: stretch;
-        }
-        .track-key {
-            width: 72px;
-            flex-shrink: 0;
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
-            padding-right: 10px;
-            font-size: 10px;
-            font-family: monospace;
-            color: #555577;
-            border-right: 1px solid #2a2a44;
-            border-bottom: 1px solid #1e1e36;
-        }
-        .track-lane {
-            flex: 1;
-            position: relative;
-            overflow: visible;
-        }
+    body {
+      margin: 0;
+      padding: 40px 44px;
+      background: var(--ground);
+      font-family: 'Silkscreen', monospace;
+      font-size: 1rem;
+      line-height: 1.3;
+      border: 10px solid #ff0000;
+      box-shadow: 0px 0px 0px 10px inset #ffcc00;
+      min-height: 100vh;
+    }
 
-        /* ── Panels ─────────────────────────────────────── */
-        .panel {
-            background: #0d0d1e;
-            border: 1px solid #2a2a44;
-            border-radius: 8px;
-            padding: 14px 16px;
-            margin-bottom: 14px;
-        }
-        .row {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            align-items: flex-end;
-            margin-bottom: 8px;
-        }
-        .row:last-child { margin-bottom: 0; }
-        label {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-            color: #8888aa;
-            font-size: 11px;
-        }
-        label.inline { flex-direction: row; align-items: center; gap: 6px; cursor: pointer; }
-        input[type="number"],
-        input[type="text"] {
-            background: #1a1a30;
-            border: 1px solid #3a3a5a;
-            border-radius: 4px;
-            color: #d0d0e8;
-            padding: 4px 8px;
-            font-size: 13px;
-            width: 76px;
-            outline: none;
-        }
-        input[type="text"] { width: 110px; }
-        input[type="color"] {
-            width: 40px;
-            height: 28px;
-            padding: 2px 3px;
-            border: 1px solid #3a3a5a;
-            border-radius: 4px;
-            background: #1a1a30;
-            cursor: pointer;
-        }
-        select {
-            background: #1a1a30;
-            border: 1px solid #3a3a5a;
-            border-radius: 4px;
-            color: #d0d0e8;
-            padding: 4px 8px;
-            font-size: 13px;
-            outline: none;
-        }
-        button {
-            background: #3355cc;
-            color: #fff;
-            border: none;
-            border-radius: 5px;
-            padding: 5px 14px;
-            font-size: 13px;
-            cursor: pointer;
-            height: 28px;
-        }
-        button:hover { background: #4466dd; }
-        button.ghost {
-            background: transparent;
-            border: 1px solid #3a3a5a;
-            color: #8888aa;
-        }
-        button.ghost:hover { border-color: #5577ff; color: #d0d0e8; }
+    h1 {
+      font-size: 2rem;
+      color: #ffffff;
+      margin: 0 0 8px 0;
+      border-bottom: 10px solid var(--fluoro-cyan);
+      display: inline-block;
+      padding-bottom: 2px;
+    }
 
-        /* ── State JSON ─────────────────────────────────── */
-        #state-out {
-            font-family: monospace;
-            font-size: 11px;
-            background: #08080f;
-            border: 1px solid #1e1e36;
-            border-radius: 4px;
-            padding: 8px 10px;
-            white-space: pre;
-            overflow-x: auto;
-            color: #88bbff;
-            min-height: 60px;
-        }
+    .subtitle {
+      font-family: 'Quantico', monospace;
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin: 0 0 40px 0;
+    }
 
-        /* ── Event log ──────────────────────────────────── */
-        #log {
-            height: 120px;
-            overflow-y: auto;
-            font-family: monospace;
-            font-size: 11px;
-            background: #08080f;
-            border: 1px solid #1e1e36;
-            border-radius: 4px;
-            padding: 6px 8px;
-        }
-        .log-line          { padding: 1px 0; color: #4466aa; }
-        .log-line.dock     { color: #66cc88; }
-        .log-line.undock   { color: #ffaa44; }
-        .log-line.add      { color: #8888cc; }
-        .log-line.state    { color: #5577aa; }
-    </style>
+    .element-col  { display: flex; flex-direction: column; gap: 32px; }
+    .element-cell { display: flex; flex-direction: column; gap: 8px; }
+    .element-label {
+      font-family: 'Quantico', monospace;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    /* ── Roll stage ─────────────────────────────────────────── */
+    .roll-stage {
+      background: var(--well);
+      border: 2px dotted var(--rule);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .roll-row {
+      display: flex;
+      align-items: stretch;
+    }
+
+    .key-cell {
+      width: 80px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding-right: 10px;
+      font-family: 'Quantico', monospace;
+      font-size: 0.7rem;
+      color: var(--muted);
+      border-right: 1px solid var(--rule);
+      border-bottom: 1px solid var(--rule);
+    }
+
+    .lane-cell {
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* ── Controls panel ────────────────────────────────────── */
+    .stage {
+      background: var(--well);
+      border: 2px dotted var(--rule);
+      border-radius: 4px;
+      padding: 20px 24px;
+    }
+
+    .ctrl-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+      gap: 14px 16px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .field-label {
+      font-family: 'Quantico', monospace;
+      font-size: 0.72rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    input[type="number"],
+    input[type="text"],
+    select {
+      background: #111;
+      border: 1px solid var(--rule);
+      border-radius: 4px;
+      color: rgba(255,255,255,0.82);
+      font-family: 'Quantico', monospace;
+      font-size: 0.78rem;
+      padding: 6px 8px;
+      outline: none;
+      width: 100%;
+      transition: border-color 0.12s;
+    }
+    input[type="number"]:focus,
+    input[type="text"]:focus,
+    select:focus { border-color: var(--fluoro-cyan); }
+
+    input[type="color"] {
+      width: 100%;
+      height: 32px;
+      padding: 2px 4px;
+      border: 1px solid var(--rule);
+      border-radius: 4px;
+      background: #111;
+      cursor: pointer;
+    }
+
+    .ctrl-row {
+      display: flex;
+      gap: 10px;
+      align-items: flex-end;
+      flex-wrap: wrap;
+      margin-top: 16px;
+    }
+
+    .ctrl-row .field { flex: 1; min-width: 140px; }
+
+    .ctrl-btn {
+      background: transparent;
+      border: 1px solid var(--rule);
+      border-radius: 4px;
+      padding: 7px 16px;
+      font-family: 'Silkscreen', monospace;
+      font-size: 0.7rem;
+      color: var(--muted);
+      cursor: pointer;
+      transition: color 0.12s, border-color 0.12s;
+      white-space: nowrap;
+      align-self: flex-end;
+    }
+    .ctrl-btn:hover        { color: var(--fluoro-cyan); border-color: var(--fluoro-cyan); }
+    .ctrl-btn.apply        { color: var(--fluoro-lime); border-color: var(--fluoro-lime); }
+    .ctrl-btn.apply:hover  { background: rgba(167,255,0,0.08); }
+    .ctrl-btn.danger       { color: var(--fluoro-orange); border-color: var(--fluoro-orange); }
+
+    /* ── Event log ───────────────────────────────────────────── */
+    .log {
+      background: var(--well);
+      border: 1px solid var(--rule);
+      border-radius: 4px;
+      padding: 10px 14px;
+      font-family: 'Quantico', monospace;
+      font-size: 0.72rem;
+      color: var(--muted);
+      height: 120px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+    }
+
+    .log-line-add    { color: var(--fluoro-lime); }
+    .log-line-undock { color: var(--fluoro-orange); }
+    .log-line-state  { color: rgba(0,240,255,0.55); }
+
+    /* ── Note ────────────────────────────────────────────────── */
+    .note {
+      font-size: 0.75rem;
+      color: var(--muted);
+      border-left: 2px solid var(--rule);
+      padding-left: 10px;
+      line-height: 1.8;
+      font-family: 'Quantico', monospace;
+    }
+    .note code {
+      background: rgba(255,255,255,0.07);
+      border-radius: 3px;
+      padding: 1px 5px;
+    }
+  </style>
 </head>
 <body>
 
-<h3>Piano Roll — drag perfs between tracks</h3>
+  <h1>ravel-roll-track</h1>
+  <p class="subtitle">Shift+click to paint a note · drag a note to move it between tracks</p>
 
-<!-- ── Roll ──────────────────────────────────────────────────── -->
-<div id="roll">
-    <!-- Track A: beat=1 unit, bar=4 units -->
-    <div class="track-row">
-        <div class="track-key">Track A</div>
-        <div class="track-lane">
-            <ravel-roll-track id="track-a" unit-width="60" color="#ff0000" quantum="1" h="44" label="A" tick="1" tick-mul="4">
-                <ravel-roll-perf id="pf-a1" x="0" length="2" color="#3b82f6" label="A·1"></ravel-roll-perf>
-                <ravel-roll-perf id="pf-a2" x="3" length="1" color="#3b82f6" label="A·2"></ravel-roll-perf>
-                <ravel-roll-perf id="pf-a3" x="5" length="3" color="#3b82f6" label="A·3"></ravel-roll-perf>
+  <div class="element-col">
+
+    <!-- ── Tracks ─────────────────────────────────────────────── -->
+    <div class="element-cell">
+      <div class="element-label">three tracks · drag perfs between lanes</div>
+      <div class="roll-stage">
+        <div class="roll-row">
+          <div class="key-cell" style="color:#e00000">B4</div>
+          <div class="lane-cell">
+            <ravel-roll-track id="track-a" unit-width="2" quantum="8" h="28" label="B4"
+              color="#e00000" tick="32" tick-mul="4">
             </ravel-roll-track>
+          </div>
         </div>
+        <div class="roll-row">
+          <div class="key-cell" style="color:#cc4b01">A#4</div>
+          <div class="lane-cell">
+            <ravel-roll-track id="track-b" unit-width="2" quantum="8" h="28" label="A#4"
+              color="#cc4b01" tick="32" tick-mul="4">
+            </ravel-roll-track>
+          </div>
+        </div>
+        <div class="roll-row">
+          <div class="key-cell" style="color:#fe6810">A4</div>
+          <div class="lane-cell">
+            <ravel-roll-track id="track-c" unit-width="2" quantum="8" h="28" label="A4"
+              color="#fe6810" tick="32" tick-mul="4">
+            </ravel-roll-track>
+          </div>
+        </div>
+        <div class="roll-row">
+          <div class="key-cell" style="color:#bb7e01">G#4</div>
+          <div class="lane-cell">
+            <ravel-roll-track id="track-d" unit-width="2" quantum="8" h="28" label="G#4"
+              color="#bb7e01" tick="32" tick-mul="4">
+            </ravel-roll-track>
+          </div>
+        </div>
+        <div class="roll-row">
+          <div class="key-cell" style="color:#ea9f01">G4</div>
+          <div class="lane-cell">
+            <ravel-roll-track id="track-e" unit-width="2" quantum="8" h="28" label="G4"
+              color="#ea9f01" tick="32" tick-mul="4">
+            </ravel-roll-track>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <!-- Track B -->
-    <div class="track-row">
-        <div class="track-key">Track B</div>
-        <div class="track-lane">
-            <ravel-roll-track id="track-b" unit-width="60" color="#ffff00" quantum="1" h="44" label="B" tick="1" tick-mul="4">
-                <ravel-roll-perf id="pf-b1" x="1" length="2" color="#8b5cf6" label="B·1"></ravel-roll-perf>
-                <ravel-roll-perf id="pf-b2" x="4" length="4" color="#8b5cf6" label="B·2 (long)"></ravel-roll-perf>
-            </ravel-roll-track>
+    <!-- ── Controls ───────────────────────────────────────────── -->
+    <div class="element-cell">
+      <div class="element-label">attributes (applied to all tracks)</div>
+      <div class="stage">
+        <div class="ctrl-grid">
+          <div class="field">
+            <span class="field-label">unit-width</span>
+            <input type="number" id="inp-uw"  value="2"  min="1"  step="1">
+          </div>
+          <div class="field">
+            <span class="field-label">quantum</span>
+            <input type="number" id="inp-q"   value="8"  min="1"  step="1">
+          </div>
+          <div class="field">
+            <span class="field-label">height</span>
+            <input type="number" id="inp-h"   value="28" min="12" step="4">
+          </div>
+          <div class="field">
+            <span class="field-label">tick</span>
+            <input type="number" id="inp-tick" value="32" min="0" step="1">
+          </div>
+          <div class="field">
+            <span class="field-label">tick-mul</span>
+            <input type="number" id="inp-tmu" value="4"  min="1"  step="1">
+          </div>
         </div>
+        <div class="ctrl-row">
+          <button class="ctrl-btn apply" id="btn-apply">Apply</button>
+        </div>
+      </div>
     </div>
 
-    <!-- Track C (empty — drop target) -->
-    <div class="track-row">
-        <div class="track-key">Track C</div>
-        <div class="track-lane">
-            <ravel-roll-track id="track-c" unit-width="60" color="#0033ff" quantum="1" h="44" label="C" tick="1" tick-mul="4">
-            </ravel-roll-track>
-        </div>
-    </div>
-</div>
-
-<!-- ── Track controls ────────────────────────────────────────── -->
-<div class="panel">
-    <h3>Track Controls</h3>
-    <div class="row">
-        <label>unit-width
-            <input type="number" id="inp-uw" value="60" min="10" step="10">
-        </label>
-        <label>quantum
-            <input type="number" id="inp-q" value="1" min="0.001" step="0.5">
-        </label>
-        <label>height
-            <input type="number" id="inp-h" value="44" min="20" step="4">
-        </label>
-        <label>tick
-            <input type="number" id="inp-tick" value="1" min="0" step="0.5">
-        </label>
-        <label>tick-mul
-            <input type="number" id="inp-tick-mul" value="4" min="1" step="1">
-        </label>
-        <label>apply to
+    <!-- ── Add perf ───────────────────────────────────────────── -->
+    <div class="element-cell">
+      <div class="element-label">dock a perf programmatically</div>
+      <div class="stage">
+        <div class="ctrl-grid">
+          <div class="field">
+            <span class="field-label">track</span>
             <select id="inp-target">
-                <option value="all">All tracks</option>
-                <option value="track-a">Track A</option>
-                <option value="track-b">Track B</option>
-                <option value="track-c">Track C</option>
+              <option value="track-a">B4</option>
+              <option value="track-b">A#4</option>
+              <option value="track-c">A4</option>
+              <option value="track-d">G#4</option>
+              <option value="track-e">G4</option>
             </select>
-        </label>
-        <button id="btn-apply">Apply</button>
+          </div>
+          <div class="field">
+            <span class="field-label">unit pos</span>
+            <input type="number" id="inp-pos" value="0" min="0" step="8">
+          </div>
+          <div class="field">
+            <span class="field-label">length</span>
+            <input type="number" id="inp-len" value="16" min="1" step="8">
+          </div>
+        </div>
+        <div class="ctrl-row">
+          <button class="ctrl-btn apply" id="btn-add">Dock Perf</button>
+        </div>
+      </div>
     </div>
-</div>
 
-<!-- ── Add perf ──────────────────────────────────────────────── -->
-<div class="panel">
-    <h3>Add Perf</h3>
-    <div class="row">
-        <label>track
-            <select id="inp-add-target">
-                <option value="track-a">Track A</option>
-                <option value="track-b">Track B</option>
-                <option value="track-c">Track C</option>
-            </select>
-        </label>
-        <label>unit pos <input type="number" id="inp-add-pos"    value="0"   min="0" step="1"></label>
-        <label>length   <input type="number" id="inp-add-length" value="2"   min="1" step="0.5"></label>
-        <label>label    <input type="text"   id="inp-add-label"  value="New"></label>
-        <label>color    <input type="color"  id="inp-add-color"  value="#22c55e"></label>
-        <button id="btn-add-perf">Dock Perf</button>
+    <!-- ── Event log ──────────────────────────────────────────── -->
+    <div class="element-cell">
+      <div class="element-label" style="display:flex;justify-content:space-between;align-items:center">
+        <span>event log</span>
+        <button class="ctrl-btn" id="btn-clear" style="padding:3px 10px;font-size:0.6rem">Clear</button>
+      </div>
+      <div class="log" id="log">waiting for events…</div>
     </div>
-</div>
 
-<!-- ── State inspector ───────────────────────────────────────── -->
-<div class="panel">
-    <h3>Track State  <button class="ghost" id="btn-refresh-state" style="font-size:11px;padding:2px 8px;height:auto;float:right">Refresh</button></h3>
-    <div id="state-out">(click Refresh or interact with a track)</div>
-</div>
+    <!-- ── Reference ──────────────────────────────────────────── -->
+    <div class="element-cell">
+      <div class="element-label">attributes</div>
+      <div class="stage" style="padding:20px">
+        <p class="note">
+          <code>unit-width</code> — px per roll unit (1 unit = 1/128th note).<br>
+          <code>quantum</code> — snap grid in units.<br>
+          <code>h</code> — track height in px.<br>
+          <code>label</code> — text shown inside the lane (right-aligned).<br>
+          <code>color</code> — color applied to all docked perfs.<br>
+          <code>tick</code> / <code>tick-mul</code> — minor tick interval and major emphasis multiple.<br>
+          <br>
+          <strong>Interaction:</strong> shift+click a lane to paint a note · drag a note to move it.<br>
+          <strong>API:</strong> <code>dockPerf(el, unitPos)</code> — dock a perf programmatically.<br>
+          <strong>Events:</strong> <code>ravel-roll-track</code> (cmd: <code>state-change</code>) · <code>ravel-roll-perf</code> (cmd: <code>undock</code>).
+        </p>
+      </div>
+    </div>
 
-<!-- ── Event log ─────────────────────────────────────────────── -->
-<div class="panel">
-    <h3>Event Log  <button class="ghost" id="btn-clear-log" style="font-size:11px;padding:2px 8px;height:auto;float:right">Clear</button></h3>
-    <div id="log"></div>
-</div>
+  </div>
 
-<script>
-    const logEl = document.getElementById('log');
-    let addedCount = 0;
+  <script type="module">
+    const tracks = ['track-a', 'track-b', 'track-c', 'track-d', 'track-e'];
+    const logEl  = document.getElementById('log');
+    let perfSeq  = 0;
+    let lines    = [];
 
     function addLog(text, cls = '') {
-        const d = document.createElement('div');
-        d.className = 'log-line ' + cls;
-        const t = new Date().toLocaleTimeString('en', { hour12: false });
-        d.textContent = `[${t}] ${text}`;
-        logEl.prepend(d);
+      const span = document.createElement('span');
+      if (cls) span.className = `log-line-${cls}`;
+      const t = new Date().toLocaleTimeString('en', { hour12: false });
+      span.textContent = `[${t}] ${text}`;
+      lines.unshift(span.outerHTML);
+      if (lines.length > 30) lines.length = 30;
+      logEl.innerHTML = lines.join('\n');
     }
 
-    document.getElementById('btn-clear-log').addEventListener('click', () => {
-        logEl.innerHTML = '';
+    document.getElementById('btn-clear').addEventListener('click', () => {
+      lines = [];
+      logEl.textContent = 'cleared';
     });
 
-    function showState() {
-        const states = ['track-a', 'track-b', 'track-c']
-            .map(id => document.getElementById(id)?.getState?.() ?? null)
-            .filter(Boolean);
-        document.getElementById('state-out').textContent = JSON.stringify(states, null, 2);
-    }
-
-    document.getElementById('btn-refresh-state').addEventListener('click', showState);
-
     window.addEventListener('ravel-roll-track', (e) => {
-        if (e.detail?.cmd !== 'state-change') return;
-        const state = e.detail.content;
-        addLog(`state-change  track="${state.id}"  perfs=${state.perfs.length}`, 'state');
-        showState();
+      if (e.detail?.cmd !== 'state-change') return;
+      const s = e.detail.content;
+      addLog(`state-change  ${s.id}  perfs=${s.perfs.length}`, 'state');
     });
 
     window.addEventListener('ravel-roll-perf', (e) => {
-        if (e.detail?.cmd !== 'undock') return;
-        addLog(`undock  perf="${e.detail.content?.id || '?'}"`, 'undock');
+      if (e.detail?.cmd !== 'undock') return;
+      addLog(`undock  ${e.detail.content?.id || '?'}`, 'undock');
     });
 
     document.getElementById('btn-apply').addEventListener('click', () => {
-        const uw      = document.getElementById('inp-uw').value;
-        const q       = document.getElementById('inp-q').value;
-        const h       = document.getElementById('inp-h').value;
-        const tick    = document.getElementById('inp-tick').value;
-        const tickMul = document.getElementById('inp-tick-mul').value;
-        const target  = document.getElementById('inp-target').value;
-
-        const ids = target === 'all' ? ['track-a', 'track-b', 'track-c'] : [target];
-        ids.forEach(id => {
-            const el = document.getElementById(id);
-            if (!el) return;
-            el.setAttribute('unit-width', uw);
-            el.setAttribute('quantum',    q);
-            el.setAttribute('h',          h);
-            el.setAttribute('tick',       tick);
-            el.setAttribute('tick-mul',   tickMul);
-        });
-        addLog(`apply  unit-width=${uw}  quantum=${q}  tick=${tick}  tick-mul=${tickMul}  to=${target}`);
+      const uw  = document.getElementById('inp-uw').value;
+      const q   = document.getElementById('inp-q').value;
+      const h   = document.getElementById('inp-h').value;
+      const tck = document.getElementById('inp-tick').value;
+      const tmu = document.getElementById('inp-tmu').value;
+      tracks.forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.setAttribute('unit-width', uw);
+        el.setAttribute('quantum',    q);
+        el.setAttribute('h',          h);
+        el.setAttribute('tick',       tck);
+        el.setAttribute('tick-mul',   tmu);
+      });
     });
 
-    document.getElementById('btn-add-perf').addEventListener('click', () => {
-        const trackId = document.getElementById('inp-add-target').value;
-        const track   = document.getElementById(trackId);
-        if (!track) return;
-
-        const perf = document.createElement('ravel-roll-perf');
-        perf.id = `pf-added-${++addedCount}`;
-        perf.setAttribute('length', document.getElementById('inp-add-length').value);
-        perf.setAttribute('label',  document.getElementById('inp-add-label').value);
-        perf.setAttribute('color',  document.getElementById('inp-add-color').value);
-
-        const unitPos = parseFloat(document.getElementById('inp-add-pos').value) || 0;
-        track.dockPerf(perf, unitPos);
-        addLog(`dock  perf="${perf.id}"  track="${trackId}"  pos=${unitPos}`, 'dock');
+    document.getElementById('btn-add').addEventListener('click', () => {
+      const trackId = document.getElementById('inp-target').value;
+      const track   = document.getElementById(trackId);
+      if (!track) return;
+      const perf = document.createElement('ravel-roll-perf');
+      perf.id = `perf-${++perfSeq}`;
+      perf.setAttribute('length', document.getElementById('inp-len').value);
+      const pos = parseFloat(document.getElementById('inp-pos').value) || 0;
+      track.dockPerf(perf, pos);
+      addLog(`dock  ${perf.id}  →  ${trackId}  pos=${pos}`, 'add');
     });
-</script>
+  </script>
+
 </body>
 </html>

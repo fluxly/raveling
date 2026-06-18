@@ -1,354 +1,429 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"/>
-    <title>ravel-roll-perf Sandbox</title>
-    <script type="module" src="../../../../index.ts"></script>
-    <style>
-        *, *::before, *::after { box-sizing: border-box; }
-        body {
-            background: #13131f;
-            color: #d0d0e8;
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            font-size: 13px;
-            margin: 0;
-            padding: 16px;
-        }
-        h3 {
-            margin: 0 0 10px;
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            color: #666688;
-        }
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+  <title>ravel-roll-perf sandbox</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Silkscreen&family=Quantico:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+  <script type="module" src="/index.ts"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
 
-        /* ── Piano roll ─────────────────────────────────── */
-        #piano-roll {
-            position: relative;
-            width: 100%;
-            height: 280px;
-            background: #0d0d1e;
-            border: 1px solid #2a2a44;
-            border-radius: 8px;
-            overflow: visible;   /* allow dragged notes to extend beyond */
-            margin-bottom: 14px;
-        }
-        .lane {
-            position: absolute;
-            left: 0; right: 0;
-            height: 40px;
-            border-bottom: 1px solid #17172e;
-        }
-        .lane.black-key { background: #0a0a1a; }
-        .grid-line {
-            position: absolute;
-            top: 0; bottom: 0;
-            width: 1px;
-        }
-        .grid-line.beat   { background: #1c1c36; }
-        .grid-line.bar    { background: #252548; }
+    :root {
+      --ground:        #303030;
+      --well:          #1a1a1a;
+      --muted:         #666666;
+      --rule:          rgba(102,102,102,.40);
+      --fluoro-pink:   #FF37A8;
+      --fluoro-orange: #FE6810;
+      --fluoro-lime:   #A7FF00;
+      --fluoro-cyan:   #00F0FF;
+    }
 
-        /* ── Panel shared ──────────────────────────────── */
-        .panel {
-            background: #0d0d1e;
-            border: 1px solid #2a2a44;
-            border-radius: 8px;
-            padding: 14px 16px;
-            margin-bottom: 14px;
-        }
-        .row {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            align-items: flex-end;
-            margin-bottom: 8px;
-        }
-        .row:last-child { margin-bottom: 0; }
-        label {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-            color: #8888aa;
-            font-size: 11px;
-        }
-        input[type="number"],
-        input[type="text"] {
-            background: #1a1a30;
-            border: 1px solid #3a3a5a;
-            border-radius: 4px;
-            color: #d0d0e8;
-            padding: 4px 8px;
-            font-size: 13px;
-            width: 76px;
-            outline: none;
-        }
-        input[type="text"] { width: 110px; }
-        input[type="color"] {
-            width: 40px;
-            height: 28px;
-            padding: 2px 3px;
-            border: 1px solid #3a3a5a;
-            border-radius: 4px;
-            background: #1a1a30;
-            cursor: pointer;
-        }
-        input[type="checkbox"] { accent-color: #5577ff; cursor: pointer; }
-        label.inline { flex-direction: row; align-items: center; gap: 6px; cursor: pointer; }
-        button {
-            background: #3355cc;
-            color: #fff;
-            border: none;
-            border-radius: 5px;
-            padding: 5px 14px;
-            font-size: 13px;
-            cursor: pointer;
-            height: 28px;
-        }
-        button:hover { background: #4466dd; }
-        button.ghost {
-            background: transparent;
-            border: 1px solid #3a3a5a;
-            color: #8888aa;
-        }
-        button.ghost:hover { border-color: #5577ff; color: #d0d0e8; }
+    body {
+      margin: 0;
+      padding: 40px 44px;
+      background: var(--ground);
+      font-family: 'Silkscreen', monospace;
+      font-size: 1rem;
+      line-height: 1.3;
+      border: 10px solid #ff0000;
+      box-shadow: 0px 0px 0px 10px inset #ffcc00;
+      min-height: 100vh;
+    }
 
-        /* ── Attribute table ───────────────────────────── */
-        #attr-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 12px;
-            font-family: monospace;
-        }
-        #attr-table th {
-            text-align: left;
-            padding: 4px 8px;
-            color: #555577;
-            border-bottom: 1px solid #1e1e36;
-        }
-        #attr-table td {
-            padding: 3px 8px;
-            border-bottom: 1px solid #13131f;
-        }
-        #attr-table tr:hover td { background: #15152a; }
-        .attr-val { color: #88bbff; }
+    h1 {
+      font-size: 2rem;
+      color: #ffffff;
+      margin: 0 0 8px 0;
+      border-bottom: 10px solid var(--fluoro-cyan);
+      display: inline-block;
+      padding-bottom: 2px;
+    }
 
-        /* ── Event log ─────────────────────────────────── */
-        #log {
-            height: 110px;
-            overflow-y: auto;
-            font-family: monospace;
-            font-size: 11px;
-            background: #08080f;
-            border: 1px solid #1e1e36;
-            border-radius: 4px;
-            padding: 6px 8px;
-        }
-        .log-line { padding: 1px 0; color: #4466aa; }
-        .log-line.undock { color: #ffaa44; }
-        .log-line.select { color: #66cc88; }
-        .log-line.add    { color: #8888cc; }
-    </style>
+    .subtitle {
+      font-family: 'Quantico', monospace;
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin: 0 0 40px 0;
+    }
+
+    .element-col  { display: flex; flex-direction: column; gap: 32px; }
+    .element-cell { display: flex; flex-direction: column; gap: 8px; }
+    .element-label {
+      font-family: 'Quantico', monospace;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    /* ── Roll stage ─────────────────────────────────────────── */
+    .roll-stage {
+      background: var(--well);
+      border: 2px dotted var(--rule);
+      border-radius: 4px;
+      overflow: visible;
+    }
+
+    .roll-row {
+      display: flex;
+      align-items: stretch;
+    }
+
+    .key-cell {
+      width: 80px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding-right: 10px;
+      font-family: 'Quantico', monospace;
+      font-size: 0.7rem;
+      color: var(--muted);
+      border-right: 1px solid var(--rule);
+      border-bottom: 1px solid var(--rule);
+    }
+
+    .lane-cell {
+      flex: 1;
+      min-width: 0;
+      overflow: visible;
+      position: relative;
+    }
+
+    /* ── Controls panel ─────────────────────────────────────── */
+    .stage {
+      background: var(--well);
+      border: 2px dotted var(--rule);
+      border-radius: 4px;
+      padding: 20px 24px;
+    }
+
+    .ctrl-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+      gap: 14px 16px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .field-label {
+      font-family: 'Quantico', monospace;
+      font-size: 0.72rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    input[type="number"],
+    input[type="text"],
+    select {
+      background: #111;
+      border: 1px solid var(--rule);
+      border-radius: 4px;
+      color: rgba(255,255,255,0.82);
+      font-family: 'Quantico', monospace;
+      font-size: 0.78rem;
+      padding: 6px 8px;
+      outline: none;
+      width: 100%;
+      transition: border-color 0.12s;
+    }
+    input[type="number"]:focus,
+    input[type="text"]:focus,
+    select:focus { border-color: var(--fluoro-cyan); }
+
+    input[type="color"] {
+      width: 100%;
+      height: 32px;
+      padding: 2px 4px;
+      border: 1px solid var(--rule);
+      border-radius: 4px;
+      background: #111;
+      cursor: pointer;
+    }
+
+    .ctrl-row {
+      display: flex;
+      gap: 10px;
+      align-items: flex-end;
+      flex-wrap: wrap;
+      margin-top: 16px;
+    }
+
+    .ctrl-row .field { flex: 1; min-width: 140px; }
+
+    .ctrl-btn {
+      background: transparent;
+      border: 1px solid var(--rule);
+      border-radius: 4px;
+      padding: 7px 16px;
+      font-family: 'Silkscreen', monospace;
+      font-size: 0.7rem;
+      color: var(--muted);
+      cursor: pointer;
+      transition: color 0.12s, border-color 0.12s;
+      white-space: nowrap;
+      align-self: flex-end;
+    }
+    .ctrl-btn:hover       { color: var(--fluoro-cyan); border-color: var(--fluoro-cyan); }
+    .ctrl-btn.apply       { color: var(--fluoro-lime); border-color: var(--fluoro-lime); }
+    .ctrl-btn.apply:hover { background: rgba(167,255,0,0.08); }
+
+    /* ── Event log ───────────────────────────────────────────── */
+    .log {
+      background: var(--well);
+      border: 1px solid var(--rule);
+      border-radius: 4px;
+      padding: 10px 14px;
+      font-family: 'Quantico', monospace;
+      font-size: 0.72rem;
+      color: var(--muted);
+      height: 120px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+    }
+    .log-line-undock { color: var(--fluoro-orange); }
+    .log-line-add    { color: var(--fluoro-lime); }
+    .log-line-select { color: var(--fluoro-cyan); }
+
+    /* ── Note ────────────────────────────────────────────────── */
+    .note {
+      font-size: 0.75rem;
+      color: var(--muted);
+      border-left: 2px solid var(--rule);
+      padding-left: 10px;
+      line-height: 1.8;
+      font-family: 'Quantico', monospace;
+    }
+    .note code {
+      background: rgba(255,255,255,0.07);
+      border-radius: 3px;
+      padding: 1px 5px;
+    }
+  </style>
 </head>
 <body>
-<ravel-roll-track><ravel-roll-perf id="pf-a2" x="3" length="1" color="#3b82f6" label="A·2"></ravel-roll-perf></ravel-roll-track>
-<!-- ── Piano roll ───────────────────────────────────────────── -->
-<h3>Piano Roll</h3>
-<div id="piano-roll">
-    <!-- Lane backgrounds (7 rows × 40px = 280px total) -->
-    <div class="lane"           style="top:  0px"></div>
-    <div class="lane black-key" style="top: 40px"></div>
-    <div class="lane"           style="top: 80px"></div>
-    <div class="lane black-key" style="top:120px"></div>
-    <div class="lane"           style="top:160px"></div>
-    <div class="lane"           style="top:200px"></div>
-    <div class="lane black-key" style="top:240px"></div>
 
-    <!-- Beat grid (unit = 60px, 4 units per bar) -->
-    <div class="grid-line beat" style="left: 60px"></div>
-    <div class="grid-line beat" style="left:120px"></div>
-    <div class="grid-line beat" style="left:180px"></div>
-    <div class="grid-line bar"  style="left:240px"></div>
-    <div class="grid-line beat" style="left:300px"></div>
-    <div class="grid-line beat" style="left:360px"></div>
-    <div class="grid-line beat" style="left:420px"></div>
-    <div class="grid-line bar"  style="left:480px"></div>
-    <div class="grid-line beat" style="left:540px"></div>
-    <div class="grid-line beat" style="left:600px"></div>
-    <div class="grid-line beat" style="left:660px"></div>
-    <div class="grid-line bar"  style="left:720px"></div>
+  <h1>ravel-roll-perf</h1>
+  <p class="subtitle">Drag center to move · drag handles to resize · click to select · cmd+click to delete</p>
 
-    <!-- Pre-populated notes (unit-width=60, h=34) -->
-    <ravel-roll-perf id="pf-a" x="  0" y="  3" length="2" unit-width="60" h="34" color="#3b82f6" label="C4 ×2"></ravel-roll-perf>
-    <ravel-roll-perf id="pf-b" x="180" y="  3" length="4" unit-width="60" h="34" color="#3b82f6" label="C4 ×4"></ravel-roll-perf>
-    <ravel-roll-perf id="pf-c" x="  0" y=" 43" length="1" unit-width="60" h="34" color="#8b5cf6" label="B3"></ravel-roll-perf>
-    <ravel-roll-perf id="pf-d" x=" 60" y=" 43" length="1" unit-width="60" h="34" color="#8b5cf6" label="B3"></ravel-roll-perf>
-    <ravel-roll-perf id="pf-e" x="  0" y=" 83" length="3" unit-width="60" h="34" color="#22c55e" label="A3 ×3"></ravel-roll-perf>
-    <ravel-roll-perf id="pf-f" x="360" y=" 83" length="2" unit-width="60" h="34" color="#22c55e" label="A3 sel" selected></ravel-roll-perf>
-    <ravel-roll-perf id="pf-g" x=" 60" y="123" length="2" unit-width="60" h="34" color="#f97316" label="G3"></ravel-roll-perf>
-    <ravel-roll-perf id="pf-h" x="300" y="123" length="3" unit-width="60" h="34" color="#f97316" label="G3 ×3"></ravel-roll-perf>
-    <ravel-roll-perf id="pf-i" x="  0" y="163" length="5" unit-width="60" h="34" color="#ef4444" label="F3 long"></ravel-roll-perf>
-    <ravel-roll-perf id="pf-j" x="120" y="203" length="1" unit-width="60" h="34" color="#ec4899" label="E3 (no-click)" no-click></ravel-roll-perf>
-    <ravel-roll-perf id="pf-k" x="240" y="203" length="2" unit-width="60" h="34" color="#ec4899" label="E3"></ravel-roll-perf>
-</div>
+  <div class="element-col">
 
-<!-- ── Add note ─────────────────────────────────────────────── -->
-<div class="panel">
-    <h3>Add a Note</h3>
-    <div class="row">
-        <label>x <input type="number" id="inp-x"  value="0"    min="0"  step="60"></label>
-        <label>y <input type="number" id="inp-y"   value="3"    min="0"  step="40"></label>
-        <label>length <input type="number" id="inp-length" value="2" min="1" step="0.5"></label>
-        <label>unit-width <input type="number" id="inp-uw" value="60" min="10" step="10"></label>
-        <label>h <input type="number" id="inp-h"   value="34"   min="10" step="5"></label>
-        <label>label <input type="text" id="inp-label" value="New note"></label>
-        <label>color <input type="color" id="inp-color" value="#3b82f6"></label>
-        <label>quantum <input type="number" id="inp-quantum" value="1" min="0.001" step="0.5"></label>
+    <!-- ── Tracks with pre-populated perfs ───────────────────── -->
+    <div class="element-cell">
+      <div class="element-label">drag perfs between tracks · handles resize length</div>
+      <div class="roll-stage">
+        <div class="roll-row">
+          <div class="key-cell" style="color:#e00000">B4</div>
+          <div class="lane-cell">
+            <ravel-roll-track id="track-a" unit-width="2" quantum="8" h="32" label="B4"
+              color="#e00000" tick="32" tick-mul="4">
+              <ravel-roll-perf id="pf-a1" length="32"  quantum="8"></ravel-roll-perf>
+              <ravel-roll-perf id="pf-a2" length="16"  quantum="8"></ravel-roll-perf>
+            </ravel-roll-track>
+          </div>
+        </div>
+        <div class="roll-row">
+          <div class="key-cell" style="color:#cc4b01">A#4</div>
+          <div class="lane-cell">
+            <ravel-roll-track id="track-b" unit-width="2" quantum="8" h="32" label="A#4"
+              color="#cc4b01" tick="32" tick-mul="4">
+              <ravel-roll-perf id="pf-b1" length="64"  quantum="8"></ravel-roll-perf>
+            </ravel-roll-track>
+          </div>
+        </div>
+        <div class="roll-row">
+          <div class="key-cell" style="color:#fe6810">A4</div>
+          <div class="lane-cell">
+            <ravel-roll-track id="track-c" unit-width="2" quantum="8" h="32" label="A4"
+              color="#fe6810" tick="32" tick-mul="4">
+              <ravel-roll-perf id="pf-c1" length="16"  quantum="8"></ravel-roll-perf>
+              <ravel-roll-perf id="pf-c2" length="32"  quantum="8" selected></ravel-roll-perf>
+            </ravel-roll-track>
+          </div>
+        </div>
+        <div class="roll-row">
+          <div class="key-cell" style="color:#bb7e01">G#4</div>
+          <div class="lane-cell">
+            <ravel-roll-track id="track-d" unit-width="2" quantum="8" h="32" label="G#4"
+              color="#bb7e01" tick="32" tick-mul="4">
+            </ravel-roll-track>
+          </div>
+        </div>
+        <div class="roll-row">
+          <div class="key-cell" style="color:#ea9f01">G4</div>
+          <div class="lane-cell">
+            <ravel-roll-track id="track-e" unit-width="2" quantum="8" h="32" label="G4"
+              color="#ea9f01" tick="32" tick-mul="4">
+              <ravel-roll-perf id="pf-e1" length="48"  quantum="8"></ravel-roll-perf>
+            </ravel-roll-track>
+          </div>
+        </div>
+      </div>
     </div>
-    <div class="row">
-        <label class="inline"><input type="checkbox" id="inp-selected"> selected</label>
-        <label class="inline"><input type="checkbox" id="inp-no-click"> no-click</label>
-        <button id="btn-add">Add Note</button>
-        <button class="ghost" id="btn-clear">Remove Added</button>
+
+    <!-- ── Controls ───────────────────────────────────────────── -->
+    <div class="element-cell">
+      <div class="element-label">attributes (applied to all tracks)</div>
+      <div class="stage">
+        <div class="ctrl-grid">
+          <div class="field">
+            <span class="field-label">unit-width</span>
+            <input type="number" id="inp-uw"  value="2"  min="1"  step="1">
+          </div>
+          <div class="field">
+            <span class="field-label">quantum</span>
+            <input type="number" id="inp-q"   value="8"  min="1"  step="1">
+          </div>
+          <div class="field">
+            <span class="field-label">height</span>
+            <input type="number" id="inp-h"   value="32" min="12" step="4">
+          </div>
+          <div class="field">
+            <span class="field-label">tick</span>
+            <input type="number" id="inp-tick" value="32" min="0"  step="1">
+          </div>
+          <div class="field">
+            <span class="field-label">tick-mul</span>
+            <input type="number" id="inp-tmu" value="4"  min="1"  step="1">
+          </div>
+        </div>
+        <div class="ctrl-row">
+          <button class="ctrl-btn apply" id="btn-apply">Apply</button>
+        </div>
+      </div>
     </div>
-</div>
 
-<!-- ── Global controls ──────────────────────────────────────── -->
-<div class="panel">
-    <h3>Global Controls</h3>
-    <div class="row">
-        <label>unit-width (all) <input type="number" id="inp-global-uw" value="60" min="10" step="10"></label>
-        <button id="btn-apply-uw">Apply to All</button>
-        <label>quantum (all) <input type="number" id="inp-global-q" value="1" min="0.001" step="0.5"></label>
-        <button id="btn-apply-q">Apply to All</button>
-        <button class="ghost" id="btn-quantize-all">Quantize All</button>
+    <!-- ── Add perf ───────────────────────────────────────────── -->
+    <div class="element-cell">
+      <div class="element-label">dock a new perf</div>
+      <div class="stage">
+        <div class="ctrl-grid">
+          <div class="field">
+            <span class="field-label">track</span>
+            <select id="inp-target">
+              <option value="track-a">B4</option>
+              <option value="track-b">A#4</option>
+              <option value="track-c">A4</option>
+              <option value="track-d">G#4</option>
+              <option value="track-e">G4</option>
+            </select>
+          </div>
+          <div class="field">
+            <span class="field-label">unit pos</span>
+            <input type="number" id="inp-pos" value="0"  min="0"  step="8">
+          </div>
+          <div class="field">
+            <span class="field-label">length</span>
+            <input type="number" id="inp-len" value="16" min="1"  step="8">
+          </div>
+        </div>
+        <div class="ctrl-row">
+          <button class="ctrl-btn apply" id="btn-add">Dock Perf</button>
+        </div>
+      </div>
     </div>
-    <div class="row">
-        <button class="ghost" id="btn-select-all">Select All</button>
-        <button class="ghost" id="btn-unselect-all">Unselect All</button>
+
+    <!-- ── Event log ──────────────────────────────────────────── -->
+    <div class="element-cell">
+      <div class="element-label" style="display:flex;justify-content:space-between;align-items:center">
+        <span>event log</span>
+        <button class="ctrl-btn" id="btn-clear" style="padding:3px 10px;font-size:0.6rem">Clear</button>
+      </div>
+      <div class="log" id="log">waiting for events…</div>
     </div>
-</div>
 
-<!-- ── Attribute inspector ──────────────────────────────────── -->
-<div class="panel">
-    <h3>Note Attributes  <span id="inspect-id" style="color:#5566bb;font-weight:normal;font-size:11px">(click a note to inspect)</span></h3>
-    <table id="attr-table">
-        <thead><tr><th>Attribute</th><th>Value</th></tr></thead>
-        <tbody id="attr-body"><tr><td colspan="2" style="color:#444466">—</td></tr></tbody>
-    </table>
-</div>
+    <!-- ── Reference ──────────────────────────────────────────── -->
+    <div class="element-cell">
+      <div class="element-label">attributes &amp; interaction</div>
+      <div class="stage" style="padding:20px">
+        <p class="note">
+          <code>length</code> — duration in units.<br>
+          <code>unit-width</code> — px per unit (controls display width).<br>
+          <code>quantum</code> — snap step used when resizing.<br>
+          <code>color</code> — block background color.<br>
+          <code>label</code> — text shown in the center.<br>
+          <code>selected</code> — highlights the block (full opacity).<br>
+          <code>docked</code> — height fills 100% of parent track lane.<br>
+          <code>no-click</code> — disables all pointer interaction.<br>
+          <br>
+          <strong>Interaction zones:</strong><br>
+          Left / right handles → <code>ew-resize</code> to scale length.<br>
+          Center → drag to move (broadcasts <code>undock</code> after threshold) · click to toggle <code>selected</code>.<br>
+          Cmd+click → remove.
+        </p>
+      </div>
+    </div>
 
-<!-- ── Event log ────────────────────────────────────────────── -->
-<div class="panel">
-    <h3>Event Log <button class="ghost" id="btn-clear-log" style="font-size:11px;padding:2px 8px;height:auto;float:right">Clear</button></h3>
-    <div id="log"></div>
-</div>
+  </div>
 
-<script>
-    const roll = document.getElementById('piano-roll');
-    const logEl = document.getElementById('log');
-    const added = [];
+  <script type="module">
+    const tracks  = ['track-a', 'track-b', 'track-c', 'track-d', 'track-e'];
+    const logEl   = document.getElementById('log');
+    let perfSeq   = 0;
+    let lines     = [];
 
-    // ── Logging ──────────────────────────────────────────────
     function addLog(text, cls = '') {
-        const d = document.createElement('div');
-        d.className = 'log-line ' + cls;
-        const t = new Date().toLocaleTimeString('en', { hour12: false });
-        d.textContent = `[${t}] ${text}`;
-        logEl.prepend(d);
+      const span = document.createElement('span');
+      if (cls) span.className = `log-line-${cls}`;
+      const t = new Date().toLocaleTimeString('en', { hour12: false });
+      span.textContent = `[${t}] ${text}`;
+      lines.unshift(span.outerHTML);
+      if (lines.length > 30) lines.length = 30;
+      logEl.innerHTML = lines.join('\n');
     }
-
-    document.getElementById('btn-clear-log').addEventListener('click', () => {
-        logEl.innerHTML = '';
-    });
-
-    // ── Undock broadcast ─────────────────────────────────────
-    window.addEventListener('ravel-roll-perf', (e) => {
-        if (e.detail?.cmd !== 'undock') return;
-        const el = e.detail.content;
-        const id = el?.id || 'ravel-roll-perf';
-        const lx = Math.round(parseFloat(el?.style?.left) || 0);
-        const ly = Math.round(parseFloat(el?.style?.top)  || 0);
-        addLog(`undock  ${id}  pos=(${lx}, ${ly})`, 'undock');
-    });
-
-    // ── Click-to-inspect (propagates out of shadow DOM) ──────
-    roll.addEventListener('click', (e) => {
-        const perf = e.composedPath().find(n => n.tagName === 'RAVEL-PERF');
-        if (!perf) return;
-        inspectNote(perf);
-    }, true);
-
-    function inspectNote(el) {
-        document.getElementById('inspect-id').textContent = `#${el.id || '(no id)'}`;
-        const attrs = [
-            'x', 'y', 'length', 'unit-width', 'h',
-            'label', 'color', 'selected', 'no-click', 'docked',
-        ];
-        const tbody = document.getElementById('attr-body');
-        tbody.innerHTML = attrs.map(a => {
-            const val = el.hasAttribute(a)
-                ? (el.getAttribute(a) === '' ? '(present)' : el.getAttribute(a))
-                : '—';
-            return `<tr><td>${a}</td><td class="attr-val">${val}</td></tr>`;
-        }).join('');
-        addLog(`inspect ${el.id || 'ravel-roll-perf'}`, 'select');
-    }
-
-    // ── Add note ─────────────────────────────────────────────
-    document.getElementById('btn-add').addEventListener('click', () => {
-        const perf = document.createElement('ravel-roll-perf');
-        perf.setAttribute('x',          document.getElementById('inp-x').value);
-        perf.setAttribute('y',          document.getElementById('inp-y').value);
-        perf.setAttribute('length',     document.getElementById('inp-length').value);
-        perf.setAttribute('unit-width', document.getElementById('inp-uw').value);
-        perf.setAttribute('h',          document.getElementById('inp-h').value);
-        perf.setAttribute('label',      document.getElementById('inp-label').value);
-        perf.setAttribute('color',      document.getElementById('inp-color').value);
-        perf.setAttribute('quantum',    document.getElementById('inp-quantum').value);
-        if (document.getElementById('inp-selected').checked) perf.setAttribute('selected', '');
-        if (document.getElementById('inp-no-click').checked) perf.setAttribute('no-click', '');
-        roll.appendChild(perf);
-        added.push(perf);
-        addLog(`add  label="${perf.getAttribute('label')}"  length=${perf.getAttribute('length')}  uw=${perf.getAttribute('unit-width')}`, 'add');
-    });
 
     document.getElementById('btn-clear').addEventListener('click', () => {
-        added.forEach(p => p.remove());
-        added.length = 0;
-        addLog('removed all added notes');
+      lines = [];
+      logEl.textContent = 'cleared';
     });
 
-    // ── Global unit-width ─────────────────────────────────────
-    document.getElementById('btn-apply-uw').addEventListener('click', () => {
-        const uw = document.getElementById('inp-global-uw').value;
-        roll.querySelectorAll('ravel-roll-perf').forEach(p => p.setAttribute('unit-width', uw));
-        addLog(`unit-width → ${uw} (all notes)`);
+    window.addEventListener('ravel-roll-perf', (e) => {
+      if (e.detail?.cmd !== 'undock') return;
+      addLog(`undock  ${e.detail.content?.id || '?'}`, 'undock');
     });
 
-    // ── Global quantum ────────────────────────────────────────
-    document.getElementById('btn-apply-q').addEventListener('click', () => {
-        const q = document.getElementById('inp-global-q').value;
-        roll.querySelectorAll('ravel-roll-perf').forEach(p => p.setAttribute('quantum', q));
-        addLog(`quantum → ${q} (all notes)`);
+    window.addEventListener('ravel-roll-track', (e) => {
+      if (e.detail?.cmd !== 'state-change') return;
+      const s = e.detail.content;
+      addLog(`state-change  ${s.id}  perfs=${s.perfs.length}`);
     });
 
-    document.getElementById('btn-quantize-all').addEventListener('click', () => {
-        roll.querySelectorAll('ravel-roll-perf').forEach(p => {
-            if (p.id) window.dispatchEvent(new CustomEvent(p.id, { detail: { cmd: 'quantize' } }));
-        });
-        addLog('quantize all');
+    document.getElementById('btn-apply').addEventListener('click', () => {
+      const uw  = document.getElementById('inp-uw').value;
+      const q   = document.getElementById('inp-q').value;
+      const h   = document.getElementById('inp-h').value;
+      const tck = document.getElementById('inp-tick').value;
+      const tmu = document.getElementById('inp-tmu').value;
+      tracks.forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.setAttribute('unit-width', uw);
+        el.setAttribute('quantum',    q);
+        el.setAttribute('h',          h);
+        el.setAttribute('tick',       tck);
+        el.setAttribute('tick-mul',   tmu);
+      });
     });
 
-    // ── Select / unselect all ─────────────────────────────────
-    document.getElementById('btn-select-all').addEventListener('click', () => {
-        roll.querySelectorAll('ravel-roll-perf').forEach(p => p.setAttribute('selected', ''));
-        addLog('select all', 'select');
+    document.getElementById('btn-add').addEventListener('click', () => {
+      const trackId = document.getElementById('inp-target').value;
+      const track   = document.getElementById(trackId);
+      if (!track) return;
+      const perf = document.createElement('ravel-roll-perf');
+      perf.id = `perf-added-${++perfSeq}`;
+      perf.setAttribute('length',  document.getElementById('inp-len').value);
+      perf.setAttribute('quantum', document.getElementById('inp-q').value);
+      const pos = parseFloat(document.getElementById('inp-pos').value) || 0;
+      track.dockPerf(perf, pos);
+      addLog(`dock  ${perf.id}  →  ${trackId}  pos=${pos}`, 'add');
     });
-    document.getElementById('btn-unselect-all').addEventListener('click', () => {
-        roll.querySelectorAll('ravel-roll-perf').forEach(p => p.removeAttribute('selected'));
-        addLog('unselect all');
-    });
-</script>
+  </script>
+
 </body>
 </html>

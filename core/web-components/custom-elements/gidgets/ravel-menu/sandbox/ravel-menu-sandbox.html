@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ravel-menu sandbox</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Silkscreen&family=Quantico:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+  <script type="module" src="/index.ts"></script>
+  <style>
+    * { box-sizing: border-box; }
+
+    :root {
+      --ground:        #303030;
+      --well:          #1a1a1a;
+      --muted:         #666666;
+      --rule:          rgba(102,102,102,.40);
+      --fluoro-pink:   #FF37A8;
+      --fluoro-orange: #FE6810;
+      --fluoro-lime:   #A7FF00;
+      --fluoro-cyan:   #00F0FF;
+    }
+
+    body {
+      margin: 0;
+      padding: 40px 44px;
+      background: var(--ground);
+      font-family: 'Silkscreen', monospace;
+      font-size: 1rem;
+      line-height: 1.3;
+      border: 10px solid #ff0000;
+      box-shadow: 0px 0px 0px 10px inset #ffcc00;
+      min-height: 100vh;
+    }
+
+    h1 {
+      font-size: 2rem;
+      color: #ffffff;
+      margin: 0 0 8px 0;
+      border-bottom: 10px solid var(--fluoro-cyan);
+      display: inline-block;
+      padding-bottom: 2px;
+    }
+
+    .subtitle {
+      font-family: 'Quantico', monospace;
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin: 0 0 40px 0;
+    }
+
+    .element-col  { display: flex; flex-direction: column; gap: 40px; }
+    .element-cell { display: flex; flex-direction: column; gap: 8px; }
+    .element-label { font-size: 0.85rem; color: var(--muted); }
+
+    .stage {
+      background: var(--well);
+      border: 2px dotted var(--rule);
+      border-radius: 4px;
+      padding: 28px 24px;
+    }
+
+    .row { display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap; }
+
+    /* ── Context zone ─────────────────────────────────────── */
+    .context-zone {
+      position: relative;
+      width: 400px;
+      height: 180px;
+      border: 1px dashed rgba(255,255,255,0.15);
+      border-radius: 4px;
+      background: rgba(255,255,255,0.03);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--muted);
+      font-family: 'Quantico', monospace;
+      font-size: 0.8rem;
+      user-select: none;
+    }
+
+    /* ── Bar demo ─────────────────────────────────────────── */
+    .bar-wrapper {
+      background: rgba(0,0,0,0.3);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    /* ── Event log ────────────────────────────────────────── */
+    .log {
+      background: var(--well);
+      border: 1px solid var(--rule);
+      border-radius: 4px;
+      padding: 10px 14px;
+      font-family: 'Quantico', monospace;
+      font-size: 0.72rem;
+      color: var(--muted);
+      min-height: 56px;
+      max-height: 100px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+    }
+
+    .note {
+      font-size: 0.75rem;
+      color: var(--muted);
+      border-left: 2px solid var(--rule);
+      padding-left: 10px;
+      line-height: 1.8;
+      font-family: 'Quantico', monospace;
+    }
+    .note code {
+      background: rgba(255,255,255,0.07);
+      border-radius: 3px;
+      padding: 1px 5px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>ravel-menu</h1>
+  <p class="subtitle">Multi-mode menu — <code>type="dropdown"</code> · <code>type="context"</code> · <code>type="bar"</code></p>
+
+  <div class="element-col">
+
+    <!-- ── Dropdown ──────────────────────────────────────────── -->
+    <div class="element-cell">
+      <div class="element-label">type="dropdown" (default) — click trigger opens floating panel</div>
+      <div class="stage">
+        <div class="row">
+
+          <!-- Default label -->
+          <ravel-menu id="menu-basic">
+            <button data-cmd="new">New file</button>
+            <button data-cmd="open">Open…</button>
+            <button data-cmd="save">Save</button>
+            <hr>
+            <button data-cmd="export">Export</button>
+            <button data-cmd="delete" disabled>Delete</button>
+          </ravel-menu>
+
+          <!-- Custom label -->
+          <ravel-menu label="Edit" id="menu-edit">
+            <button data-cmd="undo">Undo</button>
+            <button data-cmd="redo">Redo</button>
+            <hr>
+            <button data-cmd="cut">Cut</button>
+            <button data-cmd="copy">Copy</button>
+            <button data-cmd="paste">Paste</button>
+          </ravel-menu>
+
+          <!-- Playback controls -->
+          <ravel-menu label="Transport" id="menu-transport">
+            <button data-cmd="play">▶  Play</button>
+            <button data-cmd="stop">■  Stop</button>
+            <button data-cmd="rewind">⏮  Rewind</button>
+            <hr>
+            <button data-cmd="loop">↩  Loop</button>
+            <button data-cmd="record">⏺  Record</button>
+          </ravel-menu>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Context ───────────────────────────────────────────── -->
+    <div class="element-cell">
+      <div class="element-label">type="context" — right-click inside the zone below</div>
+      <div class="stage">
+        <div class="context-zone">
+          right-click anywhere in here
+          <ravel-menu type="context" id="menu-ctx" style="position:absolute;inset:0;display:block;">
+            <button data-cmd="add-note">Add note</button>
+            <button data-cmd="paste">Paste</button>
+            <hr>
+            <button data-cmd="select-all">Select all</button>
+            <button data-cmd="deselect">Deselect</button>
+            <hr>
+            <button data-cmd="properties">Properties…</button>
+          </ravel-menu>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Bar ───────────────────────────────────────────────── -->
+    <div class="element-cell">
+      <div class="element-label">type="bar" — items displayed horizontally, no trigger or panel</div>
+      <div class="stage" style="padding:12px 16px;">
+        <div class="bar-wrapper">
+          <ravel-menu type="bar" id="menu-bar">
+            <button data-cmd="file">File</button>
+            <button data-cmd="edit">Edit</button>
+            <button data-cmd="view">View</button>
+            <button data-cmd="track">Track</button>
+            <button data-cmd="instrument">Instrument</button>
+            <button data-cmd="help">Help</button>
+          </ravel-menu>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Event log ─────────────────────────────────────────── -->
+    <div class="element-cell">
+      <div class="element-label">menu-select events</div>
+      <div class="log" id="event-log">waiting for events…</div>
+    </div>
+
+    <!-- ── Reference ─────────────────────────────────────────── -->
+    <div class="element-cell">
+      <div class="element-label">attributes &amp; events</div>
+      <div class="stage" style="padding:20px">
+        <p class="note">
+          <code>type</code> — <code>dropdown</code> (default) · <code>context</code> · <code>bar</code><br>
+          <code>label</code> — trigger button text for dropdown (default: <code>"Menu"</code>)<br>
+          <code>open</code> — boolean attribute to force-open the panel<br>
+          <br>
+          Slot any <code>&lt;button data-cmd="..."&gt;</code>, <code>&lt;a&gt;</code>, or <code>&lt;hr&gt;</code> as items.<br>
+          <code>disabled</code> on a button dims it and prevents activation.<br>
+          <br>
+          Event: <code>menu-select</code> → <code>detail.cmd</code> (from <code>data-cmd</code>), <code>detail.item</code> (the element).<br>
+          Also broadcasts on channel <code>ravel-menu</code> with <code>{ cmd: 'select', content: { cmd } }</code>.<br>
+          <br>
+          Keyboard (dropdown / context): <code>↓</code>/<code>↑</code> navigate · <code>Escape</code> closes · <code>↓</code> on trigger opens.
+        </p>
+      </div>
+    </div>
+
+  </div>
+
+  <script type="module">
+    const log = document.getElementById('event-log');
+    let lines = [];
+
+    function addLog(msg) {
+      lines.unshift(msg);
+      if (lines.length > 8) lines.length = 8;
+      log.textContent = lines.join('\n');
+    }
+
+    document.addEventListener('menu-select', (e) => {
+      const src = e.target.id || e.target.tagName.toLowerCase();
+      addLog(`[${src}]  cmd: "${e.detail.cmd}"`);
+    });
+  </script>
+
+</body>
+</html>

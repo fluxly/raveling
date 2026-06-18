@@ -37,6 +37,7 @@ export class RavelRollPerf extends RavelElement {
         :host {
             display: block;
             box-sizing: border-box;
+            user-select: none;
         }
         #container {
             display: flex;
@@ -219,6 +220,7 @@ export class RavelRollPerf extends RavelElement {
     // Scale — left handle
 
     private handleLeftDown = (e: PointerEvent): void => {
+        window.getSelection()?.removeAllRanges();
         e.preventDefault();
         e.stopPropagation();
         this._scaleMode        = 'left';
@@ -232,6 +234,7 @@ export class RavelRollPerf extends RavelElement {
     // Scale — right handle
 
     private handleRightDown = (e: PointerEvent): void => {
+        window.getSelection()?.removeAllRanges();
         e.preventDefault();
         e.stopPropagation();
         this._scaleMode        = 'right';
@@ -274,6 +277,7 @@ export class RavelRollPerf extends RavelElement {
     // Center — drag / select
 
     private handleCenterDown = (e: PointerEvent): void => {
+        window.getSelection()?.removeAllRanges();
         e.preventDefault();
         e.stopPropagation();
         this._dragActive      = false;

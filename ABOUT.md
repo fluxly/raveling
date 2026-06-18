@@ -29,9 +29,6 @@
 
 ### Assemblies (Composite elements, desktop accessories, app-in-a-box)
     + ravel-signal-collector
-    - ravel-control-bar
-    - ravel-dashboard
-    + ravel-dock
     + ravel-field-recorder
 
 ### Brokers (Protocol and communication wranglers)
@@ -46,8 +43,8 @@
     ravel-gadget
     ravel-glottalizer
     ravel-pink-trombone
-    ++ ravel-qr-reader
-    ++ ravel-hand-tracker
+    ravel-qr-reader
+    ravel-hand-tracker
 
 ### Gidgets (Interactive virtual elements)
     ravel-alert
@@ -56,32 +53,30 @@
     ravel-button
     ravel-card
     ravel-carousel
+    + ravel-dock
     ravel-fluxly-sound-engine
     ravel-filmstrip
     ravel-fluxum
     ravel-help
-    + ravel-menu
-    + ravel-nonagram
+    ravel-menu
+    ravel-nonagram
     ravel-p5-canvas
-    ++ ravel-pd-synth
-    + ravel-physics-world
-    + ravel-playlist
-    + ravel-recorder
+    ravel-pd-synth
+    ravel-physics-world
+    ravel-playlist
     ravel-roll
     ravel-roll-perf
     ravel-roll-track
     + rss-card
     ravel-sequence
-    + ravel-signal
-    + ravel-sound (nee ravel-sample)
-    ++ ravel-visualizer (1 and 2)
+    ravel-sound
+    ravel-visualizer
 
 ### Gidgets Bespoke (Atypical or one-off gidgets)
     ++ ravel-cgol-grid
     ++ ravel-circular-sequence
     + ravel-crossfade-background
     + ravel-emoji-grid
-    + ravel-fluxum
     + ravel-lcd
     + ravel-led
     + ravel-led-array

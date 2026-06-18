@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0,user-scalable=0"/>
+    <title>Fluxum Test</title>
+    <meta name="description" content="Ravel">
+    <!-- NOTE: P5 has to load before Box2d here!-->
+    <script src="../../../../../../core/libs/p5.min.js"></script>
+    <script src="../../../../../../core/libs/Box2d.min.js"></script>
+
+    <script type="module" src="../../../../index.js"></script>
+    <style>
+        body {
+            margin: 0px;
+            background-color: #bbbb00;
+        }
+        #page {
+            width: 100vw;
+            height: 100vh;
+        }
+        #controls {
+            position: fixed;
+            left: 20px;
+            bottom: 20px;
+            border: 2px dotted red;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+<div id="page">
+    <ravel-visualizer-2 id="viz-1" width="1000" height="200" x="100" y="100" pixel-size="5"></ravel-visualizer-2>
+</div>
+<div id="controls">
+    <button id="play">Play</button>
+    <button id="stop">Stop</button>
+</div>
+<script>
+    
+    window.addEventListener('load', async () => {
+        const ctx = new AudioContext();
+        const resp = await fetch("foo-2.wav");
+        const buf = await resp.arrayBuffer();
+        const audioBuffer = await ctx.decodeAudioData(buf);
+
+        const viz = document.querySelector("#viz-1");
+        viz.setBuffer(audioBuffer);
+
+        let source = null;
+        let startTime = 0;
+        let loop = true;
+        let isPlaying = false;
+
+        function play() {
+            if (isPlaying) return;
+
+            source = ctx.createBufferSource();
+            source.buffer = audioBuffer;
+            source.connect(ctx.destination);
+            source.loop = loop;
+
+            startTime = ctx.currentTime;
+            source.start();
+            isPlaying = true;
+
+            // when playback ends (if not looping)
+            source.onended = () => {
+            if (!loop) {
+                isPlaying = false;
+                viz.setPosition(null); // hide cursor
+            }
+            };
+        }
+
+        function stop() {
+            if (source) {
+            try { source.stop(); } catch {}
+                source.disconnect();
+                source = null;
+            }
+            isPlaying = false;
+            viz.setPosition(null);
+        }
+
+        // Update visualizer cursor
+        function update() {
+            if (isPlaying) {
+                const elapsed = (ctx.currentTime - startTime) % audioBuffer.duration;
+                const sampleIndex = Math.floor(elapsed * audioBuffer.sampleRate);
+                viz.setPosition(sampleIndex);
+            }
+            requestAnimationFrame(update);
+        }
+        update();
+
+        // UI bindings
+        document.querySelector("#play").addEventListener("click", play);
+        document.querySelector("#stop").addEventListener("click", stop);
+    });
+
+    
+
+</script>
+</body>
+</html>

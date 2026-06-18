@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+  <title>ravel-visualizer sandbox</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Silkscreen&family=Quantico:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+  <!-- p5 must load before the component module -->
+  <script src="../../../../../../core/libs/p5.min.js"></script>
+  <script type="module" src="/index.ts"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+
+    :root {
+      --ground:        #303030;
+      --well:          #1a1a1a;
+      --muted:         #666666;
+      --rule:          rgba(102,102,102,.40);
+      --fluoro-pink:   #FF37A8;
+      --fluoro-orange: #FE6810;
+      --fluoro-lime:   #A7FF00;
+      --fluoro-cyan:   #00F0FF;
+    }
+
+    body {
+      margin: 0;
+      padding: 40px 44px;
+      background: var(--ground);
+      font-family: 'Silkscreen', monospace;
+      font-size: 1rem;
+      line-height: 1.3;
+      border: 10px solid #ff0000;
+      box-shadow: 0px 0px 0px 10px inset #ffcc00;
+      min-height: 100vh;
+    }
+
+    h1 {
+      font-size: 2rem;
+      color: #ffffff;
+      margin: 0 0 8px 0;
+      border-bottom: 10px solid var(--fluoro-cyan);
+      display: inline-block;
+      padding-bottom: 2px;
+    }
+
+    .subtitle {
+      font-family: 'Quantico', monospace;
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin: 0 0 48px 0;
+    }
+
+    /* ── Two-column layout ──────────────────────────────────────── */
+    .demo-row {
+      display: flex;
+      gap: 48px;
+      flex-wrap: wrap;
+      align-items: flex-start;
+    }
+
+    .demo-col {
+      flex: 1;
+      min-width: 320px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .col-title {
+      font-family: 'Silkscreen', monospace;
+      font-size: 0.75rem;
+      color: #ffffff;
+      letter-spacing: 0.12em;
+      border-bottom: 3px solid var(--fluoro-cyan);
+      padding-bottom: 4px;
+      display: inline-block;
+      margin-bottom: 4px;
+    }
+
+    .col-title.orange { border-color: var(--fluoro-orange); }
+
+    /* ── Visualizer stage ───────────────────────────────────────── */
+    .viz-stage {
+      background: var(--well);
+      border: 2px dotted var(--rule);
+      border-radius: 4px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 16px;
+    }
+
+    .element-label {
+      font-family: 'Quantico', monospace;
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+
+    /* ── Controls panel ─────────────────────────────────────────── */
+    .stage {
+      background: var(--well);
+      border: 2px dotted var(--rule);
+      border-radius: 4px;
+      padding: 18px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .ctrl-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+      gap: 12px 14px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .field-label {
+      font-family: 'Quantico', monospace;
+      font-size: 0.68rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    input[type="number"],
+    input[type="text"] {
+      background: #111;
+      border: 1px solid var(--rule);
+      border-radius: 4px;
+      color: rgba(255,255,255,0.82);
+      font-family: 'Quantico', monospace;
+      font-size: 0.75rem;
+      padding: 5px 7px;
+      outline: none;
+      width: 100%;
+      transition: border-color 0.12s;
+    }
+    input[type="number"]:focus,
+    input[type="text"]:focus  { border-color: var(--fluoro-cyan); }
+
+    input[type="color"] {
+      width: 100%;
+      height: 28px;
+      padding: 2px 3px;
+      border: 1px solid var(--rule);
+      border-radius: 4px;
+      background: #111;
+      cursor: pointer;
+    }
+
+    .ctrl-row {
+      display: flex;
+      gap: 8px;
+      align-items: flex-end;
+      flex-wrap: wrap;
+      margin-top: 4px;
+    }
+
+    .ctrl-btn {
+      background: transparent;
+      border: 1px solid var(--rule);
+      border-radius: 4px;
+      padding: 6px 14px;
+      font-family: 'Silkscreen', monospace;
+      font-size: 0.65rem;
+      color: var(--muted);
+      cursor: pointer;
+      transition: color 0.12s, border-color 0.12s;
+      white-space: nowrap;
+    }
+    .ctrl-btn:hover        { color: var(--fluoro-cyan); border-color: var(--fluoro-cyan); }
+    .ctrl-btn.apply        { color: var(--fluoro-lime); border-color: var(--fluoro-lime); }
+    .ctrl-btn.apply:hover  { background: rgba(167,255,0,0.08); }
+    .ctrl-btn.play         { color: var(--fluoro-cyan); border-color: var(--fluoro-cyan); }
+    .ctrl-btn.stop         { color: var(--fluoro-orange); border-color: var(--fluoro-orange); }
+    .ctrl-btn:disabled     { opacity: 0.3; pointer-events: none; }
+
+    hr {
+      border: none;
+      border-top: 1px solid var(--rule);
+      margin: 0;
+    }
+
+    /* ── Status chip ────────────────────────────────────────────── */
+    .status {
+      font-family: 'Quantico', monospace;
+      font-size: 0.68rem;
+      color: var(--muted);
+      padding: 3px 8px;
+      border: 1px solid var(--rule);
+      border-radius: 99px;
+      display: inline-block;
+    }
+    .status.playing { color: var(--fluoro-lime); border-color: var(--fluoro-lime); }
+
+    /* ── Note ────────────────────────────────────────────────────── */
+    .note {
+      font-size: 0.72rem;
+      color: var(--muted);
+      border-left: 2px solid var(--rule);
+      padding-left: 10px;
+      line-height: 1.8;
+      font-family: 'Quantico', monospace;
+    }
+    .note code {
+      background: rgba(255,255,255,0.07);
+      border-radius: 3px;
+      padding: 1px 5px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>ravel-visualizer</h1>
+  <p class="subtitle">type="oscilloscope" · live waveform via AnalyserNode &nbsp;|&nbsp; type="buffer" · static waveform from AudioBuffer</p>
+
+  <div class="demo-row">
+
+    <!-- ── Oscilloscope column ─────────────────────────────────── -->
+    <div class="demo-col">
+      <span class="col-title">type = oscilloscope</span>
+
+      <div class="viz-stage">
+        <div class="element-label">live waveform · feed an AnalyserNode via setAnalyser()</div>
+        <ravel-visualizer id="viz-osc" type="oscilloscope"
+          w="400" h="180" pixel-size="10"></ravel-visualizer>
+      </div>
+
+      <div class="stage">
+        <div class="ctrl-row">
+          <button class="ctrl-btn play" id="osc-play">Play</button>
+          <button class="ctrl-btn stop" id="osc-stop" disabled>Stop</button>
+          <span class="status" id="osc-status">stopped</span>
+        </div>
+        <hr>
+        <div class="ctrl-grid">
+          <div class="field">
+            <span class="field-label">w</span>
+            <input type="number" id="osc-w" value="400" min="60" step="10">
+          </div>
+          <div class="field">
+            <span class="field-label">h</span>
+            <input type="number" id="osc-h" value="180" min="40" step="10">
+          </div>
+          <div class="field">
+            <span class="field-label">pixel-size</span>
+            <input type="number" id="osc-ps" value="10" min="2" step="2">
+          </div>
+          <div class="field">
+            <span class="field-label">color</span>
+            <input type="color" id="osc-color" value="#111111">
+          </div>
+        </div>
+        <div class="ctrl-row">
+          <button class="ctrl-btn apply" id="osc-apply">Apply</button>
+        </div>
+      </div>
+
+      <div class="stage" style="padding:16px 18px">
+        <p class="note">
+          <code>setAnalyser(node)</code> — connect a Web Audio <code>AnalyserNode</code>.<br>
+          The sketch reads <code>getByteTimeDomainData</code> at 15 fps.
+        </p>
+      </div>
+    </div>
+
+    <!-- ── Buffer column ──────────────────────────────────────────── -->
+    <div class="demo-col">
+      <span class="col-title orange">type = buffer</span>
+
+      <div class="viz-stage">
+        <div class="element-label">static waveform · feed an AudioBuffer via setBuffer()</div>
+        <ravel-visualizer id="viz-buf" type="buffer"
+          w="400" h="180" pixel-size="8"></ravel-visualizer>
+      </div>
+
+      <div class="stage">
+        <div class="ctrl-row">
+          <button class="ctrl-btn play" id="buf-play" disabled>Play</button>
+          <button class="ctrl-btn stop" id="buf-stop" disabled>Stop</button>
+          <span class="status" id="buf-status">loading…</span>
+        </div>
+        <hr>
+        <div class="ctrl-grid">
+          <div class="field">
+            <span class="field-label">w</span>
+            <input type="number" id="buf-w" value="400" min="60" step="10">
+          </div>
+          <div class="field">
+            <span class="field-label">h</span>
+            <input type="number" id="buf-h" value="180" min="40" step="10">
+          </div>
+          <div class="field">
+            <span class="field-label">pixel-size</span>
+            <input type="number" id="buf-ps" value="8" min="2" step="2">
+          </div>
+          <div class="field">
+            <span class="field-label">color</span>
+            <input type="color" id="buf-color" value="#111111">
+          </div>
+        </div>
+        <div class="ctrl-row">
+          <button class="ctrl-btn apply" id="buf-apply">Apply</button>
+        </div>
+      </div>
+
+      <div class="stage" style="padding:16px 18px">
+        <p class="note">
+          <code>setBuffer(audioBuffer)</code> — load a decoded AudioBuffer.<br>
+          <code>setPosition(sampleIndex | null)</code> — update playhead; <code>null</code> hides it.<br>
+          Playhead drawn as concentric circles at 30 fps.
+        </p>
+      </div>
+    </div>
+
+  </div><!-- .demo-row -->
+
+  <script type="module">
+    // ── Oscilloscope setup ─────────────────────────────────────
+    const vizOsc    = document.getElementById('viz-osc');
+    const oscPlay   = document.getElementById('osc-play');
+    const oscStop   = document.getElementById('osc-stop');
+    const oscStatus = document.getElementById('osc-status');
+
+    let oscCtx    = null;
+    let oscSource = null;
+    let oscBuffer = null;
+
+    window.addEventListener('load', async () => {
+      try {
+        const resp = await fetch('oscilloscope.wav');
+        const raw  = await resp.arrayBuffer();
+        oscCtx     = new AudioContext();
+        oscBuffer  = await oscCtx.decodeAudioData(raw);
+
+        const analyser = oscCtx.createAnalyser();
+        analyser.fftSize = 256;
+        analyser.connect(oscCtx.destination);
+        vizOsc.setAnalyser(analyser);
+
+        oscPlay.addEventListener('click', () => {
+          if (oscCtx.state === 'suspended') oscCtx.resume();
+          oscSource = oscCtx.createBufferSource();
+          oscSource.buffer = oscBuffer;
+          oscSource.loop   = true;
+          oscSource.connect(analyser);
+          oscSource.start();
+          oscPlay.disabled = true;
+          oscStop.disabled = false;
+          oscStatus.textContent = 'playing';
+          oscStatus.className   = 'status playing';
+          oscSource.onended = () => {
+            oscPlay.disabled = false;
+            oscStop.disabled = true;
+            oscStatus.textContent = 'stopped';
+            oscStatus.className   = 'status';
+          };
+        });
+
+        oscStop.addEventListener('click', () => {
+          if (oscSource) { try { oscSource.stop(); } catch {} oscSource = null; }
+          oscPlay.disabled = false;
+          oscStop.disabled = true;
+          oscStatus.textContent = 'stopped';
+          oscStatus.className   = 'status';
+        });
+      } catch (e) {
+        oscStatus.textContent = 'load error';
+        console.error('[osc]', e);
+      }
+    });
+
+    document.getElementById('osc-apply').addEventListener('click', () => {
+      vizOsc.setAttribute('w',          document.getElementById('osc-w').value);
+      vizOsc.setAttribute('h',          document.getElementById('osc-h').value);
+      vizOsc.setAttribute('pixel-size', document.getElementById('osc-ps').value);
+      vizOsc.setAttribute('color',      document.getElementById('osc-color').value);
+    });
+
+    // ── Buffer setup ───────────────────────────────────────────
+    const vizBuf    = document.getElementById('viz-buf');
+    const bufPlay   = document.getElementById('buf-play');
+    const bufStop   = document.getElementById('buf-stop');
+    const bufStatus = document.getElementById('buf-status');
+
+    let bufCtx       = null;
+    let bufAudioBuf  = null;
+    let bufSource    = null;
+    let bufStartTime = 0;
+    let bufPlaying   = false;
+    let bufRafId     = null;
+
+    window.addEventListener('load', async () => {
+      try {
+        const resp    = await fetch('buffer.wav');
+        const raw     = await resp.arrayBuffer();
+        bufCtx        = new AudioContext();
+        bufAudioBuf   = await bufCtx.decodeAudioData(raw);
+        vizBuf.setBuffer(bufAudioBuf);
+
+        bufPlay.disabled = false;
+        bufStatus.textContent = 'ready';
+        bufStatus.className   = 'status';
+
+        bufPlay.addEventListener('click', () => {
+          if (bufPlaying) return;
+          if (bufCtx.state === 'suspended') bufCtx.resume();
+          bufSource      = bufCtx.createBufferSource();
+          bufSource.buffer = bufAudioBuf;
+          bufSource.loop   = true;
+          bufSource.connect(bufCtx.destination);
+          bufStartTime   = bufCtx.currentTime;
+          bufSource.start();
+          bufPlaying     = true;
+          bufPlay.disabled = true;
+          bufStop.disabled = false;
+          bufStatus.textContent = 'playing';
+          bufStatus.className   = 'status playing';
+
+          function tick() {
+            if (!bufPlaying) return;
+            const elapsed    = (bufCtx.currentTime - bufStartTime) % bufAudioBuf.duration;
+            const sampleIdx  = Math.floor(elapsed * bufAudioBuf.sampleRate);
+            vizBuf.setPosition(sampleIdx);
+            bufRafId = requestAnimationFrame(tick);
+          }
+          tick();
+
+          // Capture source reference — stopBuf() nulls bufSource before stop()
+          // completes, so reading bufSource.loop in onended would throw.
+          const startedSource = bufSource;
+          startedSource.onended = () => {
+            if (!startedSource.loop) stopBuf();
+          };
+        });
+
+        bufStop.addEventListener('click', stopBuf);
+
+      } catch (e) {
+        bufStatus.textContent = 'load error';
+        console.error('[buf]', e);
+      }
+    });
+
+    function stopBuf() {
+      if (bufSource) { try { bufSource.stop(); } catch {} bufSource = null; }
+      if (bufRafId)  { cancelAnimationFrame(bufRafId); bufRafId = null; }
+      bufPlaying       = false;
+      bufPlay.disabled = false;
+      bufStop.disabled = true;
+      bufStatus.textContent = 'stopped';
+      bufStatus.className   = 'status';
+      vizBuf.setPosition(null);
+    }
+
+    document.getElementById('buf-apply').addEventListener('click', () => {
+      vizBuf.setAttribute('w',          document.getElementById('buf-w').value);
+      vizBuf.setAttribute('h',          document.getElementById('buf-h').value);
+      vizBuf.setAttribute('pixel-size', document.getElementById('buf-ps').value);
+      vizBuf.setAttribute('color',      document.getElementById('buf-color').value);
+    });
+  </script>
+
+</body>
+</html>

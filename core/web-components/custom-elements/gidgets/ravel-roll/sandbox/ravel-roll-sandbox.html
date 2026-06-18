@@ -1,177 +1,333 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"/>
-    <title>ravel-roll Sandbox</title>
-    <script type="module" src="../ravel-roll.ts"></script>
-    <script type="module" src="../../ravel-roll-track/ravel-roll-track.ts"></script>
-    <script type="module" src="../../ravel-roll-perf/ravel-roll-perf.ts"></script>
-    <style>
-        *, *::before, *::after { box-sizing: border-box; }
-        body {
-            background: #13131f;
-            color: #d0d0e8;
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            font-size: 13px;
-            margin: 0;
-            padding: 16px;
-        }
-        h3 {
-            margin: 0 0 10px;
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            color: #666688;
-        }
-        .panel {
-            background: #0d0d1e;
-            border: 1px solid #2a2a44;
-            border-radius: 8px;
-            padding: 14px 16px;
-            margin-bottom: 14px;
-        }
-        .row {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            align-items: flex-end;
-        }
-        label {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-            color: #8888aa;
-            font-size: 11px;
-        }
-        input[type="number"] {
-            background: #1a1a30;
-            border: 1px solid #3a3a5a;
-            border-radius: 4px;
-            color: #d0d0e8;
-            padding: 4px 8px;
-            font-size: 13px;
-            width: 76px;
-            outline: none;
-        }
-        input[type="text"] {
-            background: #1a1a30;
-            border: 1px solid #3a3a5a;
-            border-radius: 4px;
-            color: #d0d0e8;
-            padding: 4px 8px;
-            font-size: 13px;
-            width: 260px;
-            outline: none;
-        }
-        button {
-            background: #3355cc;
-            color: #fff;
-            border: none;
-            border-radius: 5px;
-            padding: 5px 14px;
-            font-size: 13px;
-            cursor: pointer;
-            height: 28px;
-        }
-        button:hover { background: #4466dd; }
-        button.ghost {
-            background: transparent;
-            border: 1px solid #3a3a5a;
-            color: #8888aa;
-        }
-        button.ghost:hover { border-color: #5577ff; color: #d0d0e8; }
-        #log {
-            height: 100px;
-            overflow-y: auto;
-            font-family: monospace;
-            font-size: 11px;
-            background: #08080f;
-            border: 1px solid #1e1e36;
-            border-radius: 4px;
-            padding: 6px 8px;
-        }
-        .log-line { padding: 1px 0; color: #4466aa; }
-        .log-line.add   { color: #66cc88; }
-        .log-line.move  { color: #ffaa44; }
-    </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+  <title>ravel-roll sandbox</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Silkscreen&family=Quantico:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+  <script type="module" src="/index.ts"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+
+    :root {
+      --ground:        #303030;
+      --well:          #1a1a1a;
+      --muted:         #666666;
+      --rule:          rgba(102,102,102,.40);
+      --fluoro-pink:   #FF37A8;
+      --fluoro-orange: #FE6810;
+      --fluoro-lime:   #A7FF00;
+      --fluoro-cyan:   #00F0FF;
+    }
+
+    body {
+      margin: 0;
+      padding: 40px 44px;
+      background: var(--ground);
+      font-family: 'Silkscreen', monospace;
+      font-size: 1rem;
+      line-height: 1.3;
+      border: 10px solid #ff0000;
+      box-shadow: 0px 0px 0px 10px inset #ffcc00;
+      min-height: 100vh;
+    }
+
+    h1 {
+      font-size: 2rem;
+      color: #ffffff;
+      margin: 0 0 8px 0;
+      border-bottom: 10px solid var(--fluoro-cyan);
+      display: inline-block;
+      padding-bottom: 2px;
+    }
+
+    .subtitle {
+      font-family: 'Quantico', monospace;
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin: 0 0 40px 0;
+    }
+
+    .element-col  { display: flex; flex-direction: column; gap: 32px; }
+    .element-cell { display: flex; flex-direction: column; gap: 8px; }
+    .element-label { font-family: 'Quantico', monospace; font-size: 0.85rem; color: var(--muted); }
+
+    /* ── Roll stage ───────────────────────────────────────── */
+    .roll-stage {
+      background: var(--well);
+      border: 2px dotted var(--rule);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    ravel-roll {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+    }
+
+    /* ── Controls panel ───────────────────────────────────── */
+    .stage {
+      background: var(--well);
+      border: 2px dotted var(--rule);
+      border-radius: 4px;
+      padding: 20px 24px;
+    }
+
+    .ctrl-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+      gap: 14px 16px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .field-label {
+      font-family: 'Quantico', monospace;
+      font-size: 0.72rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    input[type="number"],
+    input[type="text"] {
+      background: #111;
+      border: 1px solid var(--rule);
+      border-radius: 4px;
+      color: rgba(255,255,255,0.82);
+      font-family: 'Quantico', monospace;
+      font-size: 0.78rem;
+      padding: 6px 8px;
+      outline: none;
+      width: 100%;
+      transition: border-color 0.12s;
+    }
+    input[type="number"]:focus,
+    input[type="text"]:focus  { border-color: var(--fluoro-cyan); }
+
+    .ctrl-row {
+      display: flex;
+      gap: 10px;
+      align-items: flex-end;
+      flex-wrap: wrap;
+      margin-top: 16px;
+    }
+
+    .ctrl-row .field { flex: 1; min-width: 180px; }
+
+    .ctrl-btn {
+      background: transparent;
+      border: 1px solid var(--rule);
+      border-radius: 4px;
+      padding: 7px 16px;
+      font-family: 'Silkscreen', monospace;
+      font-size: 0.7rem;
+      color: var(--muted);
+      cursor: pointer;
+      transition: color 0.12s, border-color 0.12s;
+      white-space: nowrap;
+      align-self: flex-end;
+    }
+    .ctrl-btn:hover        { color: var(--fluoro-cyan); border-color: var(--fluoro-cyan); }
+    .ctrl-btn.apply        { color: var(--fluoro-lime); border-color: var(--fluoro-lime); }
+    .ctrl-btn.apply:hover  { background: rgba(167,255,0,0.08); }
+
+    /* ── Event log ────────────────────────────────────────── */
+    .log {
+      background: var(--well);
+      border: 1px solid var(--rule);
+      border-radius: 4px;
+      padding: 10px 14px;
+      font-family: 'Quantico', monospace;
+      font-size: 0.72rem;
+      color: var(--muted);
+      height: 100px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+    }
+
+    .log-line-add  { color: var(--fluoro-lime); }
+    .log-line-move { color: var(--fluoro-orange); }
+
+    /* ── Note ─────────────────────────────────────────────── */
+    .note {
+      font-size: 0.75rem;
+      color: var(--muted);
+      border-left: 2px solid var(--rule);
+      padding-left: 10px;
+      line-height: 1.8;
+      font-family: 'Quantico', monospace;
+    }
+    .note code {
+      background: rgba(255,255,255,0.07);
+      border-radius: 3px;
+      padding: 1px 5px;
+    }
+  </style>
 </head>
 <body>
 
-<h3>Piano Roll — shift+click a track to add a note, drag to move</h3>
+  <h1>ravel-roll</h1>
+  <p class="subtitle">Piano roll — shift+click a track to paint a note · drag to move</p>
 
-<ravel-roll id="roll" unit-width="2" quantum="8" track-h="20" tick="32" tick-mul="4" length="512" h="700"></ravel-roll>
+  <div class="element-col">
 
-<div class="panel" style="margin-top:14px">
-    <h3>Controls</h3>
-    <div class="row">
-        <label>unit-width  <input type="number" id="inp-uw"  value="2"   min="1"  step="1"></label>
-        <label>quantum     <input type="number" id="inp-q"   value="8"   min="1"  step="1"></label>
-        <label>track-h     <input type="number" id="inp-th"  value="20"  min="8"  step="2"></label>
-        <label>tick         <input type="number" id="inp-tick" value="32" min="0"  step="1"></label>
-        <label>tick-mul    <input type="number" id="inp-tmu" value="4"   min="1"  step="1"></label>
-        <label>length (units) <input type="number" id="inp-len" value="512" min="8" step="8"></label>
-        <label>height (px) <input type="number" id="inp-h"   value="400" min="100" step="50"></label>
-        <button id="btn-apply">Apply</button>
+    <!-- ── Piano roll ─────────────────────────────────────── -->
+    <div class="element-cell">
+      <div class="element-label">87 chromatic tracks · onion skin · MIDI import/export</div>
+      <div class="roll-stage">
+        <ravel-roll
+          id="roll"
+          unit-width="2"
+          quantum="8"
+          track-h="20"
+          tick="32"
+          tick-mul="4"
+          length="512"
+          h="600">
+        </ravel-roll>
+      </div>
     </div>
-    <div class="row" style="margin-top:10px">
-        <label style="flex:1">onion-src (SVG path)
-            <input type="text" id="inp-onion" value="/tools/midi-sample-output.svg">
-        </label>
-        <button id="btn-onion">Load</button>
-        <button class="ghost" id="btn-onion-clear">Clear</button>
+
+    <!-- ── Controls ───────────────────────────────────────── -->
+    <div class="element-cell">
+      <div class="element-label">attributes</div>
+      <div class="stage">
+        <div class="ctrl-grid">
+          <div class="field">
+            <span class="field-label">unit-width</span>
+            <input type="number" id="inp-uw"   value="2"   min="1"   step="1">
+          </div>
+          <div class="field">
+            <span class="field-label">quantum</span>
+            <input type="number" id="inp-q"    value="8"   min="1"   step="1">
+          </div>
+          <div class="field">
+            <span class="field-label">track-h</span>
+            <input type="number" id="inp-th"   value="20"  min="8"   step="2">
+          </div>
+          <div class="field">
+            <span class="field-label">tick</span>
+            <input type="number" id="inp-tick" value="32"  min="0"   step="1">
+          </div>
+          <div class="field">
+            <span class="field-label">tick-mul</span>
+            <input type="number" id="inp-tmu"  value="4"   min="1"   step="1">
+          </div>
+          <div class="field">
+            <span class="field-label">length (units)</span>
+            <input type="number" id="inp-len"  value="512" min="8"   step="8">
+          </div>
+          <div class="field">
+            <span class="field-label">height (px)</span>
+            <input type="number" id="inp-h"    value="600" min="100" step="50">
+          </div>
+        </div>
+
+        <div class="ctrl-row">
+          <button class="ctrl-btn apply" id="btn-apply">Apply</button>
+        </div>
+
+        <div class="ctrl-row" style="margin-top:20px">
+          <div class="field">
+            <span class="field-label">onion-src (SVG path)</span>
+            <input type="text" id="inp-onion" value="/tools/midi-sample-output.svg" style="width:100%">
+          </div>
+          <button class="ctrl-btn" id="btn-onion">Load</button>
+          <button class="ctrl-btn" id="btn-onion-clear">Clear</button>
+        </div>
+      </div>
     </div>
-</div>
 
-<div class="panel">
-    <h3>Event Log  <button class="ghost" id="btn-clear" style="font-size:11px;padding:2px 8px;height:auto;float:right">Clear</button></h3>
-    <div id="log"></div>
-</div>
+    <!-- ── Event log ──────────────────────────────────────── -->
+    <div class="element-cell">
+      <div class="element-label" style="display:flex;justify-content:space-between;align-items:center">
+        <span>event log</span>
+        <button class="ctrl-btn" id="btn-clear" style="padding:3px 10px;font-size:0.6rem">Clear</button>
+      </div>
+      <div class="log" id="log">waiting for events…</div>
+    </div>
 
-<script>
-    const roll   = document.getElementById('roll');
-    const logEl  = document.getElementById('log');
+    <!-- ── Reference ──────────────────────────────────────── -->
+    <div class="element-cell">
+      <div class="element-label">attributes</div>
+      <div class="stage" style="padding:20px">
+        <p class="note">
+          <code>unit-width</code> — px per roll unit (1 unit = 1/128th note).<br>
+          <code>quantum</code> — snap grid in units.<br>
+          <code>track-h</code> — height of each pitch row in px.<br>
+          <code>tick</code> / <code>tick-mul</code> — ruler line interval and emphasis multiple.<br>
+          <code>length</code> — total roll width in units.<br>
+          <code>h</code> — component height in px.<br>
+          <code>tracks</code> — number of chromatic rows (default 87).<br>
+          <code>show-keyboard</code> — show/hide the sticky piano keyboard strip.<br>
+          <code>onion-src</code> — URL of an SVG to overlay as a reference layer.<br>
+          <br>
+          <strong>Interaction:</strong> shift+click a row to paint a note · drag a note to move it.<br>
+          <strong>Control bar:</strong> offset slider · width slider · length slider · MIDI IN · MIDI out.
+        </p>
+      </div>
+    </div>
+
+  </div>
+
+  <script type="module">
+    const roll  = document.getElementById('roll');
+    const logEl = document.getElementById('log');
+    let lines = [];
 
     function addLog(text, cls = '') {
-        const d = document.createElement('div');
-        d.className = 'log-line ' + cls;
-        const t = new Date().toLocaleTimeString('en', { hour12: false });
-        d.textContent = `[${t}] ${text}`;
-        logEl.prepend(d);
+      const span = document.createElement('span');
+      if (cls) span.className = `log-line-${cls}`;
+      const t = new Date().toLocaleTimeString('en', { hour12: false });
+      span.textContent = `[${t}] ${text}`;
+      lines.unshift(span.outerHTML);
+      if (lines.length > 20) lines.length = 20;
+      logEl.innerHTML = lines.join('\n');
     }
 
-    document.getElementById('btn-clear').addEventListener('click', () => { logEl.innerHTML = ''; });
+    document.getElementById('btn-clear').addEventListener('click', () => {
+      lines = [];
+      logEl.textContent = 'cleared';
+    });
 
     window.addEventListener('ravel-roll-track', (e) => {
-        if (e.detail?.cmd !== 'state-change') return;
-        const s = e.detail.content;
-        if (s.perfs.length) addLog(`${s.id}  perfs=${s.perfs.length}`, 'add');
+      if (e.detail?.cmd !== 'state-change') return;
+      const s = e.detail.content;
+      if (s.perfs.length) addLog(`${s.id}  perfs=${s.perfs.length}`, 'add');
     });
 
     window.addEventListener('ravel-roll-perf', (e) => {
-        if (e.detail?.cmd !== 'undock') return;
-        addLog(`drag  ${e.detail.content?.id || '?'}`, 'move');
-    });
-
-    document.getElementById('btn-onion').addEventListener('click', () => {
-        const src = document.getElementById('inp-onion').value.trim();
-        if (src) roll.setAttribute('onion-src', src);
-    });
-
-    document.getElementById('btn-onion-clear').addEventListener('click', () => {
-        document.getElementById('inp-onion').value = '';
-        roll.removeAttribute('onion-src');
+      if (e.detail?.cmd !== 'undock') return;
+      addLog(`drag  ${e.detail.content?.id || '?'}`, 'move');
     });
 
     document.getElementById('btn-apply').addEventListener('click', () => {
-        roll.setAttribute('unit-width', document.getElementById('inp-uw').value);
-        roll.setAttribute('quantum',    document.getElementById('inp-q').value);
-        roll.setAttribute('track-h',   document.getElementById('inp-th').value);
-        roll.setAttribute('tick',      document.getElementById('inp-tick').value);
-        roll.setAttribute('tick-mul',  document.getElementById('inp-tmu').value);
-        roll.setAttribute('length',    document.getElementById('inp-len').value);
-        roll.setAttribute('h',         document.getElementById('inp-h').value);
+      roll.setAttribute('unit-width', document.getElementById('inp-uw').value);
+      roll.setAttribute('quantum',    document.getElementById('inp-q').value);
+      roll.setAttribute('track-h',   document.getElementById('inp-th').value);
+      roll.setAttribute('tick',      document.getElementById('inp-tick').value);
+      roll.setAttribute('tick-mul',  document.getElementById('inp-tmu').value);
+      roll.setAttribute('length',    document.getElementById('inp-len').value);
+      roll.setAttribute('h',         document.getElementById('inp-h').value);
     });
-</script>
+
+    document.getElementById('btn-onion').addEventListener('click', () => {
+      const src = document.getElementById('inp-onion').value.trim();
+      if (src) roll.setAttribute('onion-src', src);
+    });
+
+    document.getElementById('btn-onion-clear').addEventListener('click', () => {
+      document.getElementById('inp-onion').value = '';
+      roll.removeAttribute('onion-src');
+    });
+  </script>
+
 </body>
 </html>

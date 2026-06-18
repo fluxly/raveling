@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0,user-scalable=0"/>
+    <title>Signal Collector Test</title>
+    <meta name="description" content="Ravel">
+    
+    <link rel="stylesheet" href="../../../../../../styles/styles.css">
+    <script src="../../../../../../core/libs/Box2d.min.js"></script>
+    <!-- Load libraries <script type="text/javascript" src="./libs/foo.js"></script> -->
+    <script type="module" src="../../../../index.js?version=1.0"></script>
+    <style>
+        body {
+            margin: 0px;
+        }
+        #page-wrapper {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        #picklist {
+            margin: 30px;
+        }
+    </style>
+</head>
+<body>
+<div id="page-wrapper">
+    <ravel-signal-collector label="ravel-signal-collector">
+        <ravel-signal icon="🍎" value="200"></ravel-signal>
+        <ravel-signal icon="🍏" value="42"></ravel-signal>
+        <ravel-signal icon="🏀"></ravel-signal>
+        <ravel-signal icon="⚽"></ravel-signal>
+    </ravel-signal-collector>
+
+    <ravel-slider slider-id="🍎"></ravel-slider>
+    <ravel-slider slider-id="🟣"></ravel-slider>
+    <div id="picklist"></div>
+    <ravel-dock id="collectors-dock" label="collectors"></ravel-dock>
+</div>
+
+</body>
+<script type="module">
+    import { RavelMessages } from "../../../../../modules/RavelMessages.js";
+    window.addEventListener('load', () => {
+        document.querySelector('#picklist').innerHTML += document.querySelector('ravel-signal-collector').getPicklist();
+    });
+</script>
+
+</html>

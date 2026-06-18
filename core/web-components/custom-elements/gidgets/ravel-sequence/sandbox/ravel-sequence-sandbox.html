@@ -1,215 +1,395 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"/>
-    <title>ravel-sequence Sandbox</title>
-    <script type="module" src="../../ravel-card/ravel-card.ts"></script>
-    <script type="module" src="../ravel-sequence.ts"></script>
-    <style>
-        *, *::before, *::after { box-sizing: border-box; }
-        html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; }
-        body {
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            font-size: 13px;
-        }
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+  <title>ravel-sequence sandbox</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Silkscreen&family=Quantico:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+  <script type="module" src="/index.ts"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
 
-        /* ── Floating control panel ────────────────────────── */
-        #controls {
-            position: fixed;
-            top: 16px;
-            right: 16px;
-            z-index: 200;
-            background: #0d0d1eee;
-            border: 1px solid #2a2a44;
-            border-radius: 8px;
-            padding: 14px 16px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            min-width: 260px;
-            backdrop-filter: blur(6px);
-            color: #d0d0e8;
-        }
-        h3 {
-            margin: 0 0 2px;
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            color: #666688;
-        }
-        .row {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-            align-items: center;
-        }
-        label {
-            display: flex;
-            flex-direction: column;
-            gap: 3px;
-            color: #8888aa;
-            font-size: 11px;
-        }
-        input[type="color"] {
-            width: 40px; height: 26px;
-            padding: 2px 3px;
-            border: 1px solid #3a3a5a;
-            border-radius: 4px;
-            background: #1a1a30;
-            cursor: pointer;
-        }
-        input[type="text"], input[type="number"] {
-            background: #1a1a30;
-            border: 1px solid #3a3a5a;
-            border-radius: 4px;
-            color: #d0d0e8;
-            padding: 3px 7px;
-            font-size: 12px;
-            width: 70px;
-            outline: none;
-        }
-        input[type="text"] { width: 60px; }
-        select {
-            background: #1a1a30;
-            border: 1px solid #3a3a5a;
-            border-radius: 4px;
-            color: #d0d0e8;
-            padding: 3px 7px;
-            font-size: 12px;
-            outline: none;
-        }
-        button {
-            background: #3355cc;
-            color: #fff;
-            border: none;
-            border-radius: 5px;
-            padding: 4px 12px;
-            font-size: 12px;
-            cursor: pointer;
-            height: 26px;
-        }
-        button:hover { background: #4466dd; }
-        hr { border: none; border-top: 1px solid #2a2a44; margin: 2px 0; }
+    :root {
+      --ground:        #303030;
+      --well:          #1a1a1a;
+      --muted:         #666666;
+      --rule:          rgba(102,102,102,.40);
+      --fluoro-pink:   #FF37A8;
+      --fluoro-orange: #FE6810;
+      --fluoro-lime:   #A7FF00;
+      --fluoro-cyan:   #00F0FF;
+    }
 
-        /* ── Event log ─────────────────────────────────────── */
-        #log {
-            max-height: 80px;
-            overflow-y: auto;
-            font-family: monospace;
-            font-size: 11px;
-            background: #08080f;
-            border: 1px solid #1e1e36;
-            border-radius: 4px;
-            padding: 5px 7px;
-        }
-        .log-line { padding: 1px 0; color: #4466aa; }
-        .log-line.nav { color: #66ddaa; }
-    </style>
+    html, body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #0a0a0a;
+    }
+
+    /* ── Frame content ──────────────────────────────────────── */
+    .frame-inner {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      padding: 40px;
+      text-align: center;
+    }
+
+    .frame-number {
+      font-family: 'Silkscreen', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.25em;
+      color: var(--muted);
+      margin-bottom: 24px;
+    }
+
+    .frame-title {
+      font-family: 'Silkscreen', monospace;
+      font-size: clamp(2rem, 6vw, 4.5rem);
+      color: #ffffff;
+      margin: 0 0 20px 0;
+      line-height: 1.1;
+    }
+
+    .frame-body {
+      font-family: 'Quantico', monospace;
+      font-size: clamp(0.85rem, 2vw, 1.1rem);
+      color: rgba(255,255,255,0.50);
+      max-width: 520px;
+      line-height: 1.7;
+      margin: 0;
+    }
+
+    .frame-body code {
+      color: var(--fluoro-cyan);
+      font-family: 'Quantico', monospace;
+    }
+
+    .accent-bar {
+      width: 48px;
+      height: 4px;
+      border-radius: 2px;
+      margin-bottom: 24px;
+    }
+
+    /* ── Floating control panel ─────────────────────────────── */
+    #controls {
+      position: fixed;
+      top: 16px;
+      right: 16px;
+      z-index: 200;
+      background: var(--well);
+      border: 2px dotted var(--rule);
+      border-radius: 4px;
+      padding: 16px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      min-width: 260px;
+    }
+
+    #controls h2 {
+      font-family: 'Silkscreen', monospace;
+      font-size: 0.8rem;
+      color: #ffffff;
+      margin: 0;
+      padding-bottom: 8px;
+      border-bottom: 2px solid var(--fluoro-cyan);
+      display: inline-block;
+    }
+
+    .ctrl-section {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .ctrl-row {
+      display: flex;
+      gap: 8px;
+      align-items: flex-end;
+      flex-wrap: wrap;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .field-label {
+      font-family: 'Quantico', monospace;
+      font-size: 0.65rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    select {
+      background: #111;
+      border: 1px solid var(--rule);
+      border-radius: 4px;
+      color: rgba(255,255,255,0.82);
+      font-family: 'Quantico', monospace;
+      font-size: 0.75rem;
+      padding: 5px 7px;
+      outline: none;
+      width: 68px;
+      transition: border-color 0.12s;
+    }
+    input[type="text"]:focus,
+    input[type="number"]:focus,
+    select:focus { border-color: var(--fluoro-cyan); }
+    select { width: auto; }
+
+    input[type="color"] {
+      width: 36px;
+      height: 28px;
+      padding: 2px 3px;
+      border: 1px solid var(--rule);
+      border-radius: 4px;
+      background: #111;
+      cursor: pointer;
+    }
+
+    .ctrl-btn {
+      background: transparent;
+      border: 1px solid var(--rule);
+      border-radius: 4px;
+      padding: 6px 14px;
+      font-family: 'Silkscreen', monospace;
+      font-size: 0.65rem;
+      color: var(--muted);
+      cursor: pointer;
+      transition: color 0.12s, border-color 0.12s;
+      white-space: nowrap;
+      align-self: flex-end;
+    }
+    .ctrl-btn:hover       { color: var(--fluoro-cyan); border-color: var(--fluoro-cyan); }
+    .ctrl-btn.apply       { color: var(--fluoro-lime); border-color: var(--fluoro-lime); }
+    .ctrl-btn.apply:hover { background: rgba(167,255,0,0.08); }
+
+    hr {
+      border: none;
+      border-top: 1px solid var(--rule);
+      margin: 0;
+    }
+
+    /* ── Event log ───────────────────────────────────────────── */
+    .log {
+      background: #111;
+      border: 1px solid var(--rule);
+      border-radius: 4px;
+      padding: 8px 10px;
+      font-family: 'Quantico', monospace;
+      font-size: 0.68rem;
+      color: var(--muted);
+      max-height: 72px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+    }
+    .log-line-nav { color: var(--fluoro-lime); }
+  </style>
 </head>
 <body>
 
-<ravel-sequence id="seq" start="0" icon="✦">
+  <ravel-sequence id="seq" start="0" icon="✦" pill-width="44%" pill-bottom="7vh">
 
-    <ravel-card color="#0a0a1a">
-        <h1 style="margin:0 0 16px; font-size:3rem; font-weight:200; letter-spacing:4px">Frame One</h1>
-        <p style="margin:0; font-size:1.1rem; color:rgba(255,255,255,0.55); max-width:420px; text-align:center; line-height:1.6">The first frame in the sequence. Use the buttons below to navigate forward.</p>
+    <!-- Frame 1 -->
+    <ravel-card color="#0a0a0f">
+      <div class="frame-inner">
+        <div class="frame-number">FRAME 01 / 05</div>
+        <div class="accent-bar" style="background: var(--fluoro-cyan)"></div>
+        <h1 class="frame-title">ravel-sequence</h1>
+        <p class="frame-body">
+          A full-viewport navigable stack. Each slotted child is a frame —
+          only one is visible at a time. Use the buttons below or the controls
+          panel to navigate.
+        </p>
+      </div>
     </ravel-card>
 
-    <ravel-card color="#0d1a0a">
-        <h1 style="margin:0 0 16px; font-size:3rem; font-weight:200; letter-spacing:4px">Frame Two</h1>
-        <p style="margin:0; font-size:1.1rem; color:rgba(255,255,255,0.55); max-width:420px; text-align:center; line-height:1.6">The second frame. The breadcrumbs and button states update automatically.</p>
+    <!-- Frame 2 -->
+    <ravel-card color="#0f0a0a">
+      <div class="frame-inner">
+        <div class="frame-number">FRAME 02 / 05</div>
+        <div class="accent-bar" style="background: var(--fluoro-orange)"></div>
+        <h1 class="frame-title">Breadcrumbs</h1>
+        <p class="frame-body">
+          The pill shows <code>dots</code> or <code>numbers</code> via
+          <code>breadcrumb-style</code>. Dot color is set with
+          <code>breadcrumb-color</code>. Try switching in the controls.
+        </p>
+      </div>
     </ravel-card>
 
-    <ravel-card color="#1a0a0d">
-        <h1 style="margin:0 0 16px; font-size:3rem; font-weight:200; letter-spacing:4px">Frame Three</h1>
-        <p style="margin:0; font-size:1.1rem; color:rgba(255,255,255,0.55); max-width:420px; text-align:center; line-height:1.6">Sequence position is tracked and broadcast on the <code style="color:#88aaff">ravel-sequence</code> channel.</p>
+    <!-- Frame 3 -->
+    <ravel-card color="#0a0f0a">
+      <div class="frame-inner">
+        <div class="frame-number">FRAME 03 / 05</div>
+        <div class="accent-bar" style="background: var(--fluoro-lime)"></div>
+        <h1 class="frame-title">Navigation</h1>
+        <p class="frame-body">
+          Prev / Next labels are set via <code>prev-label</code> and
+          <code>next-label</code>. The buttons disable automatically
+          at the first and last frame.
+        </p>
+      </div>
     </ravel-card>
 
-    <ravel-card color="#0f0a1a">
-        <h1 style="margin:0 0 16px; font-size:3rem; font-weight:200; letter-spacing:4px">Frame Four</h1>
-        <p style="margin:0; font-size:1.1rem; color:rgba(255,255,255,0.55); max-width:420px; text-align:center; line-height:1.6">Jump to any frame via the <code style="color:#88aaff">index</code> attribute or start at any frame via <code style="color:#88aaff">start</code>.</p>
+    <!-- Frame 4 -->
+    <ravel-card color="#0a0a0f">
+      <div class="frame-inner">
+        <div class="frame-number">FRAME 04 / 05</div>
+        <div class="accent-bar" style="background: var(--fluoro-pink)"></div>
+        <h1 class="frame-title">Jump</h1>
+        <p class="frame-body">
+          Set the <code>index</code> attribute at any time to jump to
+          a frame programmatically. Changes broadcast on the
+          <code>ravel-sequence</code> channel with cmd <code>change</code>.
+        </p>
+      </div>
     </ravel-card>
 
-    <ravel-card color="#1a150a">
-        <h1 style="margin:0 0 16px; font-size:3rem; font-weight:200; letter-spacing:4px">Frame Five</h1>
-        <p style="margin:0; font-size:1.1rem; color:rgba(255,255,255,0.55); max-width:420px; text-align:center; line-height:1.6">The last frame. The Next button is now disabled.</p>
+    <!-- Frame 5 -->
+    <ravel-card color="#0f0a08">
+      <div class="frame-inner">
+        <div class="frame-number">FRAME 05 / 05</div>
+        <div class="accent-bar" style="background: var(--fluoro-orange)"></div>
+        <h1 class="frame-title">Pill Position</h1>
+        <p class="frame-body">
+          The nav pill position is controlled by <code>pill-bottom</code>
+          and <code>pill-width</code>. The <code>icon</code> attribute sets
+          the glyph shown in the center of the pill.
+        </p>
+      </div>
     </ravel-card>
 
-</ravel-sequence>
+  </ravel-sequence>
 
-<!-- ── Controls ───────────────────────────────────────────── -->
-<div id="controls">
-    <h3>ravel-sequence</h3>
+  <!-- ── Controls ─────────────────────────────────────────────── -->
+  <div id="controls">
+    <h2>ravel-sequence</h2>
 
-    <div class="row">
-        <label>prev-label  <input type="text"   id="inp-prev"    value="←"></label>
-        <label>next-label  <input type="text"   id="inp-next"    value="→"></label>
-        <label>icon        <input type="text"   id="inp-icon"    value="✦"></label>
+    <div class="ctrl-section">
+      <div class="ctrl-row">
+        <div class="field">
+          <span class="field-label">prev-label</span>
+          <input type="text" id="inp-prev" value="←">
+        </div>
+        <div class="field">
+          <span class="field-label">next-label</span>
+          <input type="text" id="inp-next" value="→">
+        </div>
+        <div class="field">
+          <span class="field-label">icon</span>
+          <input type="text" id="inp-icon" value="✦">
+        </div>
+      </div>
+
+      <div class="ctrl-row">
+        <div class="field">
+          <span class="field-label">btn color</span>
+          <input type="color" id="inp-btn-color" value="#3355cc">
+        </div>
+        <div class="field">
+          <span class="field-label">btn text</span>
+          <input type="color" id="inp-btn-text" value="#ffffff">
+        </div>
+        <div class="field">
+          <span class="field-label">radius</span>
+          <input type="number" id="inp-btn-radius" value="999" min="0">
+        </div>
+      </div>
+
+      <div class="ctrl-row">
+        <div class="field">
+          <span class="field-label">bc style</span>
+          <select id="inp-bc-style">
+            <option value="dots">dots</option>
+            <option value="numbers">numbers</option>
+          </select>
+        </div>
+        <div class="field">
+          <span class="field-label">bc color</span>
+          <input type="color" id="inp-bc-color" value="#ffffff">
+        </div>
+      </div>
+
+      <div class="ctrl-row">
+        <div class="field">
+          <span class="field-label">pill-bottom</span>
+          <input type="text" id="inp-pill-bottom" value="7vh">
+        </div>
+        <div class="field">
+          <span class="field-label">pill-width</span>
+          <input type="text" id="inp-pill-width" value="44%">
+        </div>
+      </div>
+
+      <button class="ctrl-btn apply" id="btn-apply">Apply</button>
     </div>
-
-    <div class="row">
-        <label>btn color   <input type="color"  id="inp-btn-color"  value="#3355cc"></label>
-        <label>btn text    <input type="color"  id="inp-btn-text"   value="#ffffff"></label>
-        <label>btn radius  <input type="number" id="inp-btn-radius" value="6" min="0"></label>
-    </div>
-
-    <div class="row">
-        <label>bc style
-            <select id="inp-bc-style">
-                <option value="dots">dots</option>
-                <option value="numbers">numbers</option>
-            </select>
-        </label>
-        <label>bc color  <input type="color" id="inp-bc-color" value="#ffffff"></label>
-    </div>
-
-    <button id="btn-apply">Apply</button>
 
     <hr>
 
-    <div class="row">
-        <label>jump to  <input type="number" id="inp-jump" value="0" min="0"></label>
-        <button id="btn-jump">Go</button>
+    <div class="ctrl-row">
+      <div class="field">
+        <span class="field-label">jump to</span>
+        <input type="number" id="inp-jump" value="0" min="0" max="4">
+      </div>
+      <button class="ctrl-btn" id="btn-jump">Go</button>
     </div>
 
     <hr>
-    <h3>Event Log</h3>
-    <div id="log"></div>
-</div>
 
-<script>
+    <div class="log" id="log">waiting for events…</div>
+  </div>
+
+  <script type="module">
     const seq   = document.getElementById('seq');
     const logEl = document.getElementById('log');
+    let lines   = [];
 
     function addLog(text, cls = '') {
-        const d = document.createElement('div');
-        d.className = 'log-line ' + cls;
-        const t = new Date().toLocaleTimeString('en', { hour12: false });
-        d.textContent = `[${t}] ${text}`;
-        logEl.prepend(d);
+      const span = document.createElement('span');
+      if (cls) span.className = `log-line-${cls}`;
+      const t = new Date().toLocaleTimeString('en', { hour12: false });
+      span.textContent = `[${t}] ${text}`;
+      lines.unshift(span.outerHTML);
+      if (lines.length > 12) lines.length = 12;
+      logEl.innerHTML = lines.join('\n');
     }
 
     window.addEventListener('ravel-sequence', (e) => {
-        if (e.detail?.cmd !== 'change') return;
-        const { index, total } = e.detail.content;
-        addLog(`frame  ${index + 1} / ${total}`, 'nav');
+      if (e.detail?.cmd !== 'change') return;
+      const { index, total } = e.detail.content;
+      addLog(`change  frame ${index + 1} / ${total}`, 'nav');
     });
 
     document.getElementById('btn-apply').addEventListener('click', () => {
-        seq.setAttribute('prev-label',        document.getElementById('inp-prev').value);
-        seq.setAttribute('next-label',        document.getElementById('inp-next').value);
-        seq.setAttribute('icon',              document.getElementById('inp-icon').value);
-        seq.setAttribute('button-color',      document.getElementById('inp-btn-color').value);
-        seq.setAttribute('button-text-color', document.getElementById('inp-btn-text').value);
-        seq.setAttribute('button-radius',     document.getElementById('inp-btn-radius').value);
-        seq.setAttribute('breadcrumb-style',  document.getElementById('inp-bc-style').value);
-        seq.setAttribute('breadcrumb-color',  document.getElementById('inp-bc-color').value);
+      seq.setAttribute('prev-label',        document.getElementById('inp-prev').value);
+      seq.setAttribute('next-label',        document.getElementById('inp-next').value);
+      seq.setAttribute('icon',              document.getElementById('inp-icon').value);
+      seq.setAttribute('button-color',      document.getElementById('inp-btn-color').value);
+      seq.setAttribute('button-text-color', document.getElementById('inp-btn-text').value);
+      seq.setAttribute('button-radius',     document.getElementById('inp-btn-radius').value);
+      seq.setAttribute('breadcrumb-style',  document.getElementById('inp-bc-style').value);
+      seq.setAttribute('breadcrumb-color',  document.getElementById('inp-bc-color').value);
+      seq.setAttribute('pill-bottom',       document.getElementById('inp-pill-bottom').value);
+      seq.setAttribute('pill-width',        document.getElementById('inp-pill-width').value);
     });
 
     document.getElementById('btn-jump').addEventListener('click', () => {
-        seq.setAttribute('index', document.getElementById('inp-jump').value);
+      seq.setAttribute('index', document.getElementById('inp-jump').value);
     });
-</script>
+  </script>
+
 </body>
 </html>

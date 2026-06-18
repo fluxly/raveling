@@ -87,6 +87,8 @@ export class RavelRollTrack extends RavelElement {
         if (!drag) return;
         RavelRollTrack._drag = null;
 
+        drag.sourceTrack.style.zIndex = '';
+
         // Find which connected track contains the release point.
         let target: RavelRollTrack | null = null;
         for (const track of RavelRollTrack._instances) {
@@ -99,8 +101,9 @@ export class RavelRollTrack extends RavelElement {
         }
 
         if (target) {
-            const r       = target.getBoundingClientRect();
-            const rawUnit = (e.clientX - r.left) / target._unitWidth;
+            const perfViewportLeft = drag.sourceTrack.getBoundingClientRect().left
+                                   + parseFloat(drag.perf.style.left);
+            const rawUnit = (perfViewportLeft - target.getBoundingClientRect().left) / target._unitWidth;
             const unitPos = target._quantize(rawUnit);
             target._dockPerf(drag.perf, unitPos);
         } else {
@@ -264,6 +267,7 @@ export class RavelRollTrack extends RavelElement {
     // ── Shift+click insertion ─────────────────────────────────
 
     private handlePointerDown = (e: PointerEvent): void => {
+        window.getSelection()?.removeAllRanges();
         if (e.shiftKey) e.preventDefault();
     };
 
@@ -314,8 +318,10 @@ export class RavelRollTrack extends RavelElement {
 
         // Stay in source track's DOM so the perf's coordinate space doesn't change
         // and handleCenterMove keeps tracking the pointer without a jump.
-        // z-index is global here because :host has no integer z-index (no stacking context).
-        perf.style.zIndex = '9999';
+        // Raise the source track (not the perf) — positioned shadow hosts create stacking
+        // contexts in Blink, so only the track's own z-index is visible to its siblings.
+        this.style.zIndex = '9999';
+        perf.style.zIndex = '';
 
         RavelRollTrack._drag = { perf, sourceTrack: this, sourceUnit };
         document.addEventListener('pointerup', RavelRollTrack._handleDrop);

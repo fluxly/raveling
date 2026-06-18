@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0,user-scalable=0"/>
+    <title>Fluxum Test</title>
+    <meta name="description" content="Ravel">
+    
+    <link rel="stylesheet" href="../../../../../../styles/styles.css">
+    
+    <!-- Load libraries <script type="text/javascript" src="./libs/foo.js"></script> -->
+    <script src="../../../../../../core/libs/Box2d.min.js"></script>
+    <script type="module" src="../../../../index.js?version=1.0"></script>
+    <style>
+        body {        
+            touch-action: manipulation;  
+            -webkit-touch-callout: none; /* iOS Safari */
+            -webkit-user-select: none; /* Safari */
+            user-select: none; 
+            -webkit-tap-highlight-color: rgba(0,0,0,0);
+            background-color: #eeeeee;
+            margin: 0px;
+        }
+        #page {
+            width: 90vw;              /* fill 90% of viewport width */
+            margin: 0 auto;           /* center horizontally */
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;              /* spacing between cards */
+            padding: 1.5rem 0;
+            box-sizing: border-box;
+        }
+        ravel-rss-card {
+            display: block;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div id="page">
+        <ravel-rss-card 
+            feed="https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml"></ravel-rss-card>
+        <ravel-rss-card 
+            feed="https://ojs.lib.uwo.ca/index.php/openhardware/gateway/plugin/WebFeedGatewayPlugin/rss2"></ravel-rss-card>
+
+    </div>
+</body>
+</html>
+

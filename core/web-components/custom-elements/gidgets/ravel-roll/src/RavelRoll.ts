@@ -33,12 +33,27 @@ export class RavelRoll extends RavelElement {
             width: 100%;
             box-sizing: border-box;
             overflow: hidden;
+            user-select: none;
         }
         #container {
             display: flex;
             flex-direction: column;
             height: 100%;
             min-height: 0;
+        }
+        #roll-row {
+            flex: 1 1 0;
+            min-height: 0;
+            display: flex;
+            flex-direction: row;
+        }
+        #keyboard {
+            width: 80px;
+            flex-shrink: 0;
+            background-repeat: no-repeat;
+            background-size: 100% 100%;
+            background-position: 0 0;
+            background-color: #1a1a2e;
         }
         #scroll-area {
             flex: 1 1 0;
@@ -66,19 +81,7 @@ export class RavelRoll extends RavelElement {
         }
         #inner {
             display: flex;
-            flex-direction: row;
-            align-items: stretch;
             min-width: 100%;
-        }
-        #keyboard {
-            position: sticky;
-            left: 0;
-            width: 80px;
-            flex-shrink: 0;
-            z-index: 10;
-            background-repeat: no-repeat;
-            background-size: 100% 100%;
-            background-color: #1a1a2e;
         }
         #tracks-wrapper {
             flex: 0 0 auto;
@@ -112,7 +115,7 @@ export class RavelRoll extends RavelElement {
             flex: 1;
             margin: 0;
             cursor: pointer;
-            accent-color: #3355cc;
+            accent-color: #00F0FF;
         }
     `;
 
@@ -162,16 +165,20 @@ export class RavelRoll extends RavelElement {
         style.textContent = RavelRoll.localStyles;
         this.shadowRoot!.insertBefore(style, this.container);
 
-        // ── Scroll area ──────────────────────────────────────────
-        this.scrollAreaEl = document.createElement('div');
-        this.scrollAreaEl.id = 'scroll-area';
-
-        // ── Inner flex row ───────────────────────────────────────
-        this.innerEl = document.createElement('div');
-        this.innerEl.id = 'inner';
+        // ── Roll row: keyboard pinned left, scroll area to the right ─
+        const rollRowEl = document.createElement('div');
+        rollRowEl.id = 'roll-row';
 
         this.keyboardEl = document.createElement('div');
         this.keyboardEl.id = 'keyboard';
+        rollRowEl.appendChild(this.keyboardEl);
+
+        // ── Scroll area (tracks only — no keyboard inside) ────────
+        this.scrollAreaEl = document.createElement('div');
+        this.scrollAreaEl.id = 'scroll-area';
+
+        this.innerEl = document.createElement('div');
+        this.innerEl.id = 'inner';
 
         this.tracksWrapperEl = document.createElement('div');
         this.tracksWrapperEl.id = 'tracks-wrapper';
@@ -180,10 +187,10 @@ export class RavelRoll extends RavelElement {
         this.onionEl.id = 'onion';
         this.tracksWrapperEl.appendChild(this.onionEl);
 
-        this.innerEl.appendChild(this.keyboardEl);
         this.innerEl.appendChild(this.tracksWrapperEl);
         this.scrollAreaEl.appendChild(this.innerEl);
-        this.container.appendChild(this.scrollAreaEl);
+        rollRowEl.appendChild(this.scrollAreaEl);
+        this.container.appendChild(rollRowEl);
 
         // ── Control bar ──────────────────────────────────────────
         this.controlBarEl = document.createElement('div');
@@ -242,6 +249,8 @@ export class RavelRoll extends RavelElement {
 
     protected setup(): void {
         super.setup();
+        this.scrollAreaEl.addEventListener('scroll', this._onScroll);
+        this.addEventListener('pointerdown', this._onRollPointerDown);
         window.addEventListener('ravel-roll-track', this._handleTrackEvent);
         this._applyHeight();
         this._applyWidth();
@@ -251,12 +260,26 @@ export class RavelRoll extends RavelElement {
     }
 
     protected teardown(): void {
+        this.scrollAreaEl.removeEventListener('scroll', this._onScroll);
+        this.removeEventListener('pointerdown', this._onRollPointerDown);
         window.removeEventListener('ravel-roll-track', this._handleTrackEvent);
         this._trackEls = [];
         super.teardown();
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
+
+    private _onScroll = (): void => {
+        if (!this.keyboardEl) return;
+        this.keyboardEl.style.backgroundPositionY = `-${this.scrollAreaEl.scrollTop}px`;
+    };
+
+    // Clears any page-level text selection before the browser can extend it
+    // into surrounding text on shift+click. Without this, the first shift+click
+    // after page load selects everything from the document start to the click point.
+    private _onRollPointerDown = (): void => {
+        window.getSelection()?.removeAllRanges();
+    };
 
     private _makeSlider(
         min: number, max: number, step: number, value: number,
@@ -320,9 +343,15 @@ export class RavelRoll extends RavelElement {
             this.keyboardEl.style.display = '';
             this.keyboardEl.style.backgroundImage =
                 `url('${componentPath}/images/piano-roll-keyboard.svg')`;
+            this._updateKeyboardBgSize();
         } else {
             this.keyboardEl.style.display = 'none';
         }
+    }
+
+    private _updateKeyboardBgSize(): void {
+        if (!this.keyboardEl) return;
+        this.keyboardEl.style.backgroundSize = `100% ${this._tracks * this._trackH}px`;
     }
 
     // ── Onion skin ────────────────────────────────────────────────────────────
@@ -669,6 +698,7 @@ export class RavelRoll extends RavelElement {
             case 'tracks':
                 this._tracks = Math.max(Number(newValue) || 87, 0);
                 if (this.tracksWrapperEl) this._buildTracks();
+                this._updateKeyboardBgSize();
                 break;
             case 'unit-width':
                 this._unitWidth = Number(newValue) || 60;
@@ -681,6 +711,7 @@ export class RavelRoll extends RavelElement {
             case 'track-h':
                 this._trackH = Number(newValue) || 20;
                 if (this._trackEls.length) this._syncAttr('h', String(this._trackH));
+                this._updateKeyboardBgSize();
                 break;
             case 'tick':
                 this._tick = Number(newValue) ?? 1;
