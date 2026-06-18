@@ -1,58 +1,270 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0,user-scalable=0"/>
-    <title>Fluxum Test</title>
-    <meta name="description" content="Ravel">
-    
-    <link rel="stylesheet" href="../../../../../../styles/styles.css">
-    <script src="../../../../../../core/libs/Box2d.min.js"></script>
-    <!-- Load libraries <script type="text/javascript" src="./libs/foo.js"></script> -->
-    <script type="module" src="../../../../index.js?version=1.0"></script>
-    <style>
-        body {
-            margin: 0px;
-        }
-        #page-wrapper {
-            width: 100vw;
-            height: 100vh;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-        }
-    </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ravel-filmstrip sandbox</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Silkscreen&family=Quantico:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+  <script type="module" src="/index.ts"></script>
+  <style>
+    * { box-sizing: border-box; }
+
+    :root {
+      --ground:        #303030;
+      --well:          #1a1a1a;
+      --muted:         #666666;
+      --rule:          rgba(102,102,102,.40);
+      --fluoro-pink:   #FF37A8;
+      --fluoro-orange: #FE6810;
+      --fluoro-lime:   #A7FF00;
+      --fluoro-cyan:   #00F0FF;
+      --fluoro-violet: #B300FF;
+    }
+
+    body {
+      margin: 0;
+      padding: 40px 44px;
+      background: var(--ground);
+      font-family: 'Silkscreen', monospace;
+      font-size: 1rem;
+      line-height: 1.3;
+      border: 10px solid #ff0000;
+      box-shadow: 0px 0px 0px 10px inset #ffcc00;
+      min-height: 100vh;
+    }
+
+    h1 {
+      font-size: 2rem;
+      color: #ffffff;
+      margin: 0 0 8px 0;
+      border-bottom: 10px solid var(--fluoro-cyan);
+      display: inline-block;
+      padding-bottom: 2px;
+    }
+
+    .subtitle {
+      font-family: 'Quantico', monospace;
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin: 0 0 32px 0;
+    }
+
+    .element-col  { display: flex; flex-direction: column; gap: 32px; }
+    .element-cell { display: flex; flex-direction: column; gap: 8px; }
+    .element-label { font-size: 0.85rem; color: var(--muted); }
+
+    .stage {
+      position: relative;
+      background: var(--well);
+      border: 2px dotted var(--rule);
+      border-radius: 4px;
+      padding: 24px;
+    }
+
+    ravel-filmstrip {
+      width: 100%;
+      max-width: 680px;
+    }
+
+    .controls-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-top: 12px;
+    }
+
+    .ctrl-btn {
+      background: transparent;
+      border: 1px solid var(--rule);
+      border-radius: 4px;
+      padding: 7px 14px;
+      font-family: 'Silkscreen', monospace;
+      font-size: 0.7rem;
+      color: var(--muted);
+      cursor: pointer;
+      transition: color 0.12s, border-color 0.12s;
+    }
+    .ctrl-btn:hover {
+      color: var(--fluoro-cyan);
+      border-color: var(--fluoro-cyan);
+    }
+    .ctrl-btn.active {
+      color: var(--fluoro-lime);
+      border-color: var(--fluoro-lime);
+    }
+
+    label {
+      font-size: 0.7rem;
+      color: var(--muted);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-family: 'Quantico', monospace;
+    }
+
+    input[type="range"] {
+      accent-color: var(--fluoro-cyan);
+      width: 120px;
+    }
+
+    .log {
+      background: var(--well);
+      border: 1px solid var(--rule);
+      border-radius: 4px;
+      padding: 10px 14px;
+      font-family: 'Quantico', monospace;
+      font-size: 0.72rem;
+      color: var(--muted);
+      min-height: 60px;
+      max-height: 100px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+    }
+
+    .note {
+      font-size: 0.75rem;
+      color: var(--muted);
+      border-left: 2px solid var(--rule);
+      padding-left: 10px;
+      line-height: 1.8;
+      font-family: 'Quantico', monospace;
+    }
+    .note code {
+      background: rgba(255,255,255,0.07);
+      border-radius: 3px;
+      padding: 1px 5px;
+    }
+  </style>
 </head>
 <body>
-<div id="page-wrapper">
-    <ravel-filmstrip fps="12" loop id="fs">
-  <img src="./frames/1.png" />
-  <img src="./frames/2.png" />
-  <img src="./frames/3.png" />
-  <img src="./frames/4.png" />
-  <img src="./frames/5.png" />
-  <img src="./frames/6.png" />
-  <img src="./frames/7.png" />
-  <img src="./frames/8.png" />
-  <img src="./frames/9.png" />
-  <img src="./frames/10.png" />
-</ravel-filmstrip>
 
-</div>
+  <h1>ravel-filmstrip</h1>
+  <p class="subtitle">Frame-by-frame image player — slot &lt;img&gt; elements as frames</p>
+
+  <div class="element-col">
+
+    <!-- ── Default ───────────────────────────────────────────── -->
+    <div class="element-cell">
+      <div class="element-label">default — 10 frames, fps=12, loop</div>
+      <div class="stage">
+        <ravel-filmstrip id="fs-main" fps="12" loop>
+          <img src="./frames/1.png"  alt="Frame 1">
+          <img src="./frames/2.png"  alt="Frame 2">
+          <img src="./frames/3.png"  alt="Frame 3">
+          <img src="./frames/4.png"  alt="Frame 4">
+          <img src="./frames/5.png"  alt="Frame 5">
+          <img src="./frames/6.png"  alt="Frame 6">
+          <img src="./frames/7.png"  alt="Frame 7">
+          <img src="./frames/8.png"  alt="Frame 8">
+          <img src="./frames/9.png"  alt="Frame 9">
+          <img src="./frames/10.png" alt="Frame 10">
+        </ravel-filmstrip>
+        <div class="controls-row">
+          <label>fps
+            <input type="range" id="fps-slider" min="1" max="30" value="12">
+            <span id="fps-val">12</span>
+          </label>
+          <button class="ctrl-btn" id="btn-loop">loop: on</button>
+          <button class="ctrl-btn" id="btn-add-sound">add sound to frame</button>
+          <button class="ctrl-btn" id="btn-clear-sound">clear frame sound</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── play-sound event log ──────────────────────────────── -->
+    <div class="element-cell">
+      <div class="element-label">play-sound event log</div>
+      <div class="log" id="sound-log">waiting for sounds…</div>
+    </div>
+
+    <!-- ── No loop ───────────────────────────────────────────── -->
+    <div class="element-cell">
+      <div class="element-label">no loop — stops at end</div>
+      <div class="stage">
+        <ravel-filmstrip fps="6">
+          <img src="./frames/1.png"  alt="Frame 1">
+          <img src="./frames/2.png"  alt="Frame 2">
+          <img src="./frames/3.png"  alt="Frame 3">
+          <img src="./frames/4.png"  alt="Frame 4">
+          <img src="./frames/5.png"  alt="Frame 5">
+        </ravel-filmstrip>
+      </div>
+    </div>
+
+    <!-- ── Attribute & API reference ────────────────────────── -->
+    <div class="element-cell">
+      <div class="element-label">attributes &amp; API</div>
+      <div class="stage">
+        <p class="note">
+          <code>fps</code> — frames per second (default <code>6</code>).<br>
+          <code>loop</code> — boolean; loops playback at end.<br>
+          <br>
+          Methods: <code>play()</code>, <code>pause()</code>, <code>stop()</code>,
+          <code>next()</code>, <code>previous()</code>.<br>
+          <code>addSoundToCurrentFrame(token)</code> — attach a string token (e.g. emoji) to
+          the current frame; fired as <code>play-sound</code> events during playback.<br>
+          <code>clearSoundInCurrentFrame()</code> — remove tokens from the current frame.<br>
+          <br>
+          Event: <code>play-sound</code> (CustomEvent, bubbles) —
+          <code>detail: { token: string, frameIndex: number }</code>.
+        </p>
+      </div>
+    </div>
+
+  </div>
+
+  <script type="module">
+    const fs = document.getElementById('fs-main');
+
+    // Attach some sound tokens after first render
+    setTimeout(() => {
+      fs.addSoundToCurrentFrame('🔴');
+      fs.next({ triggerSounds: false });
+      fs.addSoundToCurrentFrame('🟢');
+      fs.next({ triggerSounds: false });
+      fs.addSoundToCurrentFrame('🔵');
+      fs.stop();
+    }, 100);
+
+    // fps slider
+    const slider = document.getElementById('fps-slider');
+    const fpsVal = document.getElementById('fps-val');
+    slider.addEventListener('input', () => {
+      fs.fps = Number(slider.value);
+      fpsVal.textContent = slider.value;
+    });
+
+    // loop toggle
+    let loopOn = true;
+    document.getElementById('btn-loop').addEventListener('click', (e) => {
+      loopOn = !loopOn;
+      if (loopOn) fs.setAttribute('loop', ''); else fs.removeAttribute('loop');
+      e.target.textContent = `loop: ${loopOn ? 'on' : 'off'}`;
+      e.target.classList.toggle('active', loopOn);
+    });
+
+    // sound controls
+    const tokens = ['🔴', '🟡', '🟢', '🔵', '🟣'];
+    let ti = 0;
+    document.getElementById('btn-add-sound').addEventListener('click', () => {
+      fs.addSoundToCurrentFrame(tokens[ti++ % tokens.length]);
+    });
+    document.getElementById('btn-clear-sound').addEventListener('click', () => {
+      fs.clearSoundInCurrentFrame();
+    });
+
+    // event log
+    const log = document.getElementById('sound-log');
+    let logLines = [];
+    fs.addEventListener('play-sound', (e) => {
+      const line = `frame ${e.detail.frameIndex + 1}  →  ${e.detail.token}`;
+      logLines.unshift(line);
+      if (logLines.length > 12) logLines.length = 12;
+      log.textContent = logLines.join('\n');
+    });
+  </script>
+
 </body>
-<script type="module">
-  const fs = document.querySelector('#fs');
-
-  // Add sound markers to frames
-  fs.addSoundToCurrentFrame("🔴"); // add to frame 1
-  fs.next({ triggerSounds: false });
-  fs.addSoundToCurrentFrame("🔵"); // add to frame 2
-
-  // Listen for sound triggers
-  fs.addEventListener('play-sound', (e) => {
-    console.log('play sound token', e.detail.token, 'on frame', e.detail.frameIndex);
-    // route token -> <ravel-sample> etc.
-  });
-</script>
 </html>
-

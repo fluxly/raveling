@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ravel-fluxly-sound-engine sandbox</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Silkscreen&family=Quantico:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+  <script type="module" src="/index.ts"></script>
+  <style>
+    * { box-sizing: border-box; }
+
+    :root {
+      --ground:        #303030;
+      --well:          #1a1a1a;
+      --muted:         #666666;
+      --rule:          rgba(102,102,102,.40);
+      --fluoro-pink:   #FF37A8;
+      --fluoro-orange: #FE6810;
+      --fluoro-lime:   #A7FF00;
+      --fluoro-cyan:   #00F0FF;
+      --fluoro-violet: #B300FF;
+    }
+
+    body {
+      margin: 0;
+      padding: 40px 44px;
+      background: var(--ground);
+      font-family: 'Silkscreen', monospace;
+      font-size: 1rem;
+      line-height: 1.3;
+      border: 10px solid #ff0000;
+      box-shadow: 0px 0px 0px 10px inset #ffcc00;
+      min-height: 100vh;
+    }
+
+    h1 {
+      font-size: 2rem;
+      color: #ffffff;
+      margin: 0 0 8px 0;
+      border-bottom: 10px solid var(--fluoro-cyan);
+      display: inline-block;
+      padding-bottom: 2px;
+    }
+
+    .subtitle {
+      font-family: 'Quantico', monospace;
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin: 0 0 32px 0;
+    }
+
+    .element-col  { display: flex; flex-direction: column; gap: 32px; }
+    .element-cell { display: flex; flex-direction: column; gap: 8px; }
+    .element-label { font-size: 0.85rem; color: var(--muted); }
+
+    .stage {
+      position: relative;
+      background: var(--well);
+      border: 2px dotted var(--rule);
+      border-radius: 4px;
+      padding: 24px;
+    }
+
+    .controls-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-top: 12px;
+    }
+
+    .ctrl-btn {
+      background: transparent;
+      border: 1px solid var(--rule);
+      border-radius: 4px;
+      padding: 7px 14px;
+      font-family: 'Silkscreen', monospace;
+      font-size: 0.7rem;
+      color: var(--muted);
+      cursor: pointer;
+      transition: color 0.12s, border-color 0.12s;
+    }
+    .ctrl-btn:hover {
+      color: var(--fluoro-cyan);
+      border-color: var(--fluoro-cyan);
+    }
+
+    label {
+      font-size: 0.7rem;
+      color: var(--muted);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-family: 'Quantico', monospace;
+    }
+
+    input[type="range"] {
+      accent-color: var(--fluoro-cyan);
+      width: 140px;
+    }
+
+    .note {
+      font-size: 0.75rem;
+      color: var(--muted);
+      border-left: 2px solid var(--rule);
+      padding-left: 10px;
+      line-height: 1.8;
+      font-family: 'Quantico', monospace;
+    }
+    .note code {
+      background: rgba(255,255,255,0.07);
+      border-radius: 3px;
+      padding: 1px 5px;
+    }
+
+    /* Caution banner — audio autoplay policy */
+    .banner {
+      background: rgba(254,104,16,0.12);
+      border: 1px solid var(--fluoro-orange);
+      border-radius: 4px;
+      padding: 10px 14px;
+      font-family: 'Quantico', monospace;
+      font-size: 0.75rem;
+      color: var(--fluoro-orange);
+      margin-bottom: 24px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>ravel-fluxly-sound-engine</h1>
+  <p class="subtitle">Headless AudioWorklet sample player — variable rate, forward and reverse</p>
+
+  <div class="banner">
+    Browsers block audio until a user gesture. Click <strong>Resume audio</strong> inside the panel
+    (or any other button below) to unblock the AudioContext.
+  </div>
+
+  <div class="element-col">
+
+    <!-- ── show-control panel ────────────────────────────────── -->
+    <div class="element-cell">
+      <div class="element-label">show-control — debug rate panel visible</div>
+      <div class="stage">
+        <ravel-fluxly-sound-engine
+          id="engine"
+          filename="./sample-0.wav"
+          message-id="engine-1"
+          show-control>
+        </ravel-fluxly-sound-engine>
+      </div>
+    </div>
+
+    <!-- ── external rate control ─────────────────────────────── -->
+    <div class="element-cell">
+      <div class="element-label">external rate control via page</div>
+      <div class="stage">
+        <div class="controls-row">
+          <label>rate
+            <input type="range" id="ext-rate" min="-5" max="5" step="0.01" value="1">
+            <span id="ext-rate-val">1.00</span>
+          </label>
+          <button class="ctrl-btn" id="btn-reverse">reverse (−1×)</button>
+          <button class="ctrl-btn" id="btn-normal">normal (1×)</button>
+          <button class="ctrl-btn" id="btn-fast">fast (3×)</button>
+          <button class="ctrl-btn" id="btn-pause-rate">freeze (0×)</button>
+          <button class="ctrl-btn" id="btn-resume">resume (no-loop)</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── no-loop instance ───────────────────────────────────── -->
+    <div class="element-cell">
+      <div class="element-label">no-loop — plays once then stops</div>
+      <div class="stage">
+        <ravel-fluxly-sound-engine
+          id="engine-noloop"
+          filename="./sample-0.wav"
+          message-id="engine-2"
+          no-loop
+          show-control>
+        </ravel-fluxly-sound-engine>
+      </div>
+    </div>
+
+    <!-- ── headless instance ─────────────────────────────────── -->
+    <div class="element-cell">
+      <div class="element-label">headless — no show-control (invisible by default)</div>
+      <div class="stage">
+        <p class="note">
+          The element below has no <code>show-control</code> attribute — it renders nothing.
+          The button sends a <code>playback-rate</code> message to it.
+        </p>
+        <ravel-fluxly-sound-engine
+          id="engine-headless"
+          filename="./sample-0.wav"
+          message-id="engine-headless">
+        </ravel-fluxly-sound-engine>
+        <div class="controls-row" style="margin-top:14px">
+          <button class="ctrl-btn" id="btn-headless-start">start headless engine</button>
+          <button class="ctrl-btn" id="btn-headless-rate">set rate 2×</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── attribute & API reference ─────────────────────────── -->
+    <div class="element-cell">
+      <div class="element-label">attributes &amp; API</div>
+      <div class="stage">
+        <p class="note">
+          <code>filename</code> — URL of the WAV file to load (default <code>sample-0.wav</code>).<br>
+          <code>message-id</code> — message channel name (default <code>ravel-fluxly-sound-engine</code>).<br>
+          <code>no-loop</code> — stop playback at the end instead of looping.<br>
+          <code>show-control</code> — show the built-in rate slider panel.<br>
+          <br>
+          Messages received on <code>message-id</code> channel:<br>
+          &nbsp;&nbsp;<code>{ cmd: 'playback-rate', content: number }</code> — set rate (±16.0; negative = reverse).<br>
+          &nbsp;&nbsp;<code>{ cmd: 'resume' }</code> — restart playback after no-loop end.<br>
+          <br>
+          Tip: pair with <code>&lt;ravel-filmstrip&gt;</code> — listen for <code>play-sound</code> events
+          and forward them as <code>playback-rate</code> messages.
+        </p>
+      </div>
+    </div>
+
+  </div>
+
+  <script type="module">
+    const engine = document.getElementById('engine');
+
+    function sendRate(rate) {
+      engine.sendMessage('engine-1', 'playback-rate', rate);
+    }
+
+    // External rate slider
+    const extSlider = document.getElementById('ext-rate');
+    const extVal    = document.getElementById('ext-rate-val');
+    extSlider.addEventListener('input', () => {
+      const r = parseFloat(extSlider.value);
+      extVal.textContent = r.toFixed(2);
+      sendRate(r);
+    });
+
+    document.getElementById('btn-reverse').addEventListener('click', () => {
+      extSlider.value = '-1'; extVal.textContent = '-1.00'; sendRate(-1);
+    });
+    document.getElementById('btn-normal').addEventListener('click', () => {
+      extSlider.value = '1';  extVal.textContent = '1.00';  sendRate(1);
+    });
+    document.getElementById('btn-fast').addEventListener('click', () => {
+      extSlider.value = '3';  extVal.textContent = '3.00';  sendRate(3);
+    });
+    document.getElementById('btn-pause-rate').addEventListener('click', () => {
+      extSlider.value = '0';  extVal.textContent = '0.00';  sendRate(0);
+    });
+    document.getElementById('btn-resume').addEventListener('click', () => {
+      engine.sendMessage('engine-1', 'resume', null);
+    });
+
+    // Headless engine
+    const headless = document.getElementById('engine-headless');
+    document.getElementById('btn-headless-start').addEventListener('click', () => {
+      // Trigger audio start by clicking the hidden "Resume audio" button
+      headless.shadowRoot?.querySelector('#start')?.click();
+    });
+    document.getElementById('btn-headless-rate').addEventListener('click', () => {
+      headless.sendMessage('engine-headless', 'playback-rate', 2);
+    });
+  </script>
+
+</body>
+</html>

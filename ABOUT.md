@@ -56,12 +56,13 @@
     ravel-button
     ravel-card
     ravel-carousel
-    + ravel-fluxly-sound-engine
-    + ravel-filmstrip
+    ravel-fluxly-sound-engine
+    ravel-filmstrip
+    ravel-fluxum
     ravel-help
     + ravel-menu
     + ravel-nonagram
-    + ravel-p5-canvas
+    ravel-p5-canvas
     ++ ravel-pd-synth
     + ravel-physics-world
     + ravel-playlist

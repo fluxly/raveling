@@ -1,35 +1,252 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0,user-scalable=0"/>
-    <title>Fluxum Test</title>
-    <meta name="description" content="Ravel">
-    
-    <link rel="stylesheet" href="../../../../../../styles/styles.css">
-    <script src="../../../../../../core/libs/Box2d.min.js"></script>
-    <!-- Load libraries <script type="text/javascript" src="./libs/foo.js"></script> -->
-    <script type="module" src="../../../../index.js?version=1.0"></script>
-    <style>
-        body {
-            margin: 0px;
-        }
-        #local-page-wrapper {
-            width: 100vw;
-            height: 100vh;
-        }
-    </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ravel-fluxum sandbox</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Silkscreen&family=Quantico:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+  <script type="module" src="/index.ts"></script>
+  <style>
+    * { box-sizing: border-box; }
+
+    :root {
+      --ground:        #303030;
+      --well:          #1a1a1a;
+      --muted:         #666666;
+      --rule:          rgba(102,102,102,.40);
+      --fluoro-pink:   #FF37A8;
+      --fluoro-orange: #FE6810;
+      --fluoro-lime:   #A7FF00;
+      --fluoro-cyan:   #00F0FF;
+      --fluoro-violet: #B300FF;
+    }
+
+    body {
+      margin: 0;
+      padding: 40px 44px;
+      background: var(--ground);
+      font-family: 'Silkscreen', monospace;
+      font-size: 1rem;
+      line-height: 1.3;
+      border: 10px solid #ff0000;
+      box-shadow: 0px 0px 0px 10px inset #ffcc00;
+      min-height: 100vh;
+    }
+
+    h1 {
+      font-size: 2rem;
+      color: #ffffff;
+      margin: 0 0 8px 0;
+      border-bottom: 10px solid var(--fluoro-cyan);
+      display: inline-block;
+      padding-bottom: 2px;
+    }
+
+    .subtitle {
+      font-family: 'Quantico', monospace;
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin: 0 0 32px 0;
+    }
+
+    .element-col  { display: flex; flex-direction: column; gap: 32px; }
+    .element-cell { display: flex; flex-direction: column; gap: 8px; }
+    .element-label { font-size: 0.85rem; color: var(--muted); }
+
+    .stage {
+      position: relative;   /* ← fluxums are absolute children of this */
+      background: var(--well);
+      border: 2px dotted var(--rule);
+      border-radius: 4px;
+      height: 200px;
+    }
+
+    /* Taller stage for animated demo */
+    .stage-tall { height: 320px; }
+
+    .controls-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-top: 12px;
+    }
+
+    .ctrl-btn {
+      background: transparent;
+      border: 1px solid var(--rule);
+      border-radius: 4px;
+      padding: 7px 14px;
+      font-family: 'Silkscreen', monospace;
+      font-size: 0.7rem;
+      color: var(--muted);
+      cursor: pointer;
+      transition: color 0.12s, border-color 0.12s;
+    }
+    .ctrl-btn:hover {
+      color: var(--fluoro-cyan);
+      border-color: var(--fluoro-cyan);
+    }
+
+    .note {
+      font-size: 0.75rem;
+      color: var(--muted);
+      border-left: 2px solid var(--rule);
+      padding-left: 10px;
+      line-height: 1.8;
+      font-family: 'Quantico', monospace;
+    }
+    .note code {
+      background: rgba(255,255,255,0.07);
+      border-radius: 3px;
+      padding: 1px 5px;
+    }
+  </style>
 </head>
 <body>
-<div id="local-page-wrapper">
-    <ravel-physics-world>
-        <ravel-fluxum  id="fluxum-1" class="fluxum" size="75" x="300" y="300" use-svg color="#ff0000"></ravel-fluxum>
-        <ravel-fluxum  id="fluxum-1.5" class="fluxum" size="75" x="400" y="400" use-svg color="#0000ff"></ravel-fluxum>
-        <ravel-fluxum  id="fluxum-2" class="fluxum" size="150" x="500" y="500" color="#ffff00"></ravel-fluxum>
-        <ravel-fluxum  id="fluxum-3" class="fluxum" size="75" x="300" y="300" color="#00ffff"></ravel-fluxum>
-        <ravel-fluxum  id="fluxum-5" class="fluxum" size="75" x="300" y="300" color="#0dff0d"></ravel-fluxum>
-        <ravel-fluxum  id="fluxum-6" class="fluxum" size="25" x="500" y="500" color="#ffff00"></ravel-fluxum>
-    </ravel-physics-world>
-</div>
+
+  <h1>ravel-fluxum</h1>
+  <p class="subtitle">Glowing circular avatar — emoji, SVG, or glow-only. Driven by attributes or transform().</p>
+
+  <div class="element-col">
+
+    <!-- ── Color palette ─────────────────────────────────────── -->
+    <div class="element-cell">
+      <div class="element-label">color + icon — fluoro palette</div>
+      <div class="stage">
+        <ravel-fluxum size="60" x="50"  y="100" icon="🔴" color="#FF37A8"></ravel-fluxum>
+        <ravel-fluxum size="60" x="130" y="100" icon="🟠" color="#FE6810"></ravel-fluxum>
+        <ravel-fluxum size="60" x="210" y="100" icon="🟡" color="#A7FF00"></ravel-fluxum>
+        <ravel-fluxum size="60" x="290" y="100" icon="🩵" color="#00F0FF"></ravel-fluxum>
+        <ravel-fluxum size="60" x="370" y="100" icon="🟣" color="#B300FF"></ravel-fluxum>
+        <ravel-fluxum size="60" x="450" y="100" icon="❤️" color="#ff0000"></ravel-fluxum>
+      </div>
+    </div>
+
+    <!-- ── Sizes ─────────────────────────────────────────────── -->
+    <div class="element-cell">
+      <div class="element-label">sizes — 25 / 50 / 75 / 100 / 120 px</div>
+      <div class="stage" style="height:240px">
+        <ravel-fluxum size="25"  x="40"  y="120" icon="🐹" color="#FF37A8"></ravel-fluxum>
+        <ravel-fluxum size="50"  x="100" y="120" icon="🐹" color="#FE6810"></ravel-fluxum>
+        <ravel-fluxum size="75"  x="190" y="120" icon="🐹" color="#A7FF00"></ravel-fluxum>
+        <ravel-fluxum size="100" x="310" y="120" icon="🐹" color="#00F0FF"></ravel-fluxum>
+        <ravel-fluxum size="120" x="450" y="120" icon="🐹" color="#B300FF"></ravel-fluxum>
+      </div>
+    </div>
+
+    <!-- ── show-hint ─────────────────────────────────────────── -->
+    <div class="element-cell">
+      <div class="element-label">show-hint — speech bubble</div>
+      <div class="stage">
+        <ravel-fluxum id="hint-fluxum" size="60" x="160" y="120" icon="🐹" color="#A7FF00" show-hint></ravel-fluxum>
+        <ravel-fluxum                  size="60" x="300" y="120" icon="🦊" color="#FE6810"></ravel-fluxum>
+      </div>
+      <div class="controls-row">
+        <button class="ctrl-btn" id="btn-hint">toggle hint</button>
+      </div>
+    </div>
+
+    <!-- ── use-svg ────────────────────────────────────────────── -->
+    <div class="element-cell">
+      <div class="element-label">use-svg — embedded SVG with color tint</div>
+      <div class="stage">
+        <ravel-fluxum size="80" x="80"  y="100" use-svg color="#FF37A8"></ravel-fluxum>
+        <ravel-fluxum size="80" x="200" y="100" use-svg color="#00F0FF"></ravel-fluxum>
+        <ravel-fluxum size="80" x="320" y="100" use-svg color="#A7FF00"></ravel-fluxum>
+      </div>
+    </div>
+
+    <!-- ── animated transform() ──────────────────────────────── -->
+    <div class="element-cell">
+      <div class="element-label">transform(x, y, angleRad) — animated orbit</div>
+      <div class="stage stage-tall">
+        <ravel-fluxum id="f-orbit"  size="50" icon="🐹" color="#FF37A8"></ravel-fluxum>
+        <ravel-fluxum id="f-orbit2" size="40" icon="🌕" color="#ffcc00"></ravel-fluxum>
+        <ravel-fluxum id="f-center" size="20" icon="⭐" color="#ffffff" x="240" y="160"></ravel-fluxum>
+      </div>
+      <div class="controls-row">
+        <button class="ctrl-btn" id="btn-anim">start orbit</button>
+      </div>
+    </div>
+
+    <!-- ── angle attribute ───────────────────────────────────── -->
+    <div class="element-cell">
+      <div class="element-label">angle attribute — static rotation (degrees)</div>
+      <div class="stage">
+        <ravel-fluxum size="55" x="70"  y="100" icon="🚀" color="#00F0FF" angle="0"></ravel-fluxum>
+        <ravel-fluxum size="55" x="160" y="100" icon="🚀" color="#00F0FF" angle="45"></ravel-fluxum>
+        <ravel-fluxum size="55" x="250" y="100" icon="🚀" color="#00F0FF" angle="90"></ravel-fluxum>
+        <ravel-fluxum size="55" x="340" y="100" icon="🚀" color="#00F0FF" angle="135"></ravel-fluxum>
+        <ravel-fluxum size="55" x="430" y="100" icon="🚀" color="#00F0FF" angle="180"></ravel-fluxum>
+      </div>
+    </div>
+
+    <!-- ── attribute reference ───────────────────────────────── -->
+    <div class="element-cell">
+      <div class="element-label">attributes &amp; API</div>
+      <div class="stage" style="height:auto;padding:20px">
+        <p class="note">
+          <code>icon</code> — emoji or text inside the circle (default <code>🐹</code>).<br>
+          <code>size</code> — diameter in px (default <code>50</code>).<br>
+          <code>x</code> / <code>y</code> — centre position in px relative to nearest positioned ancestor.<br>
+          <code>angle</code> — rotation in degrees for static placement.<br>
+          <code>color</code> — hex color for fill + glow effect.<br>
+          <code>show-hint</code> — show a speech bubble above the avatar.<br>
+          <code>use-svg</code> — replace emoji with the embedded Fluxum SVG mark.<br>
+          <br>
+          Method: <code>transform(x, y, angleRad)</code> — update position + rotation each physics frame.
+          Angle is in <strong>radians</strong> (physics engine convention).
+        </p>
+      </div>
+    </div>
+
+  </div>
+
+  <script type="module">
+    // hint toggle
+    const hintFluxum = document.getElementById('hint-fluxum');
+    let hintOn = true;
+    document.getElementById('btn-hint').addEventListener('click', () => {
+      hintOn = !hintOn;
+      if (hintOn) hintFluxum.setAttribute('show-hint', '');
+      else        hintFluxum.removeAttribute('show-hint');
+    });
+
+    // animated orbit
+    const fOrbit  = document.getElementById('f-orbit');
+    const fOrbit2 = document.getElementById('f-orbit2');
+    let animId    = null;
+    let t         = 0;
+    const cx = 240, cy = 160;
+
+    document.getElementById('btn-anim').addEventListener('click', (e) => {
+      if (animId) {
+        cancelAnimationFrame(animId);
+        animId = null;
+        e.target.textContent = 'start orbit';
+        return;
+      }
+      e.target.textContent = 'stop orbit';
+
+      function tick() {
+        t += 0.02;
+        fOrbit.transform(
+          cx + Math.cos(t)        * 100,
+          cy + Math.sin(t)        * 100,
+          t
+        );
+        fOrbit2.transform(
+          cx + Math.cos(t * 2.5)  * 50,
+          cy + Math.sin(t * 2.5)  * 50,
+          t * 2.5
+        );
+        animId = requestAnimationFrame(tick);
+      }
+      animId = requestAnimationFrame(tick);
+    });
+  </script>
+
 </body>
 </html>
