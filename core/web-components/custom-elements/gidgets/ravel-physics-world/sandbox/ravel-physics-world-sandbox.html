@@ -159,13 +159,13 @@
 <body>
 
   <h1>ravel-physics-world</h1>
-  <p class="subtitle">Zero-gravity Box2D sandbox — drag elements with your mouse</p>
+  <p class="subtitle">Zero-gravity Box2D sandbox — drag any slotted element with your mouse</p>
 
   <div class="element-col">
 
-    <!-- ── Physics world ─────────────────────────────────────── -->
+    <!-- ── World 1: ravel-fluxum ──────────────────────────────── -->
     <div class="element-cell">
-      <div class="element-label">drag to fling · elements bounce off walls</div>
+      <div class="element-label">ravel-fluxum elements — circular bodies</div>
       <div class="stage">
         <ravel-physics-world id="world" damping="0.0">
           <ravel-fluxum id="fluxum-1" size="75"  x="200" y="150" use-svg  color="#FE6810"></ravel-fluxum>
@@ -191,6 +191,62 @@
       <div class="log" id="av-log">spinning…</div>
     </div>
 
+    <!-- ── World 2: plain HTML block elements ────────────────── -->
+    <div class="element-cell">
+      <div class="element-label">plain HTML block elements — rectangular bodies</div>
+      <div class="stage">
+        <ravel-physics-world id="world2" damping="0.0">
+
+          <div id="block-1" x="160" y="120"
+               style="width:100px;height:100px;background:rgba(254,104,16,0.85);
+                      display:flex;align-items:center;justify-content:center;
+                      font-family:'Silkscreen',monospace;font-size:0.65rem;color:#fff;
+                      border-radius:4px;">
+            🎸 Block
+          </div>
+
+          <div id="block-2" x="380" y="100"
+               style="width:140px;height:56px;background:rgba(0,240,255,0.85);
+                      display:flex;align-items:center;justify-content:center;
+                      font-family:'Silkscreen',monospace;font-size:0.65rem;color:#111;
+                      border-radius:4px;">
+            Raveling
+          </div>
+
+          <div id="block-3" x="280" y="300"
+               style="width:90px;height:90px;background:rgba(167,255,0,0.85);
+                      display:flex;align-items:center;justify-content:center;
+                      font-size:2.2rem;border-radius:50%;">
+            🎵
+          </div>
+
+          <div id="block-4" x="520" y="240"
+               style="width:120px;height:48px;background:rgba(255,55,168,0.85);
+                      display:flex;align-items:center;justify-content:center;
+                      font-family:'Quantico',monospace;font-size:0.75rem;color:#fff;
+                      border-radius:24px;">
+            ravel-card
+          </div>
+
+          <div id="block-5" x="100" y="340"
+               style="width:72px;height:72px;background:rgba(179,0,255,0.85);
+                      display:flex;align-items:center;justify-content:center;
+                      font-size:1.8rem;border-radius:6px;">
+            ⚡
+          </div>
+
+        </ravel-physics-world>
+
+        <div class="controls-row">
+          <div class="ctrl-row">
+            <span class="ctrl-lbl">damping</span>
+            <input type="range" id="damping-slider-2" min="0" max="1" step="0.05" value="0">
+            <span class="val-readout" id="damping-val-2">0.00</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- ── Reference ─────────────────────────────────────────── -->
     <div class="element-cell">
       <div class="element-label">setup &amp; attributes</div>
@@ -202,10 +258,13 @@
           <code>damping</code> — mouse-joint damping ratio (0 = full spring, 1 = heavy drag).<br>
           <code>width</code> / <code>height</code> — override world size (auto-detected from layout).<br>
           <br>
-          Slot <code>&lt;ravel-fluxum&gt;</code> elements with <code>x</code>, <code>y</code>, <code>size</code> attributes.<br>
-          Physics bodies are registered at setup time; resizing the window updates the offset.<br>
+          Any <code>HTMLElement</code> can be slotted as a physics body.<br>
+          <code>x</code> / <code>y</code> attributes set the initial <em>center</em> position in px.<br>
+          <code>&lt;ravel-fluxum&gt;</code> → circular body, moved via <code>.transform()</code>.<br>
+          All other elements → rectangular body sized from rendered dimensions;<br>
+          &nbsp;&nbsp;the world sets <code>position: absolute</code> on them automatically.<br>
           <br>
-          Each frame, angular velocity is broadcast on <code>fluxum-N</code> channels<br>
+          Angular velocity is broadcast each frame on the element's <code>id</code> channel<br>
           (cmd: <code>'playback-rate'</code>) — wire to <code>&lt;ravel-fluxly-sound-engine&gt;</code>.
         </p>
       </div>
@@ -213,7 +272,58 @@
 
   </div>
 
+   <!-- ── World 2: plain HTML block elements ────────────────── -->
+    <div class="element-cell">
+      <div class="element-label">plain HTML block elements — rectangular bodies</div>
+      <div class="stage">
+        <ravel-physics-world id="world2" damping="0.0">
+
+          <div id="block-1" x="160" y="120"
+               style="width:100px;height:100px;background:rgba(254,104,16,0.85);
+                      display:flex;align-items:center;justify-content:center;
+                      font-family:'Silkscreen',monospace;font-size:0.65rem;color:#fff;
+                      border-radius:4px;">
+            🎸 Block
+          </div>
+
+          <div id="block-2" x="380" y="100"
+               style="width:140px;height:56px;background:rgba(0,240,255,0.85);
+                      display:flex;align-items:center;justify-content:center;
+                      font-family:'Silkscreen',monospace;font-size:0.65rem;color:#111;
+                      border-radius:4px;">
+            Raveling
+          </div>
+
+          <div id="block-3" x="280" y="300"
+               style="width:90px;height:90px;background:rgba(167,255,0,0.85);
+                      display:flex;align-items:center;justify-content:center;
+                      font-size:2.2rem;border-radius:50%;">
+            🎵
+          </div>
+
+          <div id="block-4" x="520" y="240"
+               style="width:120px;height:48px;background:rgba(255,55,168,0.85);
+                      display:flex;align-items:center;justify-content:center;
+                      font-family:'Quantico',monospace;font-size:0.75rem;color:#fff;
+                      border-radius:24px;">
+            ravel-card
+          </div>
+
+          <div id="block-5" x="100" y="340"
+               style="width:72px;height:72px;background:rgba(179,0,255,0.85);
+                      display:flex;align-items:center;justify-content:center;
+                      font-size:1.8rem;border-radius:6px;">
+            ⚡
+          </div>
+
+        </ravel-physics-world>
+
+
+      </div>
+    </div>
+
   <script type="module">
+    // ── World 1: ravel-fluxum ─────────────────────────────────────
     const dampingSlider = document.getElementById('damping-slider');
     const dampingVal    = document.getElementById('damping-val');
     const world         = document.getElementById('world');
@@ -225,21 +335,29 @@
       world.setAttribute('damping', String(v));
     });
 
-    // Show angular velocities from the world's broadcasts
-    let lines = [];
+    // Angular velocity readout for world 1
     const channels = ['fluxum-1', 'fluxum-2', 'fluxum-3', 'fluxum-4', 'fluxum-5'];
     const latest   = {};
-
     channels.forEach(ch => {
       window.addEventListener(ch, (e) => {
         latest[ch] = e.detail.content.toFixed(3);
       });
     });
-
     setInterval(() => {
       const parts = channels.map(ch => `${ch}: ${(latest[ch] ?? '0.000').padStart(7)}`);
       log.textContent = parts.join('  ');
     }, 100);
+
+    // ── World 2: plain block elements ─────────────────────────────
+    const dampingSlider2 = document.getElementById('damping-slider-2');
+    const dampingVal2    = document.getElementById('damping-val-2');
+    const world2         = document.getElementById('world2');
+
+    dampingSlider2.addEventListener('input', () => {
+      const v = Number(dampingSlider2.value);
+      dampingVal2.textContent = v.toFixed(2);
+      world2.setAttribute('damping', String(v));
+    });
   </script>
 
 </body>

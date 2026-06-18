@@ -292,6 +292,13 @@ export class RavelBloopCard extends RavelElement {
         this._blurbEl    = this.container.querySelector<HTMLElement>('#blurb-text')!;
         this._textEl     = this.container.querySelector<HTMLElement>('#text-body')!;
         this._toggleBtn  = this.container.querySelector<HTMLButtonElement>('#toggle-btn')!;
+
+        // Attribute callbacks fire before connectedCallback — render accumulated state now
+        this._renderAvatar();
+        this._renderMeta();
+        this._renderBlurb();
+        this._renderText();
+        this._renderExpanded();
     }
 
     protected setup(): void {

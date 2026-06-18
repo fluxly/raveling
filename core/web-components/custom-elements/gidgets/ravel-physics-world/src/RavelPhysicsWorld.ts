@@ -73,8 +73,9 @@ interface Box2DGlobal {
 // ── Physics member descriptor ─────────────────────────────────────────────────
 
 interface PhysicsMember {
-    element: Element & { transform(x: number, y: number, angle: number): void };
-    size:    number;        // half-radius in px
+    element: HTMLElement;
+    halfW:   number;   // half-width in px  (used for hit-test and rendering offset)
+    halfH:   number;   // half-height in px
     body:    B2Body;
 }
 
@@ -83,14 +84,15 @@ interface PhysicsMember {
 /**
  * A 2-D physics sandbox powered by Box2D (loaded globally as `Box2d.min.js`).
  *
- * Slot `<ravel-fluxum>` elements inside the world — they are picked up at setup,
- * given circular Box2D bodies, and their position/rotation is updated every frame
- * via `element.transform(x, y, angleRad)`.
+ * Slot **any `HTMLElement`** inside the world — each child is given a Box2D body
+ * at setup and repositioned every frame. `<ravel-fluxum>` elements get circular
+ * bodies and are moved via their `.transform()` method; all other elements get
+ * rectangular bodies and are moved via inline CSS (`left`, `top`, `transform`).
  *
  * Mouse / touch drag creates a spring joint, letting users fling elements around.
  *
- * Angular velocity is broadcast each frame per element on channel `fluxum-N`
- * (cmd: `'playback-rate'`), so `<ravel-fluxly-sound-engine>` can react to spinning.
+ * Angular velocity is broadcast each frame per element on the element's `id`
+ * channel (cmd: `'playback-rate'`), provided the element has an `id`.
  *
  * ### Attributes
  * | Attribute | Type   | Default | Description                              |
@@ -99,10 +101,16 @@ interface PhysicsMember {
  * | `width`   | number | auto    | World width in px (auto from layout)     |
  * | `height`  | number | auto    | World height in px (auto from layout)    |
  *
+ * ### Slotted children
+ * Every direct `HTMLElement` child becomes a physics body. The `x` and `y`
+ * HTML attributes set the initial **center** position (in px). For
+ * `<ravel-fluxum>`, `size` controls the circular body radius. For all other
+ * elements, the body is a box sized from `offsetWidth`/`offsetHeight`; the
+ * component sets `position: absolute` on them automatically.
+ *
  * ### Notes
  * - Box2D **must** be loaded before this element: `<script src="/core/libs/Box2d.min.js">`
  * - World gravity is (0, 0) — elements float and bounce off walls.
- * - Only `<ravel-fluxum>` children are registered as physics bodies.
  */
 export class RavelPhysicsWorld extends RavelElement {
 
@@ -243,19 +251,15 @@ export class RavelPhysicsWorld extends RavelElement {
         listener.BeginContact = (_contact: unknown): void => { /* noop */ };
         this._world.SetContactListener(listener);
 
-        // Register slotted ravel-fluxum elements
+        // Register all slotted HTMLElements as physics bodies
         for (const node of this._slotEl.assignedNodes()) {
-            if (!(node instanceof Element)) continue;
-            if (node.tagName === 'RAVEL-FLUXUM') {
-                const member = this._newFluxum(B, node as Element & {
-                    transform(x: number, y: number, a: number): void;
-                });
-                if (member) {
-                    this._lookup[node.id]  = this._members.length;
-                    this._members.push(member);
-                    this._values.push(0);
-                    this._prevValues.push(0);
-                }
+            if (!(node instanceof HTMLElement)) continue;
+            const member = this._newBodyForElement(B, node);
+            if (member) {
+                if (node.id) this._lookup[node.id] = this._members.length;
+                this._members.push(member);
+                this._values.push(0);
+                this._prevValues.push(0);
             }
         }
 
@@ -274,16 +278,25 @@ export class RavelPhysicsWorld extends RavelElement {
         if (!this._isReady || !this._world) return;
 
         for (let j = 0; j < this._members.length; j++) {
-            const m   = this._members[j];
-            const pos = m.body.GetPosition();
-            m.element.transform(
-                pos.x * this._ptw - m.size,
-                pos.y * this._ptw - m.size,
-                m.body.GetAngle()
-            );
+            const m     = this._members[j];
+            const pos   = m.body.GetPosition();
+            const cx    = pos.x * this._ptw;
+            const cy    = pos.y * this._ptw;
+            const angle = m.body.GetAngle();
+
+            // ravel-fluxum exposes .transform(); all other elements use inline CSS
+            if (typeof (m.element as unknown as { transform?: unknown }).transform === 'function') {
+                (m.element as unknown as { transform(x: number, y: number, a: number): void })
+                    .transform(cx - m.halfW, cy - m.halfH, angle);
+            } else {
+                m.element.style.left      = `${cx - m.halfW}px`;
+                m.element.style.top       = `${cy - m.halfH}px`;
+                m.element.style.transform = `rotate(${angle}rad)`;
+            }
+
             this._values[j] = m.body.GetAngularVelocity();
-            if (this._values[j] !== this._prevValues[j]) {
-                this.sendMessage(`fluxum-${j + 1}`, 'playback-rate', this._values[j]);
+            if (m.element.id && this._values[j] !== this._prevValues[j]) {
+                this.sendMessage(m.element.id, 'playback-rate', this._values[j]);
             }
             this._prevValues[j] = this._values[j];
         }
@@ -299,7 +312,8 @@ export class RavelPhysicsWorld extends RavelElement {
             const m   = this._members[j];
             const pos = m.body.GetPosition();
             if (this._hitTest(e.clientX, e.clientY,
-                    pos.x * this._ptw, pos.y * this._ptw, m.size)) {
+                    pos.x * this._ptw, pos.y * this._ptw,
+                    m.halfW, m.halfH)) {
                 this._mousePressed  = true;
                 this._grabbedIndex  = j;
                 return;
@@ -350,33 +364,56 @@ export class RavelPhysicsWorld extends RavelElement {
 
     // ── Body factories ────────────────────────────────────────────────────────
 
-    private _newFluxum(
-        B:   Box2DGlobal,
-        el:  Element & { transform(x: number, y: number, a: number): void }
-    ): PhysicsMember | null {
-        const x    = parseInt(el.getAttribute('x') ?? '0', 10);
-        const y    = parseInt(el.getAttribute('y') ?? '0', 10);
-        const size = parseInt(el.getAttribute('size') ?? '50', 10) * 0.45;
+    private _newBodyForElement(B: Box2DGlobal, el: HTMLElement): PhysicsMember | null {
+        const isFluxum = el.tagName === 'RAVEL-FLUXUM';
 
-        const fixDef          = new B.Dynamics.b2FixtureDef();
-        fixDef.density        = 1.0;
-        fixDef.restitution    = 0.5;
-        fixDef.friction       = 1.0;
+        // x/y attributes = center position in px (consistent for all element types)
+        const cx = parseInt(el.getAttribute('x') ?? '0', 10);
+        const cy = parseInt(el.getAttribute('y') ?? '0', 10);
 
-        const bodyDef          = new B.Dynamics.b2BodyDef();
-        bodyDef.position.x     = x / this._ptw;
-        bodyDef.position.y     = y / this._ptw;
-        bodyDef.type           = B.Dynamics.b2Body.b2_dynamicBody;
+        let halfW: number;
+        let halfH: number;
 
-        const circle = new B.Collision.Shapes.b2CircleShape();
-        circle.SetRadius(size / this._ptw, size / this._ptw);
-        fixDef.shape = circle;
+        if (isFluxum) {
+            // Circular body — size attr is diameter; half-radius scaled by 0.45
+            const r = parseInt(el.getAttribute('size') ?? '50', 10) * 0.45;
+            halfW = halfH = r;
+        } else {
+            // Rectangular body — make the element absolutely positioned so layout
+            // runs and we can read its rendered dimensions
+            el.style.position      = 'absolute';
+            el.style.left          = `${cx - el.offsetWidth  / 2}px`;
+            el.style.top           = `${cy - el.offsetHeight / 2}px`;
+            el.style.transformOrigin = 'center';
+            halfW = el.offsetWidth  / 2 || 40;
+            halfH = el.offsetHeight / 2 || 40;
+        }
+
+        const fixDef       = new B.Dynamics.b2FixtureDef();
+        fixDef.density     = 1.0;
+        fixDef.restitution = 0.5;
+        fixDef.friction    = 1.0;
+
+        const bodyDef      = new B.Dynamics.b2BodyDef();
+        bodyDef.position.x = cx / this._ptw;
+        bodyDef.position.y = cy / this._ptw;
+        bodyDef.type       = B.Dynamics.b2Body.b2_dynamicBody;
+
+        if (isFluxum) {
+            const circle = new B.Collision.Shapes.b2CircleShape();
+            circle.SetRadius(halfW / this._ptw, halfH / this._ptw);
+            fixDef.shape = circle;
+        } else {
+            const poly = new B.Collision.Shapes.b2PolygonShape();
+            poly.SetAsBox(halfW / this._ptw, halfH / this._ptw);
+            fixDef.shape = poly;
+        }
 
         const body = this._world!.CreateBody(bodyDef);
         body.CreateFixture(fixDef);
         body.SetUserData(el);
 
-        return { element: el, size, body };
+        return { element: el, halfW, halfH, body };
     }
 
     private _newBoundary(B: Box2DGlobal, x: number, y: number, w: number, h: number): B2Body {
@@ -401,11 +438,11 @@ export class RavelPhysicsWorld extends RavelElement {
 
     // ── Helpers ───────────────────────────────────────────────────────────────
 
-    private _hitTest(mx: number, my: number, cx: number, cy: number, r: number): boolean {
+    private _hitTest(mx: number, my: number, cx: number, cy: number, halfW: number, halfH: number): boolean {
         const rect = this.container.getBoundingClientRect();
         const lx   = mx - rect.left;
         const ly   = my - rect.top;
-        return lx > cx - r && lx < cx + r && ly > cy - r && ly < cy + r;
+        return lx > cx - halfW && lx < cx + halfW && ly > cy - halfH && ly < cy + halfH;
     }
 
     private _box2d(): Box2DGlobal | null {

@@ -5,11 +5,14 @@ import { RavelElement } from '../../../../common/RavelElement';
  *
  * The name comes from *nona* (nine) — the canonical use is nine children
  * arranged in a 3 × 3 grid. Rows grow automatically if more children are added.
+ * Nonagrams may be nested — slot a `<ravel-nonagram>` as one of the nine children
+ * and use `scale` to shrink it to cell size.
  *
  * ### Attributes
- * | Attribute | Type   | Default | Description          |
- * |-----------|--------|---------|----------------------|
- * | `gap`     | string | `5px`   | CSS gap between cells |
+ * | Attribute | Type   | Default | Description                                          |
+ * |-----------|--------|---------|------------------------------------------------------|
+ * | `gap`     | string | `5px`   | CSS gap between cells                                |
+ * | `scale`   | number | `1`     | CSS zoom factor — shrinks render AND layout footprint|
  */
 export class RavelNonagram extends RavelElement {
 
@@ -26,10 +29,11 @@ export class RavelNonagram extends RavelElement {
     `;
 
     static get observedAttributes(): string[] {
-        return [...RavelElement.baseObservedAttributes, 'gap'];
+        return [...RavelElement.baseObservedAttributes, 'gap', 'scale'];
     }
 
-    private _gap = '5px';
+    private _gap   = '5px';
+    private _scale = 1;
 
     protected initialize(): void {
         super.initialize();
@@ -44,17 +48,28 @@ export class RavelNonagram extends RavelElement {
     protected setup(): void {
         super.setup();
         this.container.style.gap = this._gap;
+        this._applyScale();
     }
 
     protected teardown(): void {
         super.teardown();
     }
 
+    private _applyScale(): void {
+        this.style.zoom = this._scale !== 1 ? String(this._scale) : '';
+    }
+
     attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
         super.attributeChangedCallback(name, oldValue, newValue);
-        if (name === 'gap') {
-            this._gap = newValue ?? '5px';
-            if (this.container) this.container.style.gap = this._gap;
+        switch (name) {
+            case 'gap':
+                this._gap = newValue ?? '5px';
+                if (this.container) this.container.style.gap = this._gap;
+                break;
+            case 'scale':
+                this._scale = parseFloat(newValue ?? '1') || 1;
+                this._applyScale();
+                break;
         }
     }
 }

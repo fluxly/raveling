@@ -98,6 +98,20 @@
     .cell.l  { color: var(--fluoro-lime);   } .cell.l::after  { background: var(--fluoro-lime);   }
     .cell.p  { color: var(--fluoro-pink);   } .cell.p::after  { background: var(--fluoro-pink);   }
 
+    /* ── Nested / micro cells ────────────────────────────────── */
+    /*
+     * These fill the nested nonagram. At natural size they are square cells
+     * that match the outer cell width; the `scale` attribute zooms the whole
+     * inner nonagram down so it occupies exactly one outer cell.
+     */
+    .micro-cell {
+      aspect-ratio: 1;
+    }
+    .micro-cell.c { background: rgba(  0, 240, 255, 0.28); }
+    .micro-cell.o { background: rgba(254, 104,  16, 0.28); }
+    .micro-cell.l { background: rgba(167, 255,   0, 0.28); }
+    .micro-cell.p { background: rgba(255,  55, 168, 0.28); }
+
     /* ── Controls panel ─────────────────────────────────────── */
     .stage {
       background: var(--well);
@@ -155,6 +169,16 @@
     .ctrl-btn.apply       { color: var(--fluoro-lime); border-color: var(--fluoro-lime); }
     .ctrl-btn.apply:hover { background: rgba(167,255,0,0.08); }
 
+    /* ── Scale readout ──────────────────────────────────────── */
+    .scale-readout {
+      font-family: 'Quantico', monospace;
+      font-size: 0.72rem;
+      color: #555;
+      align-self: flex-end;
+      padding-bottom: 8px;
+    }
+    .scale-readout span { color: var(--fluoro-cyan); }
+
     /* ── Note ────────────────────────────────────────────────── */
     .note {
       font-size: 0.75rem;
@@ -174,23 +198,36 @@
 <body>
 
   <h1>ravel-nonagram</h1>
-  <p class="subtitle">3-column grid layout · 9 slotted children · gap attribute controls spacing</p>
+  <p class="subtitle">3-column grid · 9 slotted children · nested nonagram scales to cell size</p>
 
   <div class="element-col">
 
     <!-- ── Component stage ───────────────────────────────────── -->
     <div class="element-cell">
-      <div class="element-label">9 slotted cells in a 3 × 3 grid</div>
+      <div class="element-label">9 cells — center cell contains a scaled nonagram</div>
 
       <ravel-nonagram id="nona" gap="6px">
         <div class="cell c"><span class="cell-icon">🎵</span><span class="cell-label">Cryptid Garden</span></div>
         <div class="cell o"><span class="cell-icon">🐱</span><span class="cell-label">Jinx Cat</span></div>
         <div class="cell l"><span class="cell-icon">🤖</span><span class="cell-label">Jetson Nano Setup</span></div>
-        <div class="cell p"><span class="cell-icon">🏠</span><span class="cell-label">Pillbox Holiday Studio</span></div>
-        <div class="cell c"><span class="cell-icon">✨</span><span class="cell-label">Twily Luxen</span></div>
-        <div class="cell o"><span class="cell-icon">🔍</span><span class="cell-label">Job Search</span></div>
-        <div class="cell l"><span class="cell-icon">🧠</span><span class="cell-label">AI Discovery</span></div>
+        <div class="cell p"><span class="cell-icon">🏠</span><span class="cell-label">Pillbox Studio</span></div>
+<div class="cell l"><span class="cell-icon">🧠</span><span class="cell-label">AI Discovery</span></div>
         <div class="cell p"><span class="cell-icon">⚡</span><span class="cell-label">Sonic Electronics</span></div>
+        <!-- Center cell: a nested nonagram, scaled to fit by JS -->
+        <ravel-nonagram id="nona-inner" gap="4px">
+          <div class="micro-cell c"></div>
+          <div class="micro-cell o"></div>
+          <div class="micro-cell l"></div>
+          <div class="micro-cell p"></div>
+          <div class="micro-cell c"></div>
+          <div class="micro-cell o"></div>
+          <div class="micro-cell l"></div>
+          <div class="micro-cell p"></div>
+          <div class="micro-cell c"></div>
+        </ravel-nonagram>
+
+        <div class="cell o"><span class="cell-icon">🔍</span><span class="cell-label">Job Search</span></div>
+        
         <div class="cell c"><span class="cell-icon">🔧</span><span class="cell-label">FPGA Bitnet</span></div>
       </ravel-nonagram>
     </div>
@@ -200,10 +237,15 @@
       <div class="element-label">attributes</div>
       <div class="stage">
         <div class="field">
-          <span class="field-label">gap</span>
+          <span class="field-label">outer gap</span>
           <input type="text" id="inp-gap" value="6px">
         </div>
+        <div class="field">
+          <span class="field-label">inner gap</span>
+          <input type="text" id="inp-inner-gap" value="4px">
+        </div>
         <button class="ctrl-btn apply" id="btn-apply">Apply</button>
+        <div class="scale-readout">inner scale: <span id="scale-display">—</span></div>
       </div>
     </div>
 
@@ -212,9 +254,8 @@
       <div class="element-label">attributes</div>
       <div class="stage" style="display:block;padding:16px 18px">
         <p class="note">
-          <code>gap</code> — any valid CSS <code>gap</code> value (e.g. <code>5px</code>, <code>8px 12px</code>). Defaults to <code>5px</code>.<br>
-          Always 3 columns; rows grow automatically.
-          Cell sizing and styling live on slotted children.
+          <code>gap</code> — any valid CSS <code>gap</code> value. Defaults to <code>5px</code>. Always 3 columns; rows grow automatically.<br>
+          <code>scale</code> — CSS <code>zoom</code> factor. Shrinks both the rendered size and the layout footprint, so a scaled nonagram fits exactly inside a parent cell. The center cell above has its scale calculated automatically: <code>scale = cell_width / outer_width</code>.
         </p>
       </div>
     </div>
@@ -222,8 +263,33 @@
   </div>
 
   <script type="module">
+    const outerNona = document.getElementById('nona');
+    const innerNona = document.getElementById('nona-inner');
+    const scaleDisplay = document.getElementById('scale-display');
+
+    // ── Fit inner nonagram to one outer cell ──────────────────────
+    // The inner nonagram is given the same natural width as the outer
+    // nonagram, then scaled down so it occupies exactly one outer cell.
+    // scale = cellWidth / outerWidth  (where cellWidth = (W - 2*gap) / 3)
+    function fitInner() {
+      const W = outerNona.offsetWidth;
+      if (!W) return;
+      const outerGap = parseFloat(outerNona.getAttribute('gap')) || 5;
+      const cellW    = (W - outerGap * 2) / 3;
+      const scale    = cellW / W;
+      innerNona.style.width = W + 'px';
+      innerNona.setAttribute('scale', scale.toFixed(4));
+      scaleDisplay.textContent = scale.toFixed(4);
+    }
+
+    // Recalculate whenever the outer nonagram's width changes
+    new ResizeObserver(fitInner).observe(outerNona);
+
+    // ── Controls ──────────────────────────────────────────────────
     document.getElementById('btn-apply').addEventListener('click', () => {
-      document.getElementById('nona').setAttribute('gap', document.getElementById('inp-gap').value);
+      outerNona.setAttribute('gap', document.getElementById('inp-gap').value);
+      innerNona.setAttribute('gap', document.getElementById('inp-inner-gap').value);
+      fitInner();
     });
   </script>
 
