@@ -1,16 +1,18 @@
 import { RavelElement } from '../../../../common/RavelElement';
 
 /**
- * An inline help icon that reveals a black-and-white tooltip on click.
+ * An inline help icon that reveals a tooltip popover on click.
  *
  * Drop it anywhere in flow content; it renders as a small `?` circle that
- * sits at mid-line. Clicking the icon opens a popover above it; clicking
- * OK (or the icon again) closes it.
+ * sits at mid-line. Clicking the icon opens a popover to the right; clicking
+ * OK (or the icon again, or anywhere outside) closes it.
+ *
+ * Content is slotted — put any HTML inside `<ravel-help>` and it appears
+ * inside the popup. This allows rich content: paragraphs, `<code>`, `<pre>`, links.
  *
  * ### Attributes
  * | Attribute | Type   | Default | Description                        |
  * |-----------|--------|---------|------------------------------------|
- * | `tip`     | string | `''`    | Help text shown in the popover     |
  * | `label`   | string | `?`     | Icon label (emoji or short string) |
  * | `width`   | string | `260px` | Max-width of the popover           |
  */
@@ -21,6 +23,10 @@ export class RavelHelp extends RavelElement {
             display: inline-flex;
             position: relative;
             vertical-align: middle;
+            font-family: 'Quantico', monospace;
+            font-size: 0.75rem;
+            line-height: 1.6;
+            color: rgba(255, 255, 255, 0.85);
         }
         #container {
             position: relative;
@@ -77,7 +83,7 @@ export class RavelHelp extends RavelElement {
             display: flex;
             flex-direction: column;
             align-items: flex-start;
-            gap: 12px;
+            gap: 10px;
             z-index: 9999;
             border: 1px solid rgba(255, 255, 255, 0.12);
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.7);
@@ -112,8 +118,33 @@ export class RavelHelp extends RavelElement {
             pointer-events: auto;
             transform: translateX(0) translateY(-50%);
         }
-        #tip-text {
-            white-space: normal;
+        /* ── Slot wrapper — gives slotted children a reliable flex column ── */
+        slot { display: contents; }
+        #slot-body {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            width: 100%;
+            min-width: 0;
+        }
+        /* ── Slotted content defaults ────────────────────────── */
+        ::slotted(p)   { margin: 0; }
+        ::slotted(pre) {
+            margin: 0;
+            padding: 8px 10px;
+            background: rgba(255,255,255,0.06);
+            border-radius: 3px;
+            font-size: 0.7rem;
+            white-space: pre;
+            overflow-x: auto;
+            align-self: stretch;
+            box-sizing: border-box;
+        }
+        ::slotted(code) {
+            background: rgba(255,255,255,0.08);
+            border-radius: 2px;
+            padding: 1px 4px;
+            font-size: 0.72rem;
         }
         #ok-btn {
             border: 1px solid rgba(255, 255, 255, 0.18);
@@ -137,16 +168,14 @@ export class RavelHelp extends RavelElement {
     static get observedAttributes(): string[] {
         return [
             ...RavelElement.baseObservedAttributes,
-            'tip', 'label', 'width',
+            'label', 'width',
         ];
     }
 
     private triggerEl!: HTMLButtonElement;
     private popupEl!:   HTMLElement;
-    private tipTextEl!: HTMLElement;
     private okBtnEl!:   HTMLButtonElement;
 
-    private _tip   = '';
     private _label = '?';
     private _width = '260px';
     private _open  = false;
@@ -168,15 +197,17 @@ export class RavelHelp extends RavelElement {
         this.popupEl.id = 'popup';
         this.popupEl.setAttribute('role', 'tooltip');
 
-        this.tipTextEl = document.createElement('div');
-        this.tipTextEl.id = 'tip-text';
+        const slotBody = document.createElement('div');
+        slotBody.id = 'slot-body';
+        const slotEl = document.createElement('slot');
+        slotBody.appendChild(slotEl);
 
         this.okBtnEl = document.createElement('button');
         this.okBtnEl.id = 'ok-btn';
         this.okBtnEl.textContent = 'OK';
         this.okBtnEl.setAttribute('type', 'button');
 
-        this.popupEl.appendChild(this.tipTextEl);
+        this.popupEl.appendChild(slotBody);
         this.popupEl.appendChild(this.okBtnEl);
 
         this.container.appendChild(this.triggerEl);
@@ -222,10 +253,6 @@ export class RavelHelp extends RavelElement {
         super.attributeChangedCallback(name, oldValue, newValue);
 
         switch (name) {
-            case 'tip':
-                this._tip = newValue ?? '';
-                if (this.tipTextEl) this.tipTextEl.textContent = this._tip;
-                break;
             case 'label':
                 this._label = newValue ?? '?';
                 if (this.triggerEl) this.triggerEl.textContent = this._label;

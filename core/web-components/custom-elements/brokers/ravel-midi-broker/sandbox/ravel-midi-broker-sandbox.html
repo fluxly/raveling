@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+  <title>ravel-midi-broker sandbox</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Silkscreen&family=Quantico:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+  <script type="module" src="../ravel-midi-broker.ts"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+
+    :root {
+      --ground:        #303030;
+      --well:          #1a1a1a;
+      --muted:         #666666;
+      --rule:          rgba(102,102,102,.30);
+      --fluoro-pink:   #FF37A8;
+      --fluoro-orange: #FE6810;
+      --fluoro-lime:   #A7FF00;
+      --fluoro-cyan:   #00F0FF;
+    }
+
+    body {
+      margin: 0;
+      padding: 40px 44px;
+      background: #181818;
+      font-family: 'Silkscreen', monospace;
+      font-size: 1rem;
+      line-height: 1.4;
+      color: #E6E2D3;
+      border: 10px solid #ff0000;
+      box-shadow: 0px 0px 0px 10px inset #ffcc00;
+      min-height: 100vh;
+    }
+
+    h1 {
+      font-size: 2.4rem;
+      color: #ffffff;
+      margin: 0 0 8px 0;
+      border-bottom: 10px solid var(--fluoro-pink);
+      display: inline-block;
+      padding-bottom: 2px;
+    }
+    .subtitle {
+      font-family: 'Quantico', monospace;
+      font-size: 0.9rem;
+      color: var(--muted);
+      margin: 0 0 40px 0;
+    }
+
+    /* ── Layout ───────────────────────────────────────────────── */
+    .element-col  { display: flex; flex-direction: column; gap: 32px; }
+    .element-cell { display: flex; flex-direction: column; gap: 8px; }
+    .element-label {
+      font-family: 'Quantico', monospace;
+      font-size: 0.85rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .stage {
+      background: var(--well);
+      border: 2px dotted var(--rule);
+      border-radius: 4px;
+      padding: 20px 22px;
+    }
+    .stage-row {
+      display: flex;
+      gap: 20px;
+      align-items: flex-start;
+      flex-wrap: wrap;
+    }
+
+    /* ── Piano ────────────────────────────────────────────────── */
+    .piano-wrap {
+      position: relative;
+      height: 110px;
+      width: 530px;
+      flex-shrink: 0;
+    }
+    .piano-key {
+      position: absolute;
+      bottom: 0;
+      border: none;
+      border-radius: 0 0 4px 4px;
+      cursor: pointer;
+      transition: background 0.05s;
+      outline: none;
+      touch-action: none;
+    }
+    .piano-key:focus-visible { outline: 2px solid var(--fluoro-cyan); outline-offset: 1px; }
+
+    .key-white {
+      width: 36px;
+      height: 110px;
+      background: rgba(232, 228, 214, 0.92);
+      border: 1px solid #888;
+      z-index: 0;
+    }
+    .key-white:hover  { background: rgba(0, 240, 255, 0.55); }
+    .key-white.active { background: var(--fluoro-cyan); }
+
+    .key-black {
+      width: 22px;
+      height: 68px;
+      background: #111;
+      border: 1px solid #000;
+      z-index: 1;
+    }
+    .key-black:hover  { background: rgba(255, 55, 168, 0.75); }
+    .key-black.active { background: var(--fluoro-pink); }
+
+    .key-note-label {
+      position: absolute;
+      bottom: 4px;
+      width: 100%;
+      text-align: center;
+      font-family: 'Silkscreen', monospace;
+      font-size: 0.38rem;
+      color: rgba(0,0,0,0.45);
+      pointer-events: none;
+      line-height: 1;
+    }
+    .key-black .key-note-label { color: rgba(255,255,255,0.35); bottom: 3px; }
+
+    /* ── Sliders ──────────────────────────────────────────────── */
+    .slider-group {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      padding-top: 6px;
+    }
+    .slider-row { display: flex; flex-direction: column; gap: 4px; }
+    .slider-label {
+      font-family: 'Quantico', monospace;
+      font-size: 0.72rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .slider-val {
+      font-family: 'Quantico', monospace;
+      font-size: 0.75rem;
+      color: var(--fluoro-cyan);
+      min-width: 48px;
+      display: inline-block;
+    }
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 160px;
+      height: 4px;
+      background: rgba(255,255,255,0.12);
+      border-radius: 2px;
+      outline: none;
+      display: block;
+      margin-top: 4px;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      background: var(--fluoro-pink);
+      cursor: pointer;
+    }
+    #pitch-bend-slider::-webkit-slider-thumb { background: var(--fluoro-cyan); }
+
+    /* ── Buttons ──────────────────────────────────────────────── */
+    .btn-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-top: 10px;
+    }
+    .ctrl-btn {
+      background: transparent;
+      border: 1px solid var(--rule);
+      border-radius: 4px;
+      padding: 6px 14px;
+      font-family: 'Silkscreen', monospace;
+      font-size: 0.7rem;
+      color: var(--muted);
+      cursor: pointer;
+      transition: color 0.12s, border-color 0.12s;
+    }
+    .ctrl-btn:hover            { color: var(--fluoro-cyan); border-color: var(--fluoro-cyan); }
+    .ctrl-btn.lime             { color: var(--fluoro-lime); border-color: var(--fluoro-lime); }
+    .ctrl-btn.lime:hover       { background: rgba(167,255,0,0.08); }
+    .ctrl-btn.pink             { color: var(--fluoro-pink); border-color: var(--fluoro-pink); }
+    .ctrl-btn.pink:hover       { background: rgba(255,55,168,0.08); }
+    .ctrl-btn.running          { color: var(--fluoro-orange); border-color: var(--fluoro-orange); }
+
+    /* ── Event log ────────────────────────────────────────────── */
+    .log {
+      height: 160px;
+      overflow-y: auto;
+      font-family: 'Quantico', monospace;
+      font-size: 0.8rem;
+      background: #0d0d0d;
+      border: 1px solid var(--rule);
+      border-radius: 4px;
+      padding: 8px 12px;
+    }
+    .log-line { padding: 1px 0; color: #444; }
+    .log-line.in-note  { color: var(--fluoro-lime); }
+    .log-line.in-cc    { color: var(--fluoro-cyan); }
+    .log-line.in-pb    { color: #88aaff; }
+    .log-line.in-clock { color: #555; }
+    .log-line.in-other { color: var(--fluoro-orange); }
+    .log-line.out      { color: var(--fluoro-pink); }
+    .log-line.raw      { color: #444466; }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    /* ── Out controls ─────────────────────────────────────────── */
+    .field-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+    .field-label {
+      font-family: 'Quantico', monospace;
+      font-size: 0.72rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      min-width: 90px;
+    }
+    select, input[type="number"] {
+      background: #111;
+      border: 1px solid var(--rule);
+      border-radius: 4px;
+      color: rgba(255,255,255,0.82);
+      font-family: 'Quantico', monospace;
+      font-size: 0.75rem;
+      padding: 4px 7px;
+      outline: none;
+    }
+    select { cursor: pointer; }
+    input[type="number"] { width: 64px; }
+    select:focus, input[type="number"]:focus { border-color: var(--fluoro-cyan); }
+
+    /* ── Note ─────────────────────────────────────────────────── */
+    .note {
+      font-size: 0.75rem;
+      color: var(--muted);
+      border-left: 2px solid var(--rule);
+      padding-left: 10px;
+      line-height: 1.8;
+      font-family: 'Quantico', monospace;
+    }
+    .note code {
+      background: rgba(255,255,255,0.07);
+      border-radius: 3px;
+      padding: 1px 5px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>ravel-midi-broker</h1>
+  <p class="subtitle">MIDI ↔ Ravel messaging bridge · RX/TX indicator head</p>
+
+  <div class="element-col">
+
+    <!-- ── Broker head showcase ──────────────────────────────── -->
+    <div class="element-cell">
+      <div class="element-label">Broker element — live status head</div>
+      <div class="stage" style="display:flex;align-items:center;gap:24px;flex-wrap:wrap">
+        <ravel-midi-broker id="broker" label="ravel-midi-broker" channel="midi"></ravel-midi-broker>
+        <div style="font-family:'Quantico',monospace;font-size:0.78rem;color:var(--muted);line-height:1.9">
+          RX <span style="color:var(--fluoro-lime)">■</span> lights when raw MIDI arrives from gadget<br>
+          TX <span style="color:var(--fluoro-pink)">■</span> lights when parsed events broadcast to components<br>
+          During MIDI clock (48 ticks/sec) both LEDs stay continuously lit
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Simulate MIDI In ──────────────────────────────────── -->
+    <div class="element-cell">
+      <div class="element-label">Simulate MIDI In (what ravel-midi-gadget sends)</div>
+      <div class="stage">
+        <div class="stage-row">
+          <!-- Piano keyboard -->
+          <div class="piano-wrap" id="piano" role="group" aria-label="Simulated MIDI piano keyboard, 2 octaves C4–B5"></div>
+
+          <!-- CC + Pitch Bend sliders -->
+          <div class="slider-group">
+            <div class="slider-row">
+              <span class="slider-label">CC #1 — Mod Wheel</span>
+              <input type="range" id="cc-slider" min="0" max="127" value="0" aria-label="MIDI CC 1 mod wheel value">
+              <span class="slider-val" id="cc-val">0</span>
+            </div>
+            <div class="slider-row">
+              <span class="slider-label">Pitch Bend</span>
+              <input type="range" id="pitch-bend-slider" min="-8192" max="8191" value="0" aria-label="MIDI pitch bend value">
+              <span class="slider-val" id="pb-val">0</span>
+            </div>
+            <div class="slider-row">
+              <span class="slider-label">MIDI Clock</span>
+              <div class="btn-row" style="margin-top:4px">
+                <button class="ctrl-btn lime" id="btn-clock-start">Start</button>
+                <button class="ctrl-btn" id="btn-clock-stop">Stop</button>
+                <span class="slider-val" id="clock-count" style="color:#555">—</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Parsed Events log ─────────────────────────────────── -->
+    <div class="element-cell">
+      <div class="element-label">Broadcasts on 'midi' channel (broker → components)</div>
+      <div class="stage">
+        <div class="two-col">
+          <div>
+            <div class="log" id="log-in"></div>
+          </div>
+          <div>
+            <div style="font-family:'Quantico',monospace;font-size:0.72rem;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em">Active notes</div>
+            <div id="active-notes" style="font-family:'Quantico',monospace;font-size:0.8rem;color:var(--fluoro-lime);min-height:36px;letter-spacing:0.05em"></div>
+            <div style="font-family:'Quantico',monospace;font-size:0.72rem;color:var(--muted);margin:12px 0 4px;text-transform:uppercase;letter-spacing:.05em">Last CC</div>
+            <div id="last-cc" style="font-family:'Quantico',monospace;font-size:0.8rem;color:var(--fluoro-cyan)">—</div>
+            <div style="font-family:'Quantico',monospace;font-size:0.72rem;color:var(--muted);margin:10px 0 4px;text-transform:uppercase;letter-spacing:.05em">Pitch bend</div>
+            <div id="last-pb" style="font-family:'Quantico',monospace;font-size:0.8rem;color:#88aaff">0</div>
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="ctrl-btn" id="btn-clear-in">Clear log</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Simulate MIDI Out ─────────────────────────────────── -->
+    <div class="element-cell">
+      <div class="element-label">Simulate MIDI Out (component → broker → ravel-midi-gadget)</div>
+      <div class="stage">
+        <div class="two-col">
+          <div>
+            <div class="field-row">
+              <span class="field-label">Message type</span>
+              <select id="out-type">
+                <option value="note-on">note-on</option>
+                <option value="note-off">note-off</option>
+                <option value="cc">cc</option>
+                <option value="pitch-bend">pitch-bend</option>
+                <option value="program-change">program-change</option>
+                <option value="aftertouch">aftertouch</option>
+              </select>
+            </div>
+            <div class="field-row">
+              <span class="field-label">Channel (0–15)</span>
+              <input type="number" id="out-ch" value="0" min="0" max="15">
+            </div>
+            <div class="field-row" id="out-note-row">
+              <span class="field-label">Note (0–127)</span>
+              <input type="number" id="out-note" value="60" min="0" max="127">
+            </div>
+            <div class="field-row" id="out-vel-row">
+              <span class="field-label">Velocity (0–127)</span>
+              <input type="number" id="out-vel" value="64" min="0" max="127">
+            </div>
+            <div class="field-row" id="out-val-row" style="display:none">
+              <span class="field-label">Value (0–127)</span>
+              <input type="number" id="out-val" value="64" min="0" max="127">
+            </div>
+            <div class="field-row" id="out-ctrl-row" style="display:none">
+              <span class="field-label">Controller (0–127)</span>
+              <input type="number" id="out-ctrl" value="1" min="0" max="127">
+            </div>
+            <div class="btn-row">
+              <button class="ctrl-btn pink" id="btn-send-out">Send to broker</button>
+            </div>
+          </div>
+          <div>
+            <div style="font-family:'Quantico',monospace;font-size:0.72rem;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em">ravel-midi-gadget receives</div>
+            <div class="log" id="log-out" style="height:140px"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Reference ─────────────────────────────────────────── -->
+    <div class="element-cell">
+      <div class="element-label">API reference</div>
+      <div class="stage" style="display:block;padding:20px 22px">
+        <p class="note">
+          <strong>label</strong> — pub/sub channel the broker subscribes to (default: <code>ravel-midi-broker</code>).<br>
+          <strong>channel</strong> — window event channel for parsed MIDI broadcasts (default: <code>midi</code>). Shown below the LEDs.<br>
+          <strong>device</strong> — optional device-name filter; empty = accept all devices.<br>
+          <br>
+          <strong>Inbound</strong> (<code>ravel-midi-gadget</code> → broker via <code>RavelMessenger.sendMessage</code>):<br>
+          &nbsp;&nbsp;<code>cmd: 'raw', content: { data: number[], deviceName?: string }</code><br>
+          <br>
+          <strong>Outbound</strong> (broker → components via <code>window</code> on <code>channel</code>):<br>
+          &nbsp;&nbsp;<code>note-on / note-off</code> · <code>{ channel, note, velocity }</code><br>
+          &nbsp;&nbsp;<code>cc</code> · <code>{ channel, controller, value }</code><br>
+          &nbsp;&nbsp;<code>pitch-bend</code> · <code>{ channel, value }</code> (−8192 to 8191)<br>
+          &nbsp;&nbsp;<code>program-change</code> · <code>{ channel, program }</code><br>
+          &nbsp;&nbsp;<code>aftertouch / poly-aftertouch</code> · <code>{ channel, pressure }</code><br>
+          &nbsp;&nbsp;<code>clock</code> · <code>{ type: 'tick'|'start'|'stop'|'continue' }</code><br>
+          &nbsp;&nbsp;<code>sysex</code> · <code>{ data: number[] }</code><br>
+          <br>
+          <strong>MIDI out</strong> (components → broker → gadget):<br>
+          &nbsp;&nbsp;Send <code>cmd: 'send', content: { type, channel?, note?, velocity?, ... }</code> to the broker's label channel.<br>
+          &nbsp;&nbsp;The broker encodes raw bytes and calls <code>broadcastMessage('ravel-midi-gadget', 'send', { data })</code>.
+        </p>
+      </div>
+    </div>
+
+  </div>
+
+  <script type="module">
+    import { RavelMessenger } from '../../../../common/RavelMessenger.ts';
+
+    // ── Piano data ─────────────────────────────────────────────────────────────
+    // [midiNote, isBlack, whiteKeyIndex]
+    const KEYS = [
+      [60,false,0],[61,true,0],[62,false,1],[63,true,1],[64,false,2],
+      [65,false,3],[66,true,3],[67,false,4],[68,true,4],[69,false,5],
+      [70,true,5],[71,false,6],
+      [72,false,7],[73,true,7],[74,false,8],[75,true,8],[76,false,9],
+      [77,false,10],[78,true,10],[79,false,11],[80,true,11],[81,false,12],
+      [82,true,12],[83,false,13],
+    ];
+    const NOTE_NAMES = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+    const WW = 36, GAP = 2;
+
+    function noteName(n) {
+      return NOTE_NAMES[n % 12] + (Math.floor(n / 12) - 1);
+    }
+
+    // ── Build piano ────────────────────────────────────────────────────────────
+    const piano = document.getElementById('piano');
+    const keyEls = new Map();
+
+    KEYS.forEach(([midi, isBlack, wIdx]) => {
+      const btn = document.createElement('button');
+      btn.className = `piano-key ${isBlack ? 'key-black' : 'key-white'}`;
+      btn.setAttribute('aria-label', noteName(midi));
+      if (!isBlack) btn.setAttribute('tabindex', '0');
+
+      const left = isBlack
+        ? wIdx * (WW + GAP) + WW - 11
+        : wIdx * (WW + GAP);
+      btn.style.left = left + 'px';
+
+      const label = document.createElement('span');
+      label.className = 'key-note-label';
+      label.textContent = isBlack ? '' : NOTE_NAMES[midi % 12];
+      btn.appendChild(label);
+
+      piano.appendChild(btn);
+      keyEls.set(midi, btn);
+    });
+
+    // ── Piano note events ──────────────────────────────────────────────────────
+    function sendRaw(data, deviceName = 'Sandbox Piano') {
+      RavelMessenger.sendMessage('ravel-midi-broker', 'raw', { data, deviceName });
+    }
+
+    function noteOn(midi)  { sendRaw([0x90, midi, 80]); keyEls.get(midi)?.classList.add('active'); }
+    function noteOff(midi) { sendRaw([0x80, midi, 0]);  keyEls.get(midi)?.classList.remove('active'); }
+
+    let heldNote = null;
+    piano.addEventListener('pointerdown', (e) => {
+      const btn = e.target.closest('.piano-key');
+      if (!btn) return;
+      e.preventDefault();
+      btn.setPointerCapture(e.pointerId);
+      for (const [n, el] of keyEls) { if (el === btn) { heldNote = n; break; } }
+      if (heldNote !== null) noteOn(heldNote);
+    });
+    piano.addEventListener('pointerup',     () => { if (heldNote !== null) { noteOff(heldNote); heldNote = null; } });
+    piano.addEventListener('pointercancel', () => { if (heldNote !== null) { noteOff(heldNote); heldNote = null; } });
+
+    piano.addEventListener('keydown', (e) => {
+      if (e.repeat || (e.key !== ' ' && e.key !== 'Enter')) return;
+      const btn = e.target.closest('.piano-key');
+      if (!btn) return;
+      for (const [n, el] of keyEls) { if (el === btn) { noteOn(n); break; } }
+    });
+    piano.addEventListener('keyup', (e) => {
+      if (e.key !== ' ' && e.key !== 'Enter') return;
+      const btn = e.target.closest('.piano-key');
+      if (!btn) return;
+      for (const [n, el] of keyEls) { if (el === btn) { noteOff(n); break; } }
+    });
+
+    // ── CC slider ──────────────────────────────────────────────────────────────
+    const ccSlider = document.getElementById('cc-slider');
+    const ccVal    = document.getElementById('cc-val');
+    let ccTimeout  = null;
+
+    ccSlider.addEventListener('input', () => {
+      const v = Number(ccSlider.value);
+      ccVal.textContent = v;
+      clearTimeout(ccTimeout);
+      ccTimeout = setTimeout(() => sendRaw([0xB0, 1, v], 'Sandbox CC'), 16);
+    });
+
+    // ── Pitch bend slider ──────────────────────────────────────────────────────
+    const pbSlider = document.getElementById('pitch-bend-slider');
+    const pbVal    = document.getElementById('pb-val');
+    let pbTimeout  = null;
+
+    pbSlider.addEventListener('input', () => {
+      const v = Number(pbSlider.value);
+      pbVal.textContent = v;
+      clearTimeout(pbTimeout);
+      pbTimeout = setTimeout(() => {
+        const s = v + 8192;
+        sendRaw([0xE0, s & 0x7F, (s >> 7) & 0x7F], 'Sandbox Pitch Bend');
+      }, 16);
+    });
+    pbSlider.addEventListener('pointerup', () => {
+      pbSlider.value = '0';
+      pbVal.textContent = '0';
+      const s = 8192;
+      sendRaw([0xE0, s & 0x7F, (s >> 7) & 0x7F], 'Sandbox Pitch Bend');
+    });
+
+    // ── MIDI clock ─────────────────────────────────────────────────────────────
+    let clockInterval = null, clockTicks = 0;
+    const clockCount = document.getElementById('clock-count');
+    const btnClockStart = document.getElementById('btn-clock-start');
+    const btnClockStop  = document.getElementById('btn-clock-stop');
+
+    btnClockStart.addEventListener('click', () => {
+      if (clockInterval) return;
+      sendRaw([0xFA], 'Sandbox Clock');
+      clockInterval = setInterval(() => {
+        sendRaw([0xF8], 'Sandbox Clock');
+        clockCount.textContent = ++clockTicks + ' ticks';
+      }, 1000 / 48);
+      btnClockStart.classList.add('running');
+      btnClockStart.classList.remove('lime');
+    });
+    btnClockStop.addEventListener('click', () => {
+      if (!clockInterval) return;
+      clearInterval(clockInterval);
+      clockInterval = null;
+      sendRaw([0xFC], 'Sandbox Clock');
+      btnClockStart.classList.remove('running');
+      btnClockStart.classList.add('lime');
+    });
+
+    // ── Listen for broker broadcasts ───────────────────────────────────────────
+    const logIn       = document.getElementById('log-in');
+    const activeNotes = document.getElementById('active-notes');
+    const lastCC      = document.getElementById('last-cc');
+    const lastPB      = document.getElementById('last-pb');
+    const activeSet   = new Set();
+
+    function addLogIn(text, cls = '') {
+      const d = document.createElement('div');
+      d.className = 'log-line ' + cls;
+      const t = new Date().toLocaleTimeString('en', { hour12: false, second: '2-digit', fractionalSecondDigits: 2 });
+      d.textContent = `[${t}] ${text}`;
+      logIn.prepend(d);
+      while (logIn.childElementCount > 200) logIn.lastElementChild.remove();
+    }
+
+    window.addEventListener('midi', (e) => {
+      const { cmd, content } = e.detail;
+      if (!content) return;
+      switch (cmd) {
+        case 'note-on':
+          addLogIn(`note-on   ch:${content.channel}  note:${content.note} (${noteName(content.note)})  vel:${content.velocity}`, 'in-note');
+          activeSet.add(content.note);
+          activeNotes.textContent = [...activeSet].map(noteName).join('  ');
+          break;
+        case 'note-off':
+          addLogIn(`note-off  ch:${content.channel}  note:${content.note} (${noteName(content.note)})`, 'in-note');
+          activeSet.delete(content.note);
+          activeNotes.textContent = [...activeSet].map(noteName).join('  ') || '—';
+          break;
+        case 'cc':
+          if (content.controller === 1) lastCC.textContent = `ctrl:${content.controller}  val:${content.value}`;
+          else addLogIn(`cc        ch:${content.channel}  ctrl:${content.controller}  val:${content.value}`, 'in-cc');
+          break;
+        case 'pitch-bend':
+          lastPB.textContent = content.value;
+          if (Math.abs(content.value) > 100)
+            addLogIn(`pitch-bend  ch:${content.channel}  val:${content.value}`, 'in-pb');
+          break;
+        case 'clock':
+          if (content.type !== 'tick')
+            addLogIn(`clock  type:${content.type}`, 'in-clock');
+          break;
+        default:
+          addLogIn(`${cmd}  ${JSON.stringify(content)}`, 'in-other');
+      }
+    });
+
+    document.getElementById('btn-clear-in').addEventListener('click', () => { logIn.innerHTML = ''; });
+
+    // ── MIDI Out controls ──────────────────────────────────────────────────────
+    const outType = document.getElementById('out-type');
+    const logOut  = document.getElementById('log-out');
+
+    function updateOutFields() {
+      const t = outType.value;
+      document.getElementById('out-note-row').style.display =
+        ['note-on','note-off','poly-aftertouch'].includes(t) ? '' : 'none';
+      document.getElementById('out-vel-row').style.display =
+        ['note-on','note-off'].includes(t) ? '' : 'none';
+      document.getElementById('out-val-row').style.display =
+        ['pitch-bend','aftertouch','program-change'].includes(t) ? '' : 'none';
+      document.getElementById('out-ctrl-row').style.display =
+        t === 'cc' ? '' : 'none';
+    }
+    outType.addEventListener('change', updateOutFields);
+    updateOutFields();
+
+    document.getElementById('btn-send-out').addEventListener('click', () => {
+      const type    = outType.value;
+      const channel = parseInt(document.getElementById('out-ch').value) || 0;
+      const note    = parseInt(document.getElementById('out-note').value) || 0;
+      const vel     = parseInt(document.getElementById('out-vel').value) ?? 64;
+      const val     = parseInt(document.getElementById('out-val').value) ?? 0;
+      const ctrl    = parseInt(document.getElementById('out-ctrl').value) || 0;
+      const content = { type, channel, note, velocity: vel, value: val, controller: ctrl };
+      RavelMessenger.sendMessage('ravel-midi-broker', 'send', content);
+      addLogOut(`→ broker.send  type:${type}  ${JSON.stringify(content)}`);
+    });
+
+    function addLogOut(text, cls = 'out') {
+      const d = document.createElement('div');
+      d.className = 'log-line ' + cls;
+      d.textContent = text;
+      logOut.prepend(d);
+      while (logOut.childElementCount > 100) logOut.lastElementChild.remove();
+    }
+
+    window.addEventListener('ravel-midi-gadget', (e) => {
+      const { cmd, content } = e.detail;
+      if (cmd === 'send') {
+        const hex = content.data.map(b => '0x' + b.toString(16).padStart(2,'0').toUpperCase()).join(' ');
+        addLogOut(`gadget recv:  [${hex}]`, 'raw');
+      }
+    });
+
+  </script>
+
+</body>
+</html>

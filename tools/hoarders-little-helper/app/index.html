@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hoarder's Little Helper</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Silkscreen&family=Quantico:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --hlh-sidebar-w: 180px;
+            --hlh-bg:        #0e0e12;
+            --hlh-surface:   #141418;
+            --hlh-border:    rgba(255,255,255,0.07);
+            --ravel-accent:  #FF4FB3;
+            --ravel-focus:   #00F0FF;
+            --ravel-font:    'Silkscreen', monospace;
+        }
+
+        html, body { height: 100%; overflow: hidden; }
+
+        body {
+            background: var(--hlh-bg);
+            color: #E6E2D3;
+            font-family: var(--ravel-font);
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ── Title bar ─────────────────────────────────── */
+
+        #titlebar {
+            height: 36px;
+            background: #08080c;
+            border-bottom: 1px solid var(--hlh-border);
+            display: flex;
+            align-items: center;
+            padding: 0 14px;
+            gap: 10px;
+            flex-shrink: 0;
+            -webkit-app-region: drag;
+            user-select: none;
+        }
+        #titlebar-icon { font-size: 16px; -webkit-app-region: no-drag; }
+        #titlebar-name { font-size: 11px; letter-spacing: 0.12em; color: rgba(255,255,255,0.40); }
+
+        /* ── App shell ─────────────────────────────────── */
+
+        #shell {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+
+        /* ── Sidebar ───────────────────────────────────── */
+
+        #sidebar {
+            width: var(--hlh-sidebar-w);
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid var(--hlh-border);
+            overflow: hidden;
+        }
+
+        #sidebar ravel-stack-browser {
+            flex: 1;
+            width: 100%;
+            min-height: 0;
+        }
+
+        /* ── Main content ──────────────────────────────── */
+
+        #content {
+            flex: 1;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ── Status bar ────────────────────────────────── */
+
+        #statusbar {
+            height: 24px;
+            background: #08080c;
+            border-top: 1px solid var(--hlh-border);
+            display: flex;
+            align-items: center;
+            padding: 0 14px;
+            gap: 20px;
+            flex-shrink: 0;
+        }
+        .status-item {
+            font-size: 9px;
+            letter-spacing: 0.10em;
+            color: rgba(255,255,255,0.25);
+            text-transform: uppercase;
+        }
+        #status-db { }
+        #status-items { }
+
+        /* ── Reduced motion ───────────────────────────── */
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                transition:        none !important;
+                animation:         none !important;
+                scroll-behavior:   auto !important;
+            }
+        }
+
+        /* ── Error overlay ─────────────────────────────── */
+
+        #error-overlay {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.85);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 9999;
+        }
+        #error-overlay[hidden] { display: none; }
+        .error-box {
+            background: #1a0a0a;
+            border: 1px solid #CC0000;
+            border-radius: 8px;
+            padding: 28px 32px;
+            max-width: 460px;
+            text-align: center;
+        }
+        .error-title { font-size: 1.1rem; color: #FF37A8; margin-bottom: 10px; }
+        .error-msg   { font-family: 'Quantico', monospace; font-size: 0.9rem; color: rgba(255,255,255,0.60); line-height: 1.5; }
+    </style>
+</head>
+<body>
+
+    <!-- Title bar (draggable on macOS) -->
+    <div id="titlebar">
+        <span id="titlebar-icon" aria-hidden="true">📦</span>
+        <span id="titlebar-name">HOARDER'S LITTLE HELPER</span>
+    </div>
+
+    <!-- App shell -->
+    <div id="shell">
+        <nav id="sidebar" aria-label="Navigation">
+            <ravel-stack-browser id="nav" selected="inbox" channel="app-nav">
+                <ravel-stack id="inbox"       label="Inbox"       icon="📥"></ravel-stack>
+                <ravel-stack id="items"       label="Items"       icon="🗃️"></ravel-stack>
+                <ravel-stack id="collections" label="Collections" icon="📚"></ravel-stack>
+                <ravel-stack id="listings"    label="Listings"    icon="🏷️"></ravel-stack>
+                <ravel-stack id="sold"        label="Sold"        icon="✅"></ravel-stack>
+                <ravel-stack id="reports"     label="Reports"     icon="📊"></ravel-stack>
+                <ravel-stack id="quiddity"    label="Quiddity"    icon="🧵"></ravel-stack>
+                <ravel-stack id="settings"    label="Settings"    icon="⚙️"></ravel-stack>
+            </ravel-stack-browser>
+        </nav>
+
+        <main id="content" aria-label="Main content"></main>
+    </div>
+
+    <!-- Status bar -->
+    <div id="statusbar" aria-hidden="true">
+        <span class="status-item" id="status-db">DB: initializing</span>
+        <span class="status-item" id="status-items"></span>
+    </div>
+
+    <!-- Error overlay -->
+    <div id="error-overlay" hidden role="alertdialog" aria-labelledby="error-title" aria-modal="true">
+        <div class="error-box">
+            <div class="error-title" id="error-title">⚠️ ERROR</div>
+            <div class="error-msg"  id="error-msg"></div>
+        </div>
+    </div>
+
+    <script type="module" src="/src/main.ts"></script>
+</body>
+</html>

@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ravel-tag-editor — sandbox</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Silkscreen&family=Quantico:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Silkscreen', monospace;
+            background: #181818;
+            color: #E6E2D3;
+            padding: 32px;
+            border: 10px solid #ff0000;
+            box-shadow: 0px 0px 0px 10px inset #ffcc00;
+            min-height: 100vh;
+        }
+
+        h1 {
+            font-size: 3rem;
+            color: #FFFFFF;
+            border-bottom: 10px solid rgba(102,102,102,0.30);
+            padding-bottom: 16px;
+            margin-bottom: 32px;
+        }
+
+        h2 { font-size: 1.25rem; color: #FFFFFF; margin-bottom: 16px; }
+
+        .section {
+            background: #303030;
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .text {
+            font-family: 'Quantico', monospace, sans-serif;
+            font-size: 1rem;
+            color: rgba(255,255,255,0.40);
+            line-height: 1.6;
+            margin-bottom: 16px;
+        }
+
+        .stage {
+            position: relative;
+            background: #222222;
+            border: 2px dotted rgba(102,102,102,0.40);
+            border-radius: 4px;
+            padding: 32px 24px;
+        }
+
+        .stage + .stage { margin-top: 16px; }
+
+        .element-label {
+            font-size: 1rem;
+            color: #666666;
+            margin-bottom: 10px;
+        }
+
+        /* ── Log ─────────────────────────────────────── */
+        .log {
+            font-family: 'Quantico', monospace, sans-serif;
+            font-size: 0.85rem;
+            background: #111;
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 4px;
+            padding: 12px 16px;
+            margin-top: 16px;
+            min-height: 80px;
+            max-height: 180px;
+            overflow-y: auto;
+            color: rgba(255,255,255,0.5);
+        }
+        .log-line { color: #A7FF00; margin-bottom: 4px; }
+        .log-empty { color: rgba(255,255,255,0.2); font-style: italic; }
+
+        /* ── Two-column layout ───────────────────────── */
+        .two-up {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+
+        @media (max-width: 700px) { .two-up { grid-template-columns: 1fr; } }
+
+        /* ── Field label mimicking ravel-field-grid ──── */
+        .field-label {
+            font-size: 9px;
+            letter-spacing: 0.12em;
+            color: rgba(255,255,255,0.28);
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+
+        ravel-tag-editor { display: block; }
+    </style>
+</head>
+<body>
+
+    <h1>ravel-tag-editor</h1>
+
+    <!-- ── Section 1: Pre-populated with suggestions ── -->
+    <div class="section">
+        <h2>Pre-populated + Autocomplete</h2>
+        <p class="text">Start typing to see autocomplete suggestions. Press Enter, Tab, or comma to add a tag. Backspace on empty input removes the last tag.</p>
+
+        <div class="stage">
+            <div class="element-label">Genre & material tags — try typing "v" or "me"</div>
+            <div class="field-label">Tags</div>
+            <ravel-tag-editor
+                id="editor-a"
+                tags='["vintage","books","signed"]'
+                placeholder="Add tag…"
+                channel="tags-demo-a">
+            </ravel-tag-editor>
+        </div>
+
+        <div class="log" id="log-a">
+            <span class="log-empty">tag-change events will appear here…</span>
+        </div>
+    </div>
+
+    <!-- ── Section 2: Empty editor ── -->
+    <div class="section">
+        <h2>Empty Editor</h2>
+        <p class="text">No initial tags, no suggestions. Type freely and press Enter to add.</p>
+
+        <div class="stage">
+            <div class="element-label">Free-form entry</div>
+            <div class="field-label">Tags</div>
+            <ravel-tag-editor
+                id="editor-b"
+                placeholder="Type a tag and press Enter…"
+                channel="tags-demo-b">
+            </ravel-tag-editor>
+        </div>
+
+        <div class="log" id="log-b">
+            <span class="log-empty">tag-change events will appear here…</span>
+        </div>
+    </div>
+
+    <!-- ── Section 3: Side-by-side sharing a suggestion pool ── -->
+    <div class="section">
+        <h2>Shared Suggestion Pool</h2>
+        <p class="text">Two editors sharing the same tag vocabulary. Tags added in either are available in both.</p>
+
+        <div class="stage">
+            <div class="two-up">
+                <div>
+                    <div class="element-label">Item A</div>
+                    <ravel-tag-editor id="editor-c" placeholder="Add tag…" channel="tags-demo-c"></ravel-tag-editor>
+                </div>
+                <div>
+                    <div class="element-label">Item B</div>
+                    <ravel-tag-editor id="editor-d" placeholder="Add tag…" channel="tags-demo-d"></ravel-tag-editor>
+                </div>
+            </div>
+        </div>
+
+        <div class="log" id="log-cd">
+            <span class="log-empty">tag-change events will appear here…</span>
+        </div>
+    </div>
+
+    <script type="module">
+        import '../ravel-tag-editor.ts';
+
+        // ── Suggestion pool ───────────────────────────────────────────────────
+        const SUGGESTIONS = [
+            'vintage', 'signed', 'first-edition', 'rare', 'collectible',
+            'hardcover', 'paperback', 'illustrated', 'mint', 'good',
+            'fiction', 'non-fiction', 'sci-fi', 'mystery', 'biography',
+            'records', 'vinyl', 'cassette', 'ceramic', 'metal', 'wood',
+            'hand-made', 'mass-produced', 'limited-edition', 'numbered',
+            '1950s', '1960s', '1970s', '1980s', 'victorian', 'edwardian',
+        ];
+
+        // Set suggestions on editors
+        const edA = document.getElementById('editor-a');
+        const edB = document.getElementById('editor-b');
+        const edC = document.getElementById('editor-c');
+        const edD = document.getElementById('editor-d');
+
+        // Editor A and B share the global pool
+        [edA, edB].forEach(ed => ed?.setSuggestions(SUGGESTIONS));
+
+        // Editors C and D share a smaller pool and cross-feed each other
+        const sharedPool = ['vintage', 'signed', 'rare', 'mint', 'good', 'fair'];
+        edC?.setSuggestions(sharedPool);
+        edD?.setSuggestions(sharedPool);
+
+        // ── Log helpers ───────────────────────────────────────────────────────
+        function appendLog(logId, msg) {
+            const log = document.getElementById(logId);
+            const empty = log.querySelector('.log-empty');
+            if (empty) empty.remove();
+            const line = document.createElement('div');
+            line.className = 'log-line';
+            line.textContent = msg;
+            log.appendChild(line);
+            log.scrollTop = log.scrollHeight;
+        }
+
+        function fmt(tags) { return tags.length ? tags.join(', ') : '(empty)'; }
+
+        // ── Wire events ───────────────────────────────────────────────────────
+        edA?.addEventListener('tag-change', e => {
+            appendLog('log-a', `tag-change → [${fmt(e.detail.tags)}]`);
+        });
+
+        edB?.addEventListener('tag-change', e => {
+            appendLog('log-b', `tag-change → [${fmt(e.detail.tags)}]`);
+        });
+
+        // C and D cross-seed each other's suggestions
+        edC?.addEventListener('tag-change', e => {
+            appendLog('log-cd', `editor-c tag-change → [${fmt(e.detail.tags)}]`);
+            const merged = [...new Set([...sharedPool, ...e.detail.tags])];
+            edD?.setSuggestions(merged);
+        });
+
+        edD?.addEventListener('tag-change', e => {
+            appendLog('log-cd', `editor-d tag-change → [${fmt(e.detail.tags)}]`);
+            const merged = [...new Set([...sharedPool, ...e.detail.tags])];
+            edC?.setSuggestions(merged);
+        });
+    </script>
+
+</body>
+</html>

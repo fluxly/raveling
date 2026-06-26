@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ravel-abp-button sandbox</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Silkscreen&family=Quantico:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+  <script type="module" src="/index.ts"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+
+    :root {
+      --ground:        #303030;
+      --well:          #1a1a1a;
+      --muted:         #666666;
+      --rule:          rgba(102,102,102,.40);
+      --fluoro-pink:   #FF37A8;
+      --fluoro-orange: #FE6810;
+      --fluoro-lime:   #A7FF00;
+      --fluoro-cyan:   #00F0FF;
+      --fluoro-violet: #B300FF;
+    }
+
+    body {
+      margin: 0;
+      padding: 40px 44px 80px;
+      background: var(--ground);
+      color: #E6E2D3;
+      font-family: 'Silkscreen', monospace;
+      font-size: 1rem;
+      line-height: 1.3;
+      border: 10px solid #ff0000;
+      box-shadow: 0px 0px 0px 10px inset #ffcc00;
+      min-height: 100vh;
+    }
+
+    h1 {
+      font-size: 2rem;
+      color: #ffffff;
+      margin: 0 0 8px 0;
+      border-bottom: 10px solid var(--fluoro-lime);
+      display: inline-block;
+      padding-bottom: 2px;
+    }
+
+    .subtitle {
+      font-family: 'Quantico', monospace;
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin: 0 0 32px 0;
+    }
+
+    /* ── Layout ───────────────────────────────────────────── */
+
+    .element-col  { display: flex; flex-direction: column; gap: 32px; }
+    .element-cell { display: flex; flex-direction: column; gap: 8px; }
+    .element-label {
+      font-family: 'Quantico', monospace;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .stage {
+      position: relative;
+      background: var(--well);
+      border: 2px dotted var(--rule);
+      border-radius: 4px;
+      overflow: hidden;
+      padding: 24px;
+    }
+
+    /* ── Live demo ────────────────────────────────────────── */
+
+    .demo-grid {
+      display: grid;
+      grid-template-columns: 1fr 280px;
+      gap: 24px;
+      align-items: start;
+    }
+
+    .demo-left {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .demo-right {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .ctrl-section-label {
+      font-family: 'Quantico', monospace;
+      font-size: 0.7rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 4px;
+    }
+
+    .ctrl-item-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .ctrl-item-name {
+      font-family: 'Quantico', monospace;
+      font-size: 0.75rem;
+      color: rgba(255,255,255,0.6);
+      width: 84px;
+      flex-shrink: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .ctrl-item-name.required::after {
+      content: ' ★';
+      color: #FF4FB3;
+    }
+
+    .status-pills {
+      display: flex;
+      gap: 4px;
+    }
+
+    .status-pill {
+      appearance: none;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      padding: 3px 6px;
+      line-height: 1;
+      transition: border-color 0.1s, background 0.1s;
+    }
+    .status-pill:hover { background: rgba(255,255,255,0.10); }
+    .status-pill:focus-visible { outline: 2px solid var(--fluoro-cyan); outline-offset: 2px; }
+
+    .status-pill[data-status="pass"]    { border-color: rgba(167,255,0,0.5);   background: rgba(167,255,0,0.08);  }
+    .status-pill[data-status="warn"]    { border-color: rgba(254,104,16,0.5);  background: rgba(254,104,16,0.08); }
+    .status-pill[data-status="fail"]    { border-color: rgba(255,79,179,0.5);  background: rgba(255,79,179,0.08); }
+    .status-pill[data-status="pending"] { border-color: rgba(255,255,255,0.3); background: rgba(255,255,255,0.05); }
+
+    /* ── Label variants ───────────────────────────────────── */
+
+    .btn-col {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-width: 320px;
+    }
+
+    /* ── Force-disabled row ───────────────────────────────── */
+
+    .disabled-row {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .disabled-note {
+      font-family: 'Quantico', monospace;
+      font-size: 0.78rem;
+      color: var(--muted);
+      max-width: 260px;
+      line-height: 1.5;
+    }
+
+    .disabled-wrap { flex: 1; max-width: 280px; }
+
+    /* ── Event log ────────────────────────────────────────── */
+
+    #log {
+      font-family: 'Quantico', monospace;
+      font-size: 0.75rem;
+      background: #111;
+      border: 1px solid var(--rule);
+      border-radius: 4px;
+      padding: 12px;
+      height: 140px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column-reverse;
+      gap: 3px;
+    }
+    .log-line        { color: var(--muted); }
+    .log-line.action { color: var(--fluoro-lime); }
+    .log-line.info   { color: var(--fluoro-cyan); }
+  </style>
+</head>
+<body>
+
+  <ravel-message-broker id="broker"></ravel-message-broker>
+
+  <h1>ravel-abp-button</h1>
+  <p class="subtitle">Action Button with Prerequisites — locked until its paired checklist emits <code>allPass: true</code></p>
+
+  <div class="element-col">
+
+    <!-- ── Live pair ────────────────────────────────────────────── -->
+    <div class="element-cell">
+      <div class="element-label">live checklist pair — toggle items to unlock the button</div>
+      <div class="stage">
+        <div class="demo-grid">
+
+          <!-- Left: checklist + button -->
+          <div class="demo-left">
+            <ravel-checklist id="cl-live" channel="ch-live"></ravel-checklist>
+            <ravel-abp-button id="abp-live" channel="ch-live" label="Publish Listing"></ravel-abp-button>
+          </div>
+
+          <!-- Right: status controls -->
+          <div class="demo-right">
+            <div class="ctrl-section-label">Toggle item status</div>
+            <div id="ctrl-items"></div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Label variants ───────────────────────────────────────── -->
+    <div class="element-cell">
+      <div class="element-label">label attribute — button text when enabled</div>
+      <div class="stage">
+        <div class="btn-col">
+          <ravel-abp-button channel="ch-static" label="Publish Listing"></ravel-abp-button>
+          <ravel-abp-button channel="ch-static" label="Export to CSV"></ravel-abp-button>
+          <ravel-abp-button channel="ch-static" label="Send to Etsy"></ravel-abp-button>
+        </div>
+        <!-- hidden checklist drives the ch-static channel to all-pass -->
+        <ravel-checklist id="cl-static" channel="ch-static" style="display:none"></ravel-checklist>
+      </div>
+    </div>
+
+    <!-- ── disabled attribute ───────────────────────────────────── -->
+    <div class="element-cell">
+      <div class="element-label">disabled attribute — force-locked regardless of checklist</div>
+      <div class="stage">
+        <div class="disabled-row">
+          <div class="disabled-wrap">
+            <ravel-abp-button channel="ch-static" label="Force Locked" disabled></ravel-abp-button>
+          </div>
+          <p class="disabled-note text">
+            Even though <code>ch-static</code> is all-pass, the <code>disabled</code>
+            attribute holds the button locked. Remove it programmatically or via DevTools to unlock.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Event log ─────────────────────────────────────────────── -->
+    <div class="element-cell">
+      <div class="element-label">event log — <code>abp-action</code></div>
+      <div class="stage" style="padding:0">
+        <div id="log" aria-live="polite" aria-label="Event log"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <script type="module">
+    // ── Items for the live demo ────────────────────────────────────────────────
+    const STATUSES = ['pass', 'warn', 'fail', 'pending'];
+    const STATUS_ICON = { pass: '✅', warn: '⚠️', fail: '❌', pending: '⏳' };
+
+    const items = [
+      { label: 'Title',       status: 'pass',    message: 'Foxfire Book 3', required: true  },
+      { label: 'Price',       status: 'fail',    message: 'Set a price',    required: true  },
+      { label: 'Condition',   status: 'pending', message: undefined,        required: true  },
+      { label: 'Description', status: 'warn',    message: 'Recommended',    required: false },
+      { label: 'Photos',      status: 'pass',    message: '2 photos',       required: false },
+    ];
+
+    // ── Build control rows ─────────────────────────────────────────────────────
+    const ctrlEl   = document.getElementById('ctrl-items');
+    const cl       = document.getElementById('cl-live');
+
+    function setItems() {
+      cl.setItems(items.map(i => ({
+        label:    i.label,
+        status:   i.status,
+        message:  i.message,
+        required: i.required,
+      })));
+    }
+
+    function buildControls() {
+      ctrlEl.innerHTML = '';
+      items.forEach((item, idx) => {
+        const row = document.createElement('div');
+        row.className = 'ctrl-item-row';
+
+        const name = document.createElement('div');
+        name.className = 'ctrl-item-name' + (item.required ? ' required' : '');
+        name.textContent = item.label;
+
+        const pills = document.createElement('div');
+        pills.className = 'status-pills';
+
+        STATUSES.forEach(s => {
+          const btn = document.createElement('button');
+          btn.className = 'status-pill';
+          btn.textContent = STATUS_ICON[s];
+          btn.title = s;
+          btn.setAttribute('aria-label', `Set ${item.label} to ${s}`);
+          if (item.status === s) btn.setAttribute('data-status', s);
+
+          btn.addEventListener('click', () => {
+            items[idx].status = s;
+            buildControls();   // rebuild pills so active state updates
+            setItems();
+          });
+
+          pills.appendChild(btn);
+        });
+
+        row.append(name, pills);
+        ctrlEl.appendChild(row);
+      });
+    }
+
+    buildControls();
+    setItems();
+
+    // ── Static checklist (all-pass, drives label-variants and disabled demos) ──
+    document.getElementById('cl-static').setItems([
+      { label: 'Ready', status: 'pass', required: true },
+    ]);
+
+    // ── Event log ──────────────────────────────────────────────────────────────
+    const logEl = document.getElementById('log');
+
+    function addLog(text, cls = '') {
+      const d = document.createElement('div');
+      d.className = 'log-line' + (cls ? ' ' + cls : '');
+      d.textContent = `[${new Date().toLocaleTimeString()}] ${text}`;
+      logEl.prepend(d);
+      while (logEl.children.length > 60) logEl.removeChild(logEl.lastChild);
+    }
+
+    document.addEventListener('abp-action', () => {
+      addLog('abp-action fired — "Publish Listing" clicked while enabled', 'action');
+    });
+
+    addLog('ready — price and condition are required; set both to pass or warn to unlock', 'info');
+  </script>
+
+</body>
+</html>

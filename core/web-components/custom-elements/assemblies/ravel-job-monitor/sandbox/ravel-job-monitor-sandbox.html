@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ravel-job-monitor — sandbox</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Silkscreen&family=Quantico:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Silkscreen', monospace;
+            background: #181818;
+            color: #E6E2D3;
+            padding: 32px;
+            border: 10px solid #ff0000;
+            box-shadow: 0 0 0 10px inset #ffcc00;
+            min-height: 100vh;
+        }
+        h1 { font-size: 3rem; color: #fff; border-bottom: 10px solid rgba(102,102,102,.30); padding-bottom: 16px; margin-bottom: 32px; }
+        h2 { font-size: 1.25rem; color: #fff; margin-bottom: 16px; }
+        .section { background: #303030; border-radius: 8px; padding: 24px; margin-bottom: 24px; }
+        .text { font-family: 'Quantico', monospace; font-size: 1rem; color: rgba(255,255,255,.40); line-height: 1.6; margin-bottom: 16px; }
+        .stage { background: #222; border: 2px dotted rgba(102,102,102,.40); border-radius: 4px; padding: 16px; }
+        .ctrl-row { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
+        .ctrl-btn {
+            appearance: none; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.15);
+            border-radius: 4px; color: #E6E2D3; font-family: 'Silkscreen', monospace; font-size: .8rem;
+            padding: 8px 14px; cursor: pointer; min-height: 44px;
+        }
+        .ctrl-btn:hover { background: rgba(255,255,255,.12); }
+        .ctrl-btn:focus-visible { outline: 2px solid #00F0FF; outline-offset: 2px; }
+        ravel-job-monitor { display: block; }
+    </style>
+</head>
+<body>
+
+    <h1>ravel-job-monitor</h1>
+
+    <!-- ── Section 1: Interactive ── -->
+    <div class="section">
+        <h2>Background Job Queue</h2>
+        <p class="text">Use the controls to add jobs in various states. The header badge counts running jobs (cyan when active). Click the header or ▲/▼ button to collapse.</p>
+
+        <div class="stage">
+            <ravel-job-monitor id="monitor-a" channel="demo-jobs"></ravel-job-monitor>
+        </div>
+
+        <div class="ctrl-row">
+            <button class="ctrl-btn" id="btn-add-queued">+ Queued</button>
+            <button class="ctrl-btn" id="btn-add-running">+ Running (50%)</button>
+            <button class="ctrl-btn" id="btn-add-done">+ Done</button>
+            <button class="ctrl-btn" id="btn-add-error">+ Error</button>
+            <button class="ctrl-btn" id="btn-simulate">▶ Simulate</button>
+            <button class="ctrl-btn" id="btn-clear-done">Clear done</button>
+        </div>
+    </div>
+
+    <!-- ── Section 2: Collapsed ── -->
+    <div class="section">
+        <h2>Collapsed State</h2>
+        <p class="text">Pre-collapsed with jobs. Click the header to expand.</p>
+        <div class="stage">
+            <ravel-job-monitor id="monitor-b" channel="demo-b" collapsed></ravel-job-monitor>
+        </div>
+    </div>
+
+    <script type="module">
+        import '../ravel-job-monitor.ts';
+
+        const monA = document.getElementById('monitor-a');
+        const monB = document.getElementById('monitor-b');
+
+        let jobCount = 0;
+
+        function makeId() { return `job-${++jobCount}`; }
+
+        function dispatch(channel, cmd, content) {
+            window.dispatchEvent(new CustomEvent(channel, { detail: { cmd, content, version: 1 } }));
+        }
+
+        // ── Pre-populate monitor B ──────────────────────────────────────────
+        dispatch('demo-b', 'add-job', { id: 'b1', label: 'Import catalog PDF', status: 'done',    progress: 1.0 });
+        dispatch('demo-b', 'add-job', { id: 'b2', label: 'Extract quiddity items', status: 'done', progress: 1.0 });
+        dispatch('demo-b', 'add-job', { id: 'b3', label: 'Match inventory',        status: 'running', progress: 0.6, message: '12 of 20 items processed' });
+
+        // ── Buttons ─────────────────────────────────────────────────────────
+
+        document.getElementById('btn-add-queued').addEventListener('click', () => {
+            dispatch('demo-jobs', 'add-job', {
+                id:     makeId(),
+                label:  `Task ${jobCount}: waiting in queue`,
+                status: 'queued',
+            });
+        });
+
+        document.getElementById('btn-add-running').addEventListener('click', () => {
+            dispatch('demo-jobs', 'add-job', {
+                id:       makeId(),
+                label:    `Task ${jobCount}: processing`,
+                status:   'running',
+                progress: 0.5,
+                message:  'Half done…',
+            });
+        });
+
+        document.getElementById('btn-add-done').addEventListener('click', () => {
+            dispatch('demo-jobs', 'add-job', {
+                id:       makeId(),
+                label:    `Task ${jobCount}: complete`,
+                status:   'done',
+                progress: 1.0,
+                message:  'Finished successfully',
+            });
+        });
+
+        document.getElementById('btn-add-error').addEventListener('click', () => {
+            dispatch('demo-jobs', 'add-job', {
+                id:      makeId(),
+                label:   `Task ${jobCount}: failed`,
+                status:  'error',
+                message: 'Connection refused',
+            });
+        });
+
+        document.getElementById('btn-clear-done').addEventListener('click', () => {
+            dispatch('demo-jobs', 'clear-done', {});
+        });
+
+        // ── Simulation ─────────────────────────────────────────────────────
+        let simRunning = false;
+
+        document.getElementById('btn-simulate').addEventListener('click', async () => {
+            if (simRunning) return;
+            simRunning = true;
+            const id    = makeId();
+            const label = `Simulated job ${jobCount}`;
+            dispatch('demo-jobs', 'add-job', { id, label, status: 'running', progress: 0.0, message: 'Starting…' });
+
+            for (let p = 0; p <= 1.0; p = Math.round((p + 0.1) * 10) / 10) {
+                await new Promise(r => setTimeout(r, 300));
+                dispatch('demo-jobs', 'update-job', {
+                    id,
+                    progress: p,
+                    message:  `${Math.round(p * 100)}% complete`,
+                });
+            }
+
+            dispatch('demo-jobs', 'update-job', { id, status: 'done', progress: 1.0, message: 'Done!' });
+            simRunning = false;
+        });
+    </script>
+</body>
+</html>

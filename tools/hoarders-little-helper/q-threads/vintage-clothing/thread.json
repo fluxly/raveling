@@ -1,0 +1,7 @@
+{
+  "id":           "vintage-clothing",
+  "name":         "Vintage Clothing",
+  "version":      "1.0.0",
+  "description":  "Era-dates American vintage garments using construction markers: union labels (ILGWU/ACWA), zipper brands (Talon/Conmar/YKK), care label law (post-1971), country-of-origin stamps, and brand label evolution for Levi's, Lee, Wrangler, and others.",
+  "capabilities": ["recognition", "matching", "valuation", "tags"]
+}

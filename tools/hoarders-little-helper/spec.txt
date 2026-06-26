@@ -1,0 +1,836 @@
+I actually think this project is a particularly good fit for Claude. It's large enough to benefit from iterative implementation, and the architecture is naturally decomposable into small, testable pieces.
+
+One suggestion I'd make before implementation: **treat the application itself as a HyperCard stack.** Don't just imitate the UI—make "stacks," "cards," and "backgrounds" first-class concepts in the architecture. That way, adding a new workflow later (Estate Sale, Library Catalog, Museum Accessioning, etc.) becomes creating a new stack rather than a new application.
+
+Below is what I'd hand to Claude.
+
+---
+
+# Hoarder's Little Helper
+
+## Architecture & Implementation Plan
+
+Version 0.1
+
+---
+
+# Overview
+
+Hoarder's Little Helper is a **local-first Mac application** for cataloging, researching, valuing, describing, and publishing collectible items.
+
+Think of it as:
+
+> **HyperCard + Lightroom + FileMaker + Shopify + AI**
+
+The application should feel like an old HyperCard stack:
+
+* cards
+* stacks
+* backgrounds
+* buttons
+* fields
+
+implemented using the **Raveling** design system and Web Components.
+
+The application is **not** cloud-first.
+
+SQLite is the source of truth.
+
+Every external service is optional.
+
+The database should remain useful forever even if every API disappears.
+
+---
+
+# Guiding Principles
+
+## Local First
+
+Everything important lives locally.
+
+SQLite database
+
+images
+
+metadata
+
+generated descriptions
+
+publish history
+
+research cache
+
+---
+
+## Human In Control
+
+AI proposes.
+
+Human approves.
+
+Never silently overwrite metadata.
+
+Confidence values should be visible.
+
+---
+
+## Explainability
+
+Whenever the AI makes a suggestion, store:
+
+* why
+* source
+* confidence
+
+Users should always be able to inspect the reasoning.
+
+---
+
+## Progressive Enhancement
+
+Without APIs:
+
+cataloging still works.
+
+Without AI:
+
+cataloging still works.
+
+Without Internet:
+
+cataloging still works.
+
+Publishing is simply disabled.
+
+---
+
+# Overall Architecture
+
+```
+Mac Application
+
+    Ravel UI
+        ↓
+
+Application Services
+
+    Import
+    Research
+    Description
+    Publishing
+    Collections
+    Search
+
+        ↓
+
+SQLite
+
+        ↓
+
+Images on Disk
+
+        ↓
+
+Optional Cloud APIs
+```
+
+---
+
+# Technology Stack
+
+UI
+
+* Ravel Web Components
+
+Shell
+
+* Tauri preferred
+
+Language
+
+* TypeScript
+
+Database
+
+* SQLite
+
+Image Storage
+
+* filesystem
+
+Background jobs
+
+* Worker queue
+
+LLM
+
+* provider abstraction
+
+Marketplace APIs
+
+* plugin architecture
+
+---
+
+# HyperCard Model
+
+The application should literally be organized into stacks.
+
+## Stack
+
+A workflow.
+
+Examples:
+
+Inbox
+
+Items
+
+Collections
+
+Listings
+
+Publishing
+
+Sold
+
+Reports
+
+Settings
+
+---
+
+## Card
+
+Every item is a card.
+
+Cards have fields.
+
+Cards have buttons.
+
+Cards have scripts.
+
+Cards have related cards.
+
+---
+
+## Background
+
+Shared UI between stacks.
+
+Toolbar
+
+Navigation
+
+Search
+
+Status bar
+
+---
+
+# Database
+
+SQLite.
+
+Treat it as the canonical source of truth.
+
+Implement migrations.
+
+Foreign keys enabled.
+
+Soft deletes preferred.
+
+---
+
+# Primary Tables
+
+items
+
+photos
+
+identifiers
+
+tags
+
+item_tags
+
+collections
+
+collection_matches
+
+research_events
+
+listings
+
+publish_jobs
+
+settings
+
+---
+
+# Images
+
+Original images are never modified.
+
+Generate derivatives.
+
+thumbnail
+
+medium
+
+hero
+
+cropped
+
+Keep originals forever.
+
+---
+
+# Services
+
+## Import Service
+
+Responsibilities
+
+Import photos
+
+Detect batches
+
+Group likely items
+
+Generate thumbnails
+
+Detect blurry photos
+
+Generate perceptual hashes
+
+---
+
+## OCR Service
+
+Extract:
+
+ISBN
+
+UPC
+
+labels
+
+printed text
+
+maker marks
+
+dates
+
+Store OCR separately.
+
+Never overwrite human edits.
+
+---
+
+## Vision Service
+
+Detect:
+
+books
+
+clothing
+
+records
+
+ephemera
+
+tools
+
+electronics
+
+paper
+
+Estimate confidence.
+
+---
+
+## Catalog Service
+
+Produces structured metadata.
+
+title
+
+brand
+
+author
+
+publisher
+
+category
+
+year
+
+materials
+
+dimensions
+
+condition suggestions
+
+---
+
+## Description Service
+
+Generate:
+
+short title
+
+long title
+
+description
+
+SEO summary
+
+shipping notes
+
+condition notes
+
+Marketplace-specific variants.
+
+---
+
+## Tag Service
+
+Generate tags.
+
+Examples
+
+vintage
+
+americana
+
+first edition
+
+mid century
+
+linen
+
+railroad
+
+photography
+
+Providence
+
+Rhode Island
+
+Store confidence.
+
+---
+
+## Valuation Service
+
+Collect evidence.
+
+Comparable listings
+
+Comparable sold prices
+
+Price range
+
+Scarcity indicators
+
+Never produce only one price.
+
+Always produce:
+
+low
+
+expected
+
+optimistic
+
+---
+
+# Collection Matcher
+
+Users can maintain curated collections.
+
+Examples
+
+Wanted
+
+Don't Sell
+
+Museum
+
+Wishlist
+
+High Value
+
+When an item is cataloged
+
+compare against all collections
+
+produce match score
+
+show why it matched
+
+---
+
+# Listing System
+
+Listings are separate from Items.
+
+One item
+
+may produce
+
+multiple listings.
+
+Example
+
+Item
+
+↓
+
+Shopify
+
+↓
+
+eBay
+
+↓
+
+AbeBooks
+
+↓
+
+CSV Export
+
+Each listing stores
+
+status
+
+payload
+
+publish history
+
+remote ID
+
+---
+
+# Marketplace Plugins
+
+Create an interface.
+
+```
+validate()
+
+preview()
+
+publish()
+
+update()
+
+delete()
+
+sync()
+```
+
+Every marketplace becomes a plugin.
+
+Initial plugins
+
+Shopify
+
+AbeBooks
+
+CSV Export
+
+Stub plugins
+
+eBay
+
+Etsy
+
+Facebook Marketplace
+
+---
+
+# Publish Pipeline
+
+Publishing is never direct.
+
+Everything passes through a checklist.
+
+Rename the large green button:
+
+# ABP Button
+
+**Always Be Publishing**
+
+The ABP Button is not tied to marketplaces.
+
+It represents:
+
+> "Execute the next publishing workflow."
+
+Each workflow defines its own checklist.
+
+Only when every required rule passes does the button become enabled.
+
+Examples:
+
+✓ Hero photo
+
+✓ Title
+
+✓ Description
+
+✓ Price
+
+✓ Shipping profile
+
+✓ Category
+
+✓ Condition
+
+✓ Marketplace-specific fields
+
+✓ Human approval
+
+The checklist system should be generic.
+
+Future workflows may use the same engine.
+
+Examples
+
+Publish
+
+Archive
+
+Donate
+
+Museum accession
+
+Insurance inventory
+
+Estate sale
+
+Print labels
+
+Export CSV
+
+The ABP Button simply executes a validated workflow.
+
+---
+
+# UI Components
+
+Create reusable Ravel components.
+
+Suggested first set
+
+```
+<ravel-stack-browser>
+
+<ravel-card>
+
+<ravel-photo-strip>
+
+<ravel-field-grid>
+
+<ravel-tag-editor>
+
+<ravel-confidence-pill>
+
+<ravel-checklist>
+
+<ravel-abp-button>
+
+<ravel-marketplace-preview>
+
+<ravel-job-monitor>
+
+<ravel-collection-match>
+
+<ravel-price-range>
+
+<ravel-research-log>
+```
+
+Each component should be independently testable.
+
+---
+
+# Visual Design
+
+Inspired by
+
+HyperCard
+
+Lightroom
+
+old library catalog cards
+
+museum accession systems
+
+Keep interfaces quiet.
+
+Large typography.
+
+Minimal chrome.
+
+No unnecessary gradients.
+
+The application should feel like
+
+"working at a really good antique bookstore."
+
+---
+
+# Suggested Development Order
+
+## Phase 1
+
+Project skeleton
+
+SQLite
+
+Tauri shell
+
+Ravel integration
+
+Routing
+
+---
+
+## Phase 2
+
+Import photographs
+
+Create Item cards
+
+Thumbnail generation
+
+Basic editing
+
+---
+
+## Phase 3
+
+Database editor
+
+Search
+
+Tags
+
+Collections
+
+---
+
+## Phase 4
+
+OCR
+
+Vision
+
+Metadata generation
+
+Confidence system
+
+---
+
+## Phase 5
+
+Description generation
+
+Marketplace previews
+
+Research log
+
+---
+
+## Phase 6
+
+Plugin architecture
+
+Shopify
+
+CSV export
+
+ABP workflow
+
+---
+
+## Phase 7
+
+Comparable pricing
+
+Collection matching
+
+Wishlists
+
+Valuation
+
+---
+
+## Phase 8
+
+AbeBooks
+
+eBay
+
+Remaining connectors
+
+---
+
+## Phase 9
+
+Polish
+
+Keyboard shortcuts
+
+Undo
+
+History
+
+Performance
+
+---
+
+# Coding Philosophy
+
+Prefer many small modules.
+
+Prefer composition over inheritance.
+
+Avoid global state.
+
+All services should be dependency injected.
+
+Every AI call should be cached.
+
+Every external API should be replaceable.
+
+---
+
+# Future Possibilities
+
+The architecture should intentionally support future stacks beyond resale. Examples include:
+
+* **Estate Helper** — organize and liquidate an entire estate.
+* **Library Helper** — catalog personal libraries.
+* **Museum Helper** — accession and track collections.
+* **Donation Helper** — prepare donations and tax documentation.
+* **Insurance Helper** — build a home inventory with replacement values.
+* **Storage Helper** — map where items are physically stored.
+* **Moving Helper** — inventory and label boxes during relocation.
+
+These should feel like additional HyperCard stacks built on the same underlying platform rather than separate applications.
+
+---
+
+# Final Goal
+
+The finished application should feel less like an e-commerce dashboard and more like a trusted desktop workbench: a place where interesting objects are carefully documented, researched, and shepherded through their lifecycle.
+
+The **ABP (Always Be Publishing) Button** is the centerpiece of that workflow—not merely a "Publish" button, but a generic, rule-driven action engine that enables the next meaningful step only when the item's checklist is complete. This design makes the workflow extensible well beyond online selling while preserving a simple mental model for users.
+
+I think this has the potential to become a reusable foundation for an entire family of "Little Helper" applications, with Hoarder's Little Helper serving as the flagship implementation.
+

@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ravel-midi-gesture — sandbox</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Silkscreen&family=Quantico:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Silkscreen', monospace;
+            background: #181818;
+            color: #E6E2D3;
+            padding: 32px;
+            border: 10px solid #ff0000;
+            box-shadow: 0 0 0 10px inset #ffcc00;
+            min-height: 100vh;
+        }
+
+        h1 {
+            font-size: 3rem;
+            color: #FFFFFF;
+            letter-spacing: 0.04em;
+            border-bottom: 10px solid rgba(102,102,102,0.30);
+            padding-bottom: 16px;
+            margin-bottom: 32px;
+        }
+
+        h2 {
+            font-size: 1.25rem;
+            color: #FFFFFF;
+            margin-bottom: 16px;
+        }
+
+        .section {
+            background: #303030;
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .element-label {
+            font-size: 1rem;
+            color: #666666;
+            margin-bottom: 10px;
+        }
+
+        .stage {
+            position: relative;
+            background: #222222;
+            border: 2px dotted rgba(102,102,102,0.40);
+            border-radius: 4px;
+            overflow: hidden;
+            padding: 24px;
+            display: flex;
+            align-items: flex-start;
+            gap: 20px;
+        }
+
+        /* ── Mapping controls ───────────────────────────── */
+
+        .mapping-panel {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            flex: 1;
+        }
+
+        .map-group {
+            background: rgba(255,79,179,0.06);
+            border: 1px solid rgba(255,79,179,0.18);
+            border-radius: 6px;
+            padding: 12px;
+        }
+
+        .map-group-title {
+            font-size: 0.75rem;
+            color: #FF4FB3;
+            letter-spacing: 0.08em;
+            margin-bottom: 10px;
+        }
+
+        .map-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .map-row:last-child { margin-bottom: 0; }
+
+        .map-feature {
+            font-size: 0.75rem;
+            color: rgba(255,255,255,0.55);
+            min-width: 44px;
+        }
+
+        .map-select {
+            flex: 1;
+            background: #181818;
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 4px;
+            color: #E6E2D3;
+            font-family: 'Silkscreen', monospace;
+            font-size: 0.7rem;
+            padding: 4px 6px;
+            cursor: pointer;
+        }
+
+        .map-select:focus {
+            outline: 2px solid rgba(255,79,179,0.6);
+            outline-offset: 1px;
+        }
+
+        /* ── MIDI log ───────────────────────────────────── */
+
+        .midi-log {
+            background: #0a0a0a;
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 6px;
+            padding: 10px 12px;
+            height: 180px;
+            overflow-y: auto;
+            font-family: 'Quantico', monospace;
+            font-size: 0.85rem;
+            color: rgba(255,255,255,0.55);
+            display: flex;
+            flex-direction: column-reverse;
+            gap: 2px;
+        }
+
+        .log-entry { line-height: 1.5; }
+        .log-entry.cc   { color: #A7FF00; }
+        .log-entry.pb   { color: #00F0FF; }
+        .log-entry.note { color: #FF4FB3; }
+
+        .log-empty { color: rgba(255,255,255,0.2); font-size: 0.75rem; }
+
+        /* ── Config bar ─────────────────────────────────── */
+
+        .config-bar {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-top: 16px;
+        }
+
+        .config-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .config-label {
+            font-size: 0.75rem;
+            color: rgba(255,255,255,0.45);
+        }
+
+        .config-select, .config-input {
+            background: #181818;
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 4px;
+            color: #E6E2D3;
+            font-family: 'Silkscreen', monospace;
+            font-size: 0.7rem;
+            padding: 4px 8px;
+        }
+
+        .config-select:focus, .config-input:focus {
+            outline: 2px solid rgba(255,79,179,0.5);
+            outline-offset: 1px;
+        }
+
+        .btn-clear {
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 4px;
+            color: rgba(255,255,255,0.5);
+            font-family: 'Silkscreen', monospace;
+            font-size: 0.7rem;
+            padding: 4px 10px;
+            cursor: pointer;
+        }
+
+        .btn-clear:hover { background: rgba(255,255,255,0.12); color: #E6E2D3; }
+
+        /* ── Info ───────────────────────────────────────── */
+
+        .info {
+            font-family: 'Quantico', monospace;
+            font-size: 0.9rem;
+            color: rgba(255,255,255,0.45);
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .chip {
+            display: inline-block;
+            background: rgba(255,79,179,0.15);
+            border: 1px solid rgba(255,79,179,0.35);
+            border-radius: 4px;
+            padding: 1px 6px;
+            font-size: 0.75rem;
+            color: #FF4FB3;
+            font-family: 'Silkscreen', monospace;
+        }
+    </style>
+</head>
+<body>
+    <h1>ravel-midi-gesture</h1>
+
+    <div class="section">
+        <p class="info">
+            Maps MediaPipe hand gesture features to MIDI controls.
+            Requires a <span class="chip">ravel-midi-broker</span> on the page to forward MIDI out.
+            Click the hand button to open the camera. Assign features to controls below.
+        </p>
+
+        <div class="stage">
+            <!-- The gesture element itself — mapping attributes injected by JS below -->
+            <ravel-midi-gesture id="gesture"
+                map-right-y="!cc:11"
+                map-right-x="cc:1"
+                map-right-pinch="cc:64"
+                map-left-y="pitch-bend"
+                map-left-x="cc:74"
+            ></ravel-midi-gesture>
+
+            <div style="flex: 1; display: flex; flex-direction: column; gap: 16px;">
+                <h2>Mapping</h2>
+
+                <div class="mapping-panel">
+                    <!-- Right hand -->
+                    <div class="map-group">
+                        <div class="map-group-title">RIGHT HAND</div>
+                        <div class="map-row">
+                            <span class="map-feature">X</span>
+                            <select class="map-select" id="sel-right-x" aria-label="Right hand X mapping">
+                                <option value="">— none —</option>
+                                <option value="cc:1" selected>CC:1 Mod Wheel</option>
+                                <option value="cc:7">CC:7 Volume</option>
+                                <option value="cc:10">CC:10 Pan</option>
+                                <option value="cc:11">CC:11 Expression</option>
+                                <option value="cc:74">CC:74 Brightness</option>
+                                <option value="pitch-bend">Pitch Bend</option>
+                                <option value="!cc:1">!CC:1 Mod (inv)</option>
+                                <option value="!cc:11">!CC:11 Expr (inv)</option>
+                                <option value="!pitch-bend">!Pitch Bend (inv)</option>
+                            </select>
+                        </div>
+                        <div class="map-row">
+                            <span class="map-feature">Y</span>
+                            <select class="map-select" id="sel-right-y" aria-label="Right hand Y mapping">
+                                <option value="">— none —</option>
+                                <option value="cc:1">CC:1 Mod Wheel</option>
+                                <option value="cc:7">CC:7 Volume</option>
+                                <option value="cc:11">CC:11 Expression</option>
+                                <option value="cc:74">CC:74 Brightness</option>
+                                <option value="pitch-bend">Pitch Bend</option>
+                                <option value="!cc:11" selected>!CC:11 Expr (inv)</option>
+                                <option value="!cc:7">!CC:7 Vol (inv)</option>
+                                <option value="!pitch-bend">!Pitch Bend (inv)</option>
+                            </select>
+                        </div>
+                        <div class="map-row">
+                            <span class="map-feature">PINCH</span>
+                            <select class="map-select" id="sel-right-pinch" aria-label="Right hand pinch mapping">
+                                <option value="">— none —</option>
+                                <option value="cc:64" selected>CC:64 Sustain</option>
+                                <option value="cc:1">CC:1 Mod Wheel</option>
+                                <option value="cc:11">CC:11 Expression</option>
+                                <option value="pitch-bend">Pitch Bend</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Left hand -->
+                    <div class="map-group">
+                        <div class="map-group-title">LEFT HAND</div>
+                        <div class="map-row">
+                            <span class="map-feature">X</span>
+                            <select class="map-select" id="sel-left-x" aria-label="Left hand X mapping">
+                                <option value="">— none —</option>
+                                <option value="cc:1">CC:1 Mod Wheel</option>
+                                <option value="cc:10">CC:10 Pan</option>
+                                <option value="cc:74" selected>CC:74 Brightness</option>
+                                <option value="cc:71">CC:71 Resonance</option>
+                                <option value="pitch-bend">Pitch Bend</option>
+                            </select>
+                        </div>
+                        <div class="map-row">
+                            <span class="map-feature">Y</span>
+                            <select class="map-select" id="sel-left-y" aria-label="Left hand Y mapping">
+                                <option value="">— none —</option>
+                                <option value="cc:7">CC:7 Volume</option>
+                                <option value="cc:11">CC:11 Expression</option>
+                                <option value="pitch-bend" selected>Pitch Bend</option>
+                                <option value="!pitch-bend">!Pitch Bend (inv)</option>
+                                <option value="cc:71">CC:71 Resonance</option>
+                            </select>
+                        </div>
+                        <div class="map-row">
+                            <span class="map-feature">PINCH</span>
+                            <select class="map-select" id="sel-left-pinch" aria-label="Left hand pinch mapping">
+                                <option value="" selected>— none —</option>
+                                <option value="cc:64">CC:64 Sustain</option>
+                                <option value="cc:1">CC:1 Mod Wheel</option>
+                                <option value="cc:11">CC:11 Expression</option>
+                                <option value="pitch-bend">Pitch Bend</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="config-bar">
+                    <div class="config-item">
+                        <span class="config-label">MIDI CH</span>
+                        <select class="config-select" id="sel-channel" aria-label="MIDI channel">
+                            <option value="0">CH 1</option>
+                            <option value="1">CH 2</option>
+                            <option value="2">CH 3</option>
+                            <option value="3">CH 4</option>
+                            <option value="9">CH 10 (drums)</option>
+                        </select>
+                    </div>
+                    <div class="config-item">
+                        <span class="config-label">CAMERA</span>
+                        <select class="config-select" id="sel-facing" aria-label="Camera facing mode">
+                            <option value="user">Front (user)</option>
+                            <option value="environment">Back (env)</option>
+                        </select>
+                    </div>
+                    <div class="config-item">
+                        <span class="config-label">LANDMARK</span>
+                        <select class="config-select" id="sel-landmark" aria-label="Tracked landmark">
+                            <option value="8">8 – Index tip</option>
+                            <option value="4">4 – Thumb tip</option>
+                            <option value="12">12 – Middle tip</option>
+                            <option value="0">0 – Wrist</option>
+                            <option value="9">9 – Palm center</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MIDI output log -->
+    <div class="section">
+        <h2>MIDI Output Log</h2>
+        <p class="info" style="margin-bottom: 12px;">
+            Messages sent to <span class="chip">ravel-midi-broker</span> via pub/sub.
+            The broker's TX LED flashes when forwarding to <span class="chip">ravel-midi-gadget</span>.
+        </p>
+        <div style="display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap;">
+            <ravel-midi-broker id="broker" channel="midi-out" style="flex-shrink: 0;"></ravel-midi-broker>
+            <div style="flex: 1; min-width: 280px;">
+                <div class="midi-log" id="midi-log" aria-live="polite" aria-label="MIDI output log">
+                    <span class="log-empty">No MIDI output yet. Open the camera and move your hands.</span>
+                </div>
+                <div style="display: flex; gap: 8px; margin-top: 8px; justify-content: flex-end;">
+                    <button class="btn-clear" id="btn-clear-log" type="button">CLEAR LOG</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pinch events log -->
+    <div class="section">
+        <h2>Pinch Events</h2>
+        <div class="midi-log" id="pinch-log" aria-live="polite" aria-label="Pinch event log">
+            <span class="log-empty">Pinch-start and pinch-end events will appear here.</span>
+        </div>
+    </div>
+
+    <script type="module">
+        import '../ravel-midi-gesture.ts';
+        import '../../../brokers/ravel-midi-broker/ravel-midi-broker.ts';
+        import { RavelMessenger } from '../../../../common/RavelMessenger.ts';
+
+        const gesture = document.getElementById('gesture');
+        const broker  = document.getElementById('broker');
+
+        // ── Apply mapping selects → gesture attributes ──────────────────────
+
+        function updateGestureAttr(attr, val) {
+            if (val) gesture.setAttribute(attr, val);
+            else     gesture.removeAttribute(attr);
+        }
+
+        document.getElementById('sel-right-x').addEventListener('change', e =>
+            updateGestureAttr('map-right-x', e.target.value));
+        document.getElementById('sel-right-y').addEventListener('change', e =>
+            updateGestureAttr('map-right-y', e.target.value));
+        document.getElementById('sel-right-pinch').addEventListener('change', e =>
+            updateGestureAttr('map-right-pinch', e.target.value));
+        document.getElementById('sel-left-x').addEventListener('change', e =>
+            updateGestureAttr('map-left-x', e.target.value));
+        document.getElementById('sel-left-y').addEventListener('change', e =>
+            updateGestureAttr('map-left-y', e.target.value));
+        document.getElementById('sel-left-pinch').addEventListener('change', e =>
+            updateGestureAttr('map-left-pinch', e.target.value));
+
+        document.getElementById('sel-channel').addEventListener('change', e =>
+            gesture.setAttribute('channel', e.target.value));
+        document.getElementById('sel-facing').addEventListener('change', e =>
+            gesture.setAttribute('facing', e.target.value));
+        document.getElementById('sel-landmark').addEventListener('change', e =>
+            gesture.setAttribute('landmark', e.target.value));
+
+        // ── Log MIDI output from broker's broadcast ──────────────────────────
+
+        const midiLog   = document.getElementById('midi-log');
+        let logEmpty    = true;
+
+        function addLogEntry(text, type) {
+            if (logEmpty) {
+                midiLog.innerHTML = '';
+                logEmpty = false;
+            }
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            const now = new Date();
+            const ts  = `${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}.${String(now.getMilliseconds()).padStart(3,'0')}`;
+            entry.textContent = `[${ts}] ${text}`;
+            midiLog.prepend(entry);
+            // Cap log at 80 entries
+            while (midiLog.children.length > 80) midiLog.removeChild(midiLog.lastChild);
+        }
+
+        // The broker broadcasts on its 'channel' attribute value ('midi-out')
+        window.addEventListener('midi-out', e => {
+            const { cmd, content } = e.detail ?? {};
+            if (!content) return;
+
+            let text = '', type = '';
+            switch (cmd) {
+                case 'cc':
+                    text = `CC  ch${(content.channel ?? 0) + 1}  ctrl:${content.controller}  val:${content.value}`;
+                    type = 'cc';
+                    break;
+                case 'pitch-bend':
+                    text = `PB  ch${(content.channel ?? 0) + 1}  val:${content.value}`;
+                    type = 'pb';
+                    break;
+                case 'note-on':
+                    text = `NOTE-ON  ch${(content.channel ?? 0) + 1}  note:${content.note}  vel:${content.velocity}`;
+                    type = 'note';
+                    break;
+                case 'note-off':
+                    text = `NOTE-OFF ch${(content.channel ?? 0) + 1}  note:${content.note}`;
+                    type = 'note';
+                    break;
+                default:
+                    text = `${cmd}  ${JSON.stringify(content).slice(0,60)}`;
+                    type = '';
+            }
+            addLogEntry(text, type);
+        });
+
+        document.getElementById('btn-clear-log').addEventListener('click', () => {
+            midiLog.innerHTML = '<span class="log-empty">Log cleared.</span>';
+            logEmpty = true;
+        });
+
+        // ── Pinch events ─────────────────────────────────────────────────────
+
+        const pinchLog = document.getElementById('pinch-log');
+        let pinchEmpty = true;
+
+        gesture.addEventListener('pinch-start', e => {
+            if (pinchEmpty) { pinchLog.innerHTML = ''; pinchEmpty = false; }
+            const entry = document.createElement('div');
+            entry.className = 'log-entry note';
+            entry.textContent = `[pinch-start] hand:${e.detail.hand}  slot:${e.detail.slot}`;
+            pinchLog.prepend(entry);
+        });
+
+        gesture.addEventListener('pinch-end', e => {
+            if (pinchEmpty) { pinchLog.innerHTML = ''; pinchEmpty = false; }
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.textContent = `[pinch-end]   hand:${e.detail.hand}  slot:${e.detail.slot}`;
+            pinchLog.prepend(entry);
+        });
+    </script>
+</body>
+</html>

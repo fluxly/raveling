@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ravel-photo-strip — sandbox</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Silkscreen&family=Quantico:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Silkscreen', monospace;
+            background: #181818;
+            color: #E6E2D3;
+            padding: 32px;
+            border: 10px solid #ff0000;
+            box-shadow: 0px 0px 0px 10px inset #ffcc00;
+            min-height: 100vh;
+        }
+
+        h1 {
+            font-size: 3rem;
+            color: #FFFFFF;
+            border-bottom: 10px solid rgba(102,102,102,0.30);
+            padding-bottom: 16px;
+            margin-bottom: 32px;
+        }
+
+        h2 { font-size: 1.25rem; color: #FFFFFF; margin-bottom: 16px; }
+
+        .section {
+            background: #303030;
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .text {
+            font-family: 'Quantico', monospace, sans-serif;
+            font-size: 1rem;
+            color: rgba(255,255,255,0.40);
+            line-height: 1.6;
+            margin-bottom: 16px;
+        }
+
+        .stage {
+            position: relative;
+            background: #222222;
+            border: 2px dotted rgba(102,102,102,0.40);
+            border-radius: 4px;
+            overflow: hidden;
+            padding: 16px 0;
+        }
+
+        .stage + .stage { margin-top: 16px; }
+        .element-label { font-size: 1rem; color: #666666; margin-bottom: 10px; }
+
+        .ctrl-row {
+            display: flex;
+            gap: 10px;
+            margin-top: 16px;
+            flex-wrap: wrap;
+        }
+
+        .ctrl-btn {
+            appearance: none;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 4px;
+            color: #E6E2D3;
+            font-family: 'Silkscreen', monospace;
+            font-size: 0.8rem;
+            padding: 8px 14px;
+            cursor: pointer;
+            min-height: 44px;
+        }
+        .ctrl-btn:hover { background: rgba(255,255,255,0.12); }
+        .ctrl-btn:focus-visible { outline: 2px solid #00F0FF; outline-offset: 2px; }
+
+        .log {
+            font-family: 'Quantico', monospace, sans-serif;
+            font-size: 0.85rem;
+            background: #111;
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 4px;
+            padding: 12px 16px;
+            margin-top: 16px;
+            min-height: 80px;
+            max-height: 160px;
+            overflow-y: auto;
+            color: rgba(255,255,255,0.5);
+        }
+        .log-line { color: #FF4FB3; margin-bottom: 4px; }
+        .log-empty { color: rgba(255,255,255,0.2); font-style: italic; }
+
+        ravel-photo-strip { display: block; }
+    </style>
+</head>
+<body>
+
+    <h1>ravel-photo-strip</h1>
+
+    <!-- ── Section 1: Loaded strip ── -->
+    <div class="section">
+        <h2>Photo Selection Strip</h2>
+        <p class="text">Click to select a photo. Double-click to mark as hero (shown with a ★). Use the buttons to add or clear photos programmatically.</p>
+
+        <div class="element-label">Loaded with placeholder thumbnails</div>
+        <div class="stage">
+            <ravel-photo-strip id="strip-a" channel="strip-demo"></ravel-photo-strip>
+        </div>
+
+        <div class="ctrl-row">
+            <button class="ctrl-btn" id="btn-add-photo">+ Add Photo</button>
+            <button class="ctrl-btn" id="btn-clear">Clear All</button>
+        </div>
+
+        <div class="log" id="log-a">
+            <span class="log-empty">select / set-hero events will appear here…</span>
+        </div>
+    </div>
+
+    <!-- ── Section 2: Empty state ── -->
+    <div class="section">
+        <h2>Empty State</h2>
+        <p class="text">When no photos are loaded the strip shows a camera emoji placeholder.</p>
+
+        <div class="element-label">No photos loaded</div>
+        <div class="stage">
+            <ravel-photo-strip id="strip-empty" channel="strip-empty"></ravel-photo-strip>
+        </div>
+    </div>
+
+    <!-- ── Section 3: Many photos (scrollable) ── -->
+    <div class="section">
+        <h2>Scrollable — Many Photos</h2>
+        <p class="text">The strip scrolls horizontally when there are more photos than fit in the container.</p>
+
+        <div class="element-label">16 photos — scroll to see all</div>
+        <div class="stage">
+            <ravel-photo-strip id="strip-many" channel="strip-many"></ravel-photo-strip>
+        </div>
+    </div>
+
+    <script type="module">
+        import '../ravel-photo-strip.ts';
+
+        // ── Placeholder image factory ─────────────────────────────────────────
+        // Simple colored SVG squares as stand-ins for real thumbnails.
+        const COLORS = [
+            '#FF4FB3','#00F0FF','#A7FF00','#FE6810','#B300FF',
+            '#FF6B6B','#4ECDC4','#FFE66D','#6BCB77','#4D96FF',
+        ];
+
+        function makeSvgSrc(color, label) {
+            const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="88" height="88">
+                <rect width="88" height="88" fill="${color}" opacity="0.25"/>
+                <rect width="88" height="88" fill="none" stroke="${color}" stroke-width="2"/>
+                <text x="44" y="52" font-family="monospace" font-size="11"
+                      fill="${color}" text-anchor="middle">${label}</text>
+            </svg>`;
+            return `data:image/svg+xml,${encodeURIComponent(svg)}`;
+        }
+
+        function makePhoto(index) {
+            const color = COLORS[index % COLORS.length];
+            return {
+                id:  `photo-${index}`,
+                src: makeSvgSrc(color, `#${index + 1}`),
+                alt: `Photo ${index + 1}`,
+            };
+        }
+
+        // ── Strip A (interactive) ─────────────────────────────────────────────
+        const stripA = document.getElementById('strip-a');
+        let photoCount = 5;
+
+        stripA.setPhotos(Array.from({ length: photoCount }, (_, i) => makePhoto(i)));
+
+        function appendLog(logId, msg) {
+            const log = document.getElementById(logId);
+            const empty = log.querySelector('.log-empty');
+            if (empty) empty.remove();
+            const line = document.createElement('div');
+            line.className = 'log-line';
+            line.textContent = msg;
+            log.appendChild(line);
+            log.scrollTop = log.scrollHeight;
+        }
+
+        // Listen on the window (broadcastMessage fires a CustomEvent on window)
+        window.addEventListener('strip-demo', e => {
+            const { cmd, content } = e.detail ?? {};
+            if (cmd === 'select') {
+                appendLog('log-a', `select → index=${content.index} id="${content.id}"`);
+            } else if (cmd === 'set-hero') {
+                appendLog('log-a', `set-hero → index=${content.index} id="${content.id}"`);
+            }
+        });
+
+        document.getElementById('btn-add-photo').addEventListener('click', () => {
+            stripA.addPhoto(makePhoto(photoCount++));
+        });
+
+        document.getElementById('btn-clear').addEventListener('click', () => {
+            stripA.setPhotos([]);
+            photoCount = 0;
+        });
+
+        // ── Strip Many ────────────────────────────────────────────────────────
+        const stripMany = document.getElementById('strip-many');
+        stripMany.setPhotos(Array.from({ length: 16 }, (_, i) => makePhoto(i)));
+    </script>
+
+</body>
+</html>

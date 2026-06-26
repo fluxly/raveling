@@ -3,3 +3,15 @@ dist/
 .DS_Store
 *.local
 _empd
+
+# Rust / Tauri — build artifacts (can be gigabytes)
+**/src-tauri/target/
+
+# Tauri — generated platform bindings (Android, iOS)
+**/src-tauri/gen/
+
+# rustfmt backup files
+**/*.rs.bk
+
+# Windows MSVC debug symbols
+*.pdb

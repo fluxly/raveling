@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HLH Components — ravel-stack-browser + ravel-field-grid</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Silkscreen&family=Quantico:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Silkscreen', monospace;
+            background: #181818;
+            color: #E6E2D3;
+            min-height: 100vh;
+            border: 10px solid #ff0000;
+            box-shadow: 0 0 0 10px inset #ffcc00;
+        }
+
+        .text { font-family: 'Quantico', monospace; }
+
+        /* ── Page header ─────────────────────────────────────── */
+
+        .page-header {
+            padding: 28px 32px 20px;
+            border-bottom: 10px solid rgba(102,102,102,0.30);
+        }
+        h1 { font-size: 3rem; color: #fff; }
+        .subtitle { font-size: 1rem; color: #666; margin-top: 6px; }
+
+        /* ── Sections ────────────────────────────────────────── */
+
+        .section {
+            background: #303030;
+            border-radius: 8px;
+            padding: 24px;
+            margin: 24px 32px;
+        }
+        h2 { font-size: 1.25rem; color: #fff; margin-bottom: 16px; }
+        .element-label { font-size: 1rem; color: #666; margin-bottom: 10px; }
+
+        /* ── Stages ──────────────────────────────────────────── */
+
+        .stage {
+            position: relative;
+            background: #222;
+            border: 2px dotted rgba(102,102,102,0.40);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        /* ── Stack browser demos ─────────────────────────────── */
+
+        .stack-demo {
+            display: flex;
+            height: 380px;
+        }
+        ravel-stack-browser {
+            width: 200px;
+            flex-shrink: 0;
+            height: 100%;
+        }
+        .stack-content {
+            flex: 1;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .stack-title {
+            font-size: 1.25rem;
+            color: #fff;
+        }
+        .stack-desc {
+            font-size: 1rem;
+            color: #666;
+        }
+
+        /* ── Horizontal stack browser ────────────────────────── */
+
+        .horiz-demo {
+            display: flex;
+            flex-direction: column;
+            height: 360px;
+        }
+        ravel-stack-browser[orientation="horizontal"] {
+            width: 100%;
+            height: auto;
+        }
+        .horiz-content {
+            flex: 1;
+            padding: 24px;
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            flex-direction: column;
+        }
+
+        /* ── Field grid demos ────────────────────────────────── */
+
+        .field-stage {
+            padding: 24px;
+        }
+        .grid-controls {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+        .ctrl-btn {
+            appearance: none;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 4px;
+            color: #E6E2D3;
+            font-family: 'Silkscreen', monospace;
+            font-size: 1rem;
+            padding: 6px 14px;
+            cursor: pointer;
+        }
+        .ctrl-btn:hover { background: rgba(255,255,255,0.12); }
+        .ctrl-btn.active {
+            background: rgba(255,79,179,0.15);
+            border-color: rgba(255,79,179,0.50);
+            color: #fff;
+        }
+        .ctrl-label { font-size: 1rem; color: #666; }
+
+        /* ── Proto-app layout ────────────────────────────────── */
+
+        .app-stage {
+            display: flex;
+            height: 560px;
+        }
+        .app-sidebar {
+            width: 180px;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid rgba(255,255,255,0.06);
+        }
+        .app-sidebar ravel-stack-browser {
+            width: 100%;
+            flex: 1;
+        }
+        .app-main {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .app-item-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid rgba(255,255,255,0.07);
+        }
+        .app-item-thumb {
+            width: 72px;
+            height: 72px;
+            background: #1a1a2e;
+            border: 1px solid rgba(255,255,255,0.10);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+        }
+        .app-item-meta { flex: 1; }
+        .app-item-title { font-size: 1.25rem; color: #fff; }
+        .app-item-sub { font-size: 1rem; color: #666; margin-top: 4px; }
+
+        /* ── Event log ───────────────────────────────────────── */
+
+        .log {
+            background: #0a0a0a;
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 6px;
+            padding: 10px 14px;
+            height: 160px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column-reverse;
+            gap: 2px;
+            scrollbar-width: thin;
+        }
+        .log-entry { font-size: 1rem; color: #A7FF00; line-height: 1.5; }
+        .log-sys { font-size: 1rem; color: rgba(255,255,255,0.20); font-style: italic; }
+        .log-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+        .btn-clear {
+            appearance: none;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 4px;
+            color: rgba(255,255,255,0.45);
+            font-family: 'Silkscreen', monospace;
+            font-size: 1rem;
+            padding: 4px 10px;
+            cursor: pointer;
+        }
+        .btn-clear:hover { background: rgba(255,255,255,0.10); color: #E6E2D3; }
+    </style>
+</head>
+<body>
+
+<div class="page-header">
+    <h1>HLH Components</h1>
+    <div class="subtitle">ravel-stack-browser  ·  ravel-field-grid</div>
+</div>
+
+<!-- ── ravel-stack-browser: Vertical ─────────────────────────────────── -->
+<div class="section">
+    <h2>ravel-stack-browser — vertical (default)</h2>
+    <div class="element-label">8-stack HLH navigation</div>
+    <div class="stage">
+        <div class="stack-demo">
+            <ravel-stack-browser id="vsb" selected="items">
+                <ravel-stack id="inbox"       label="Inbox"       icon="📥" count="12"></ravel-stack>
+                <ravel-stack id="items"       label="Items"       icon="🗃️"></ravel-stack>
+                <ravel-stack id="collections" label="Collections" icon="📚"></ravel-stack>
+                <ravel-stack id="listings"    label="Listings"    icon="🏷️" count="3"></ravel-stack>
+                <ravel-stack id="sold"        label="Sold"        icon="✅"></ravel-stack>
+                <ravel-stack id="reports"     label="Reports"     icon="📊"></ravel-stack>
+                <ravel-stack id="settings"    label="Settings"    icon="⚙️"></ravel-stack>
+            </ravel-stack-browser>
+            <div class="stack-content">
+                <div class="stack-title" id="vsb-title">Items</div>
+                <div class="stack-desc text" id="vsb-desc">Browse and manage your cataloged items.</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ── ravel-stack-browser: Horizontal ───────────────────────────────── -->
+<div class="section">
+    <h2>ravel-stack-browser — horizontal</h2>
+    <div class="element-label">Same stacks, top-nav orientation</div>
+    <div class="stage">
+        <div class="horiz-demo">
+            <ravel-stack-browser id="hsb" orientation="horizontal" selected="inbox">
+                <ravel-stack id="inbox"       label="Inbox"       icon="📥" count="12"></ravel-stack>
+                <ravel-stack id="items"       label="Items"       icon="🗃️"></ravel-stack>
+                <ravel-stack id="collections" label="Collections" icon="📚"></ravel-stack>
+                <ravel-stack id="listings"    label="Listings"    icon="🏷️" count="3"></ravel-stack>
+                <ravel-stack id="sold"        label="Sold"        icon="✅"></ravel-stack>
+                <ravel-stack id="reports"     label="Reports"     icon="📊"></ravel-stack>
+                <ravel-stack id="settings"    label="Settings"    icon="⚙️"></ravel-stack>
+            </ravel-stack-browser>
+            <div class="horiz-content">
+                <div class="stack-title" id="hsb-title">Inbox</div>
+                <div class="stack-desc text" id="hsb-desc">New photos waiting for cataloging.</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ── ravel-field-grid: Read-only ───────────────────────────────────── -->
+<div class="section">
+    <h2>ravel-field-grid</h2>
+    <div class="element-label">Catalog card display — editable toggle</div>
+    <div class="stage">
+        <div class="field-stage">
+            <div class="grid-controls">
+                <button class="ctrl-btn" id="btn-view">VIEW</button>
+                <button class="ctrl-btn active" id="btn-edit">EDIT</button>
+                <span class="ctrl-label">—</span>
+                <button class="ctrl-btn" id="btn-1col">1 COL</button>
+                <button class="ctrl-btn active" id="btn-2col">2 COL</button>
+                <button class="ctrl-btn" id="btn-3col">3 COL</button>
+            </div>
+            <ravel-field-grid id="fg" editable columns="2" channel="item-fields"
+                fields='[
+                    {"key":"title",     "label":"Title",     "value":"1962 Spalding Keds High-Top Sneakers", "type":"text",   "span":2},
+                    {"key":"brand",     "label":"Brand",     "value":"Spalding",    "type":"text"},
+                    {"key":"category",  "label":"Category",  "value":"Footwear",    "type":"select", "options":["Books","Clothing","Electronics","Footwear","Furniture","Jewelry","Records","Tools","Toys","Other"]},
+                    {"key":"year",      "label":"Year",      "value":"1962",        "type":"year"},
+                    {"key":"condition", "label":"Condition", "value":"Good",        "type":"select", "options":["Poor","Fair","Good","Very Good","Fine","Mint"]},
+                    {"key":"materials", "label":"Materials", "value":"Canvas, Rubber", "type":"text"},
+                    {"key":"dimensions","label":"Dimensions","value":"10.5 US Men", "type":"text"},
+                    {"key":"notes",     "label":"Notes",     "value":"Original box included. Some yellowing on rubber sole.", "type":"textarea", "span":2}
+                ]'>
+            </ravel-field-grid>
+        </div>
+    </div>
+</div>
+
+<!-- ── Proto-app: both components together ───────────────────────────── -->
+<div class="section">
+    <h2>Proto-app layout</h2>
+    <div class="element-label">ravel-stack-browser sidebar + ravel-field-grid item detail</div>
+    <div class="stage">
+        <div class="app-stage">
+            <div class="app-sidebar">
+                <ravel-stack-browser id="app-nav" selected="items" channel="app-nav">
+                    <ravel-stack id="inbox"       label="Inbox"       icon="📥" count="12"></ravel-stack>
+                    <ravel-stack id="items"       label="Items"       icon="🗃️"></ravel-stack>
+                    <ravel-stack id="collections" label="Collections" icon="📚"></ravel-stack>
+                    <ravel-stack id="listings"    label="Listings"    icon="🏷️"></ravel-stack>
+                    <ravel-stack id="sold"        label="Sold"        icon="✅"></ravel-stack>
+                    <ravel-stack id="settings"    label="Settings"    icon="⚙️"></ravel-stack>
+                </ravel-stack-browser>
+            </div>
+            <div class="app-main">
+                <div class="app-item-header">
+                    <div class="app-item-thumb" aria-label="Item thumbnail">👟</div>
+                    <div class="app-item-meta">
+                        <div class="app-item-title">1962 Spalding Keds High-Tops</div>
+                        <div class="app-item-sub text">Footwear · Good · $45–$80</div>
+                    </div>
+                </div>
+                <ravel-field-grid id="app-fg" columns="2" channel="app-fields"
+                    fields='[
+                        {"key":"title",     "label":"Title",     "value":"1962 Spalding Keds High-Top Sneakers", "type":"text",   "span":2},
+                        {"key":"brand",     "label":"Brand",     "value":"Spalding",   "type":"text"},
+                        {"key":"category",  "label":"Category",  "value":"Footwear",   "type":"select", "options":["Books","Clothing","Electronics","Footwear","Furniture","Jewelry","Records","Tools","Toys","Other"]},
+                        {"key":"year",      "label":"Year",      "value":"1962",       "type":"year"},
+                        {"key":"condition", "label":"Condition", "value":"Good",       "type":"select", "options":["Poor","Fair","Good","Very Good","Fine","Mint"]},
+                        {"key":"notes",     "label":"Notes",     "value":"Original box included.", "type":"textarea", "span":2}
+                    ]'>
+                </ravel-field-grid>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ── Event log ─────────────────────────────────────────────────────── -->
+<div class="section">
+    <h2>Event log</h2>
+    <div class="log-header">
+        <div class="element-label">window events — stack-browser · item-fields · app-nav · app-fields</div>
+        <button class="btn-clear" id="btn-clear">CLEAR</button>
+    </div>
+    <div class="log" id="log" aria-live="polite">
+        <span class="log-sys">Interact with any component above…</span>
+    </div>
+</div>
+
+<script type="module">
+    import '../../../core/web-components/custom-elements/assemblies/ravel-stack-browser/ravel-stack-browser.ts';
+    import '../../../core/web-components/custom-elements/assemblies/ravel-field-grid/ravel-field-grid.ts';
+
+    // ── Stack descriptions ────────────────────────────────────────────────────
+
+    const STACK_INFO = {
+        inbox:       { title: 'Inbox',       desc: 'New photos waiting for cataloging.' },
+        items:       { title: 'Items',       desc: 'Browse and manage your cataloged items.' },
+        collections: { title: 'Collections', desc: 'Curated lists: Wishlist, Museum, High Value…' },
+        listings:    { title: 'Listings',    desc: 'Active marketplace listings across all platforms.' },
+        sold:        { title: 'Sold',        desc: 'Completed sales with provenance history.' },
+        reports:     { title: 'Reports',     desc: 'Valuation summaries, inventory exports, analytics.' },
+        settings:    { title: 'Settings',    desc: 'Library location, API keys, marketplace credentials.' },
+    };
+
+    // ── Logging ───────────────────────────────────────────────────────────────
+
+    const log = document.getElementById('log');
+    let logEmpty = true;
+
+    function addLog(text) {
+        if (logEmpty) { log.innerHTML = ''; logEmpty = false; }
+        const e = document.createElement('div');
+        e.className = 'log-entry';
+        const d = new Date();
+        const ts = `${String(d.getMinutes()).padStart(2,'0')}:${String(d.getSeconds()).padStart(2,'0')}.${String(d.getMilliseconds()).padStart(3,'0')}`;
+        e.textContent = `[${ts}] ${text}`;
+        log.prepend(e);
+        while (log.children.length > 80) log.removeChild(log.lastChild);
+    }
+
+    document.getElementById('btn-clear').addEventListener('click', () => {
+        log.innerHTML = '<span class="log-sys">Cleared.</span>';
+        logEmpty = false;
+    });
+
+    // ── Stack browser events ──────────────────────────────────────────────────
+
+    window.addEventListener('stack-browser', e => {
+        const { cmd, content } = e.detail ?? {};
+        addLog(`stack-browser  ${cmd}  →  ${JSON.stringify(content)}`);
+        const info = STACK_INFO[content?.id];
+        if (info) {
+            document.getElementById('vsb-title').textContent = info.title;
+            document.getElementById('vsb-desc').textContent  = info.desc;
+        }
+    });
+
+    window.addEventListener('stack-browser', e => {
+        const { cmd, content } = e.detail ?? {};
+        if (cmd !== 'select') return;
+        const info = STACK_INFO[content?.id];
+        if (info) {
+            document.getElementById('hsb-title').textContent = info.title;
+            document.getElementById('hsb-desc').textContent  = info.desc;
+        }
+    });
+
+    window.addEventListener('app-nav', e => {
+        const { cmd, content } = e.detail ?? {};
+        addLog(`app-nav  ${cmd}  →  ${JSON.stringify(content)}`);
+    });
+
+    // ── Field grid events ─────────────────────────────────────────────────────
+
+    window.addEventListener('item-fields', e => {
+        const { cmd, content } = e.detail ?? {};
+        addLog(`item-fields  ${cmd}  →  ${JSON.stringify(content)}`);
+    });
+
+    window.addEventListener('app-fields', e => {
+        const { cmd, content } = e.detail ?? {};
+        addLog(`app-fields  ${cmd}  →  ${JSON.stringify(content)}`);
+    });
+
+    // ── Edit / view toggle ────────────────────────────────────────────────────
+
+    const fg       = document.getElementById('fg');
+    const btnView  = document.getElementById('btn-view');
+    const btnEdit  = document.getElementById('btn-edit');
+
+    btnView.addEventListener('click', () => {
+        fg.removeAttribute('editable');
+        btnView.classList.add('active');
+        btnEdit.classList.remove('active');
+    });
+    btnEdit.addEventListener('click', () => {
+        fg.setAttribute('editable', '');
+        btnEdit.classList.add('active');
+        btnView.classList.remove('active');
+    });
+
+    // ── Column toggle ─────────────────────────────────────────────────────────
+
+    const colBtns = {
+        1: document.getElementById('btn-1col'),
+        2: document.getElementById('btn-2col'),
+        3: document.getElementById('btn-3col'),
+    };
+
+    Object.entries(colBtns).forEach(([n, btn]) => {
+        btn.addEventListener('click', () => {
+            fg.setAttribute('columns', n);
+            Object.values(colBtns).forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        });
+    });
+
+    // ── Badge demo: increment Inbox count every 8s ────────────────────────────
+
+    let inboxCount = 12;
+    setInterval(() => {
+        inboxCount++;
+        document.querySelectorAll('ravel-stack-browser').forEach(browser => {
+            browser.querySelector('ravel-stack[id="inbox"]')?.setAttribute('count', String(inboxCount));
+        });
+        addLog(`inbox count updated → ${inboxCount}`);
+    }, 8000);
+</script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+{
+  "id": "whole-earth",
+  "name": "Whole Earth Catalog",
+  "version": "0.1.0",
+  "description": "Domain knowledge for the Whole Earth Catalog family (1968–1986): books, tools, and resources reviewed by Stewart Brand and collaborators.",
+  "capabilities": ["recognition", "matching", "valuation", "related-items", "tags"],
+  "seed_version": 1,
+  "wec_issues": [
+    "fall-1968",
+    "last-1971",
+    "updated-last-1974",
+    "epilog-1974",
+    "essential-1986"
+  ]
+}

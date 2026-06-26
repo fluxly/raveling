@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ravel-checklist sandbox</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Silkscreen&family=Quantico:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+  <script type="module" src="/index.ts"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+
+    :root {
+      --ground:        #303030;
+      --well:          #1a1a1a;
+      --muted:         #666666;
+      --rule:          rgba(102,102,102,.40);
+      --fluoro-lime:   #A7FF00;
+      --fluoro-orange: #FE6810;
+      --fluoro-cyan:   #00F0FF;
+      --fluoro-pink:   #FF4FB3;
+    }
+
+    body {
+      margin: 0;
+      padding: 40px 44px 80px;
+      background: var(--ground);
+      color: #E6E2D3;
+      font-family: 'Silkscreen', monospace;
+      font-size: 1rem;
+      line-height: 1.3;
+      border: 10px solid #ff0000;
+      box-shadow: 0px 0px 0px 10px inset #ffcc00;
+      min-height: 100vh;
+    }
+
+    h1 {
+      font-size: 2rem;
+      color: #ffffff;
+      margin: 0 0 8px 0;
+      border-bottom: 10px solid var(--fluoro-cyan);
+      display: inline-block;
+      padding-bottom: 2px;
+    }
+
+    .subtitle {
+      font-family: 'Quantico', monospace;
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin: 0 0 32px 0;
+    }
+
+    /* ── Layout ───────────────────────────────────────────── */
+
+    .element-col  { display: flex; flex-direction: column; gap: 32px; }
+    .element-cell { display: flex; flex-direction: column; gap: 8px; }
+    .element-label {
+      font-family: 'Quantico', monospace;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .stage {
+      position: relative;
+      background: var(--well);
+      border: 2px dotted var(--rule);
+      border-radius: 4px;
+      overflow: hidden;
+      padding: 24px;
+    }
+
+    /* ── Live demo grid ───────────────────────────────────── */
+
+    .demo-grid {
+      display: grid;
+      grid-template-columns: 1fr 280px;
+      gap: 24px;
+      align-items: start;
+    }
+
+    .demo-left  { display: flex; flex-direction: column; gap: 16px; }
+    .demo-right { display: flex; flex-direction: column; gap: 10px; }
+
+    /* ── allPass indicator ────────────────────────────────── */
+
+    .allpass-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .state-chip {
+      font-family: 'Quantico', monospace;
+      font-size: 0.72rem;
+      padding: 3px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.12);
+      color: rgba(255,255,255,0.3);
+      background: rgba(255,255,255,0.04);
+      transition: color 0.15s, border-color 0.15s, background 0.15s;
+    }
+    .state-chip.on-allpass  { color: var(--fluoro-lime);   border-color: rgba(167,255,0,0.5);   background: rgba(167,255,0,0.08);  }
+    .state-chip.on-haswarn  { color: var(--fluoro-orange);  border-color: rgba(254,104,16,0.5);  background: rgba(254,104,16,0.08); }
+    .state-chip.on-hasfail  { color: var(--fluoro-pink);    border-color: rgba(255,79,179,0.5);  background: rgba(255,79,179,0.08); }
+
+    /* ── Toggle controls ──────────────────────────────────── */
+
+    .ctrl-section-label {
+      font-family: 'Quantico', monospace;
+      font-size: 0.7rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 4px;
+    }
+
+    .ctrl-item-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .ctrl-item-name {
+      font-family: 'Quantico', monospace;
+      font-size: 0.75rem;
+      color: rgba(255,255,255,0.6);
+      width: 84px;
+      flex-shrink: 0;
+    }
+    .ctrl-item-name.required::after {
+      content: ' ★';
+      color: var(--fluoro-pink);
+    }
+
+    .status-pills { display: flex; gap: 4px; }
+
+    .status-pill {
+      appearance: none;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      padding: 3px 6px;
+      line-height: 1;
+    }
+    .status-pill:hover { background: rgba(255,255,255,0.10); }
+    .status-pill:focus-visible { outline: 2px solid var(--fluoro-cyan); outline-offset: 2px; }
+    .status-pill[data-status="pass"]    { border-color: rgba(167,255,0,0.5);   background: rgba(167,255,0,0.08);  }
+    .status-pill[data-status="warn"]    { border-color: rgba(254,104,16,0.5);  background: rgba(254,104,16,0.08); }
+    .status-pill[data-status="fail"]    { border-color: rgba(255,79,179,0.5);  background: rgba(255,79,179,0.08); }
+    .status-pill[data-status="pending"] { border-color: rgba(255,255,255,0.3); background: rgba(255,255,255,0.05); }
+
+    /* ── Event log ────────────────────────────────────────── */
+
+    #log {
+      font-family: 'Quantico', monospace;
+      font-size: 0.75rem;
+      background: #111;
+      border: 1px solid var(--rule);
+      border-radius: 4px;
+      padding: 12px;
+      height: 160px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column-reverse;
+      gap: 3px;
+    }
+    .log-line          { color: var(--muted); }
+    .log-line.allpass  { color: var(--fluoro-lime); }
+    .log-line.locked   { color: var(--fluoro-pink); }
+    .log-line.info     { color: var(--fluoro-cyan); }
+  </style>
+</head>
+<body>
+
+  <ravel-message-broker id="broker"></ravel-message-broker>
+
+  <h1>ravel-checklist</h1>
+  <p class="subtitle">Labelled checklist of pass / warn / fail / pending items — emits <code>checklist-change</code> on channel</p>
+
+  <div class="element-col">
+
+    <!-- ── All four status types ────────────────────────────────── -->
+    <div class="element-cell">
+      <div class="element-label">all four status types — required items marked ★</div>
+      <div class="stage" style="max-width:480px;">
+        <ravel-checklist id="cl-static"></ravel-checklist>
+      </div>
+    </div>
+
+    <!-- ── Live interactive pair ────────────────────────────────── -->
+    <div class="element-cell">
+      <div class="element-label">live — toggle items to see allPass / the paired abp-button unlock</div>
+      <div class="stage">
+        <div class="demo-grid">
+
+          <div class="demo-left">
+            <ravel-checklist id="cl-live" channel="ch-live"></ravel-checklist>
+            <div class="allpass-row">
+              <span class="state-chip" id="chip-allpass">allPass</span>
+              <span class="state-chip" id="chip-haswarn">hasWarn</span>
+              <span class="state-chip" id="chip-hasfail">hasFail</span>
+            </div>
+            <ravel-abp-button channel="ch-live" label="Publish Listing"></ravel-abp-button>
+          </div>
+
+          <div class="demo-right">
+            <div class="ctrl-section-label">Toggle item status</div>
+            <div id="ctrl-items"></div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Event log ─────────────────────────────────────────────── -->
+    <div class="element-cell">
+      <div class="element-label">event log — checklist-change</div>
+      <div class="stage" style="padding:0">
+        <div id="log" aria-live="polite" aria-label="Event log"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <script type="module">
+    // ── Static display ─────────────────────────────────────────────────────────
+    document.getElementById('cl-static').setItems([
+      { label: 'Title',       status: 'pass',    message: 'Foxfire Book 3',  required: true  },
+      { label: 'Description', status: 'warn',    message: 'Recommended',     required: false },
+      { label: 'Price',       status: 'fail',    message: 'Set a price',     required: true  },
+      { label: 'ISBN',        status: 'pending', message: 'Optional',        required: false },
+    ]);
+
+    // ── Live demo ──────────────────────────────────────────────────────────────
+    const STATUSES    = ['pass', 'warn', 'fail', 'pending'];
+    const STATUS_ICON = { pass: '✅', warn: '⚠️', fail: '❌', pending: '⏳' };
+
+    const items = [
+      { label: 'Title',       status: 'pass',    message: 'Foxfire Book 3', required: true  },
+      { label: 'Price',       status: 'fail',    message: 'Set a price',    required: true  },
+      { label: 'Condition',   status: 'pending', message: undefined,        required: true  },
+      { label: 'Description', status: 'warn',    message: 'Recommended',    required: false },
+      { label: 'Photos',      status: 'pass',    message: '2 photos',       required: false },
+    ];
+
+    const cl       = document.getElementById('cl-live');
+    const ctrlEl   = document.getElementById('ctrl-items');
+    const chipAll  = document.getElementById('chip-allpass');
+    const chipWarn = document.getElementById('chip-haswarn');
+    const chipFail = document.getElementById('chip-hasfail');
+
+    function allPassFor(arr) {
+      return arr.every(i => i.status === 'pass' || (!i.required && i.status === 'warn'));
+    }
+
+    function updateChips() {
+      const allPass = allPassFor(items);
+      const hasWarn = items.some(i => i.status === 'warn');
+      const hasFail = items.some(i => i.status === 'fail');
+      chipAll.className  = 'state-chip' + (allPass ? ' on-allpass' : '');
+      chipWarn.className = 'state-chip' + (hasWarn ? ' on-haswarn' : '');
+      chipFail.className = 'state-chip' + (hasFail ? ' on-hasfail' : '');
+      return { allPass, hasWarn, hasFail };
+    }
+
+    function setItems() {
+      cl.setItems(items.map(i => ({ ...i })));
+      const s = updateChips();
+      addLog(
+        `checklist-change  allPass=${s.allPass}  hasWarn=${s.hasWarn}  hasFail=${s.hasFail}`,
+        s.allPass ? 'allpass' : s.hasFail ? 'locked' : '',
+      );
+    }
+
+    function buildControls() {
+      ctrlEl.innerHTML = '';
+      items.forEach((item, idx) => {
+        const row = document.createElement('div');
+        row.className = 'ctrl-item-row';
+
+        const name = document.createElement('div');
+        name.className = 'ctrl-item-name' + (item.required ? ' required' : '');
+        name.textContent = item.label;
+
+        const pills = document.createElement('div');
+        pills.className = 'status-pills';
+
+        STATUSES.forEach(s => {
+          const btn = document.createElement('button');
+          btn.className = 'status-pill';
+          btn.textContent = STATUS_ICON[s];
+          btn.title = s;
+          btn.setAttribute('aria-label', `Set ${item.label} to ${s}`);
+          if (item.status === s) btn.setAttribute('data-status', s);
+          btn.addEventListener('click', () => {
+            items[idx].status = s;
+            buildControls();
+            setItems();
+          });
+          pills.appendChild(btn);
+        });
+
+        row.append(name, pills);
+        ctrlEl.appendChild(row);
+      });
+    }
+
+    // ── Event log ──────────────────────────────────────────────────────────────
+    const logEl = document.getElementById('log');
+
+    function addLog(text, cls = '') {
+      const d = document.createElement('div');
+      d.className = 'log-line' + (cls ? ' ' + cls : '');
+      d.textContent = `[${new Date().toLocaleTimeString()}] ${text}`;
+      logEl.prepend(d);
+      while (logEl.children.length > 60) logEl.removeChild(logEl.lastChild);
+    }
+
+    // ── Init ───────────────────────────────────────────────────────────────────
+    buildControls();
+    setItems();
+    addLog('ready — Price and Condition are required (★); set both to pass or warn to unlock', 'info');
+  </script>
+
+</body>
+</html>

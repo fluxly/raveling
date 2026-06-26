@@ -1,0 +1,7 @@
+{
+  "id":           "daw-sf",
+  "name":         "DAW Science Fiction",
+  "version":      "1.0.0",
+  "description":  "DAW Books science fiction and fantasy paperbacks (1972–present). Founded by Donald A. Wollheim. Distinctive yellow spines, numbered catalog (UE/UW prefix), and debut novels by C.J. Cherryh, Tanith Lee, and other genre giants.",
+  "capabilities": ["recognition", "matching", "valuation", "related-items", "tags"]
+}

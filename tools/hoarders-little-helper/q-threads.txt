@@ -1,0 +1,579 @@
+
+# Hoarder's Little Helper
+
+## Quiddity Threads
+
+### Claude Implementation Specification v0.2
+
+---
+
+# Objective
+
+Implement the **Quiddity Thread (Q-Thread)** architecture.
+
+A **Q-Thread** is a weaveable bundle of domain knowledge that teaches Hoarder's Little Helper the essential nature (*quiddity*) of a collecting domain.
+
+Examples:
+
+* Whole Earth
+* Vintage Clothing
+* Foxfire
+* Apple Computers
+* Providence Zines
+* Leica Cameras
+* Mid-Century Furniture
+
+Q-Threads should be installable, removable, independently versioned, and composable.
+
+Multiple Q-Threads may simultaneously analyze a single inventory item.
+
+---
+
+# Philosophy
+
+Do **not** think of Q-Threads as plugins.
+
+Think of them as **little experts** that contribute evidence.
+
+Every Q-Thread answers questions like:
+
+* What is this?
+* Why do I think that?
+* How confident am I?
+* Why might collectors care?
+* What related objects exist?
+* How should this affect valuation?
+
+Each Q-Thread contributes knowledge without owning the inventory.
+
+---
+
+# Architecture
+
+```text
+Documents
+        │
+        ▼
+Q-Thread Importers
+        │
+        ▼
+Quiddity Database
+        │
+        ▼
+Inventory Matcher
+        │
+        ▼
+Research Engine
+        │
+        ▼
+Valuation
+        │
+        ▼
+ABP (Always Be Publishing)
+```
+
+The Quiddity Database is permanent.
+
+Inventory is transient.
+
+The inventory references Quiddity records but never duplicates them.
+
+---
+
+# Q-Thread Structure
+
+Each Q-Thread is a directory (or package) containing:
+
+```text
+thread.json
+
+metadata/
+
+recognizers/
+
+importers/
+
+matchers/
+
+heuristics/
+
+valuation/
+
+cards/
+
+reference/
+
+tests/
+```
+
+---
+
+## thread.json
+
+```json
+{
+  "id": "whole-earth",
+  "name": "Whole Earth",
+  "type": "Q-Thread",
+  "version": "1.0",
+  "description": "Knowledge extracted from the Whole Earth Catalog and related publications.",
+  "author": "",
+  "dependencies": [],
+  "capabilities": [
+    "recognition",
+    "matching",
+    "valuation",
+    "related-items",
+    "wishlist"
+  ]
+}
+```
+
+---
+
+# Quiddity Database
+
+Replace the previous "Authority Database" with the **Quiddity Database**.
+
+This database stores normalized identities for collectible objects.
+
+Objects are never duplicated.
+
+Each object receives a permanent Quiddity ID.
+
+Example:
+
+```text
+QID-B-000001
+QID-T-000128
+QID-C-000052
+QID-P-000983
+```
+
+Prefixes
+
+B Book
+
+T Tool
+
+C Company
+
+P Person
+
+M Magazine
+
+R Record
+
+etc.
+
+---
+
+# SQLite Tables
+
+## quiddity_items
+
+```text
+id
+
+qid
+
+type
+
+canonical_name
+
+subtitle
+
+description
+
+notes
+
+created_at
+
+updated_at
+```
+
+---
+
+## quiddity_aliases
+
+Alternate names.
+
+---
+
+## quiddity_people
+
+Authors
+
+Designers
+
+Editors
+
+Manufacturers
+
+---
+
+## quiddity_publications
+
+Publisher
+
+Edition
+
+ISBN
+
+Open Library ID
+
+OCLC
+
+etc.
+
+---
+
+## quiddity_mentions
+
+Every place an object appears.
+
+```text
+publication
+
+issue
+
+page
+
+section
+
+snippet
+
+confidence
+
+thread_id
+```
+
+---
+
+## quiddity_sources
+
+Imported documents.
+
+---
+
+## qthread_registry
+
+Installed Q-Threads.
+
+```text
+id
+
+name
+
+version
+
+path
+
+enabled
+
+priority
+```
+
+---
+
+# Whole Earth Q-Thread
+
+Implement first.
+
+Pipeline:
+
+```text
+PDF
+
+↓
+
+Claude Vision
+
+↓
+
+Structured Page JSON
+
+↓
+
+Object Extraction
+
+↓
+
+Normalization
+
+↓
+
+Quiddity Resolution
+
+↓
+
+Mention Creation
+```
+
+---
+
+# Claude Vision Prompt
+
+For every page:
+
+Extract every collectible object.
+
+Ignore editorial prose except where it identifies an object.
+
+Return JSON only.
+
+Each object should include
+
+* type
+* title
+* author
+* publisher
+* year
+* description
+* page snippet
+* confidence
+
+---
+
+# Matching
+
+When an inventory item is created
+
+Each installed Q-Thread is asked
+
+```typescript
+recognize(item)
+
+match(item)
+
+explain(item)
+
+related(item)
+
+value(item)
+```
+
+Each thread returns evidence.
+
+The Research Engine combines evidence.
+
+---
+
+# Evidence Model
+
+No thread returns "truth."
+
+Each returns evidence.
+
+Example
+
+```text
+Whole Earth
+
+96%
+
+Appears in
+
+Last Whole Earth Catalog
+
+Page 241
+
+────────────
+
+Vintage Clothing
+
+91%
+
+Pendleton
+
+1968–1972 label
+
+────────────
+
+American Workwear
+
+87%
+
+Classic wool overshirt
+```
+
+The Research Engine merges all evidence.
+
+---
+
+# Wishlists
+
+Wishlists reference Quiddity IDs.
+
+Never duplicate metadata.
+
+Example
+
+```json
+{
+  "wishlist": "Whole Earth Books",
+  "thread": "whole-earth",
+  "items": [
+    "QID-B-000183",
+    "QID-B-000842"
+  ]
+}
+```
+
+---
+
+# Q-Thread API
+
+Every Q-Thread implements:
+
+```typescript
+interface QThread {
+
+    metadata()
+
+    recognize(item)
+
+    match(item)
+
+    explain(item)
+
+    related(item)
+
+    estimateValue(item)
+
+    tags(item)
+
+    import(source)
+
+}
+```
+
+All methods are optional.
+
+Threads advertise capabilities.
+
+---
+
+# UI
+
+New Stack
+
+```text
+Quiddity
+```
+
+Contains
+
+Q-Thread Browser
+
+Installed Threads
+
+Quiddity Browser
+
+Mentions
+
+Related Objects
+
+Wishlist Membership
+
+Import Queue
+
+Research
+
+---
+
+# Inventory View
+
+When viewing an inventory item
+
+Display
+
+```text
+Applied Q-Threads
+
+✓ Whole Earth
+
+98%
+
+✓ Vintage Clothing
+
+91%
+
+✓ Providence
+
+73%
+```
+
+Selecting a thread expands its evidence.
+
+---
+
+# Future Q-Threads
+
+Examples
+
+```text
+Whole Earth
+
+Foxfire
+
+Vintage Clothing
+
+Leica
+
+Apple
+
+Providence Zines
+
+Letterpress
+
+Early Computing
+
+Ham Radio
+
+Hi-Fi
+
+Mid-Century Furniture
+
+Maker Movement
+
+Fluxus
+
+Bauhaus
+
+Arts & Crafts
+
+Science Fiction
+
+Cookbooks
+```
+
+No code changes should be required to install a new Q-Thread.
+
+---
+
+# Design Goals
+
+Q-Threads should be:
+
+* Independent
+* Composable
+* Explainable
+* Versioned
+* Testable
+* Installable
+* Offline-capable
+* Replaceable
+
+No Q-Thread should assume another Q-Thread exists.
+
+---
+
+# Long-Term Vision
+
+Hoarder's Little Helper should evolve into a **collector's operating system**, where domain expertise is encapsulated in reusable Q-Threads.
+
+A Q-Thread is not merely a dataset or plugin—it is a self-contained body of knowledge that can recognize, explain, contextualize, and enrich collectible objects. As users install more Q-Threads, the system's understanding becomes richer through the combination of independent expert perspectives.
+
+The **Quiddity Database** serves as the common semantic layer shared by all Q-Threads, while the inventory remains a user-specific catalog. This separation allows the application to grow organically into many collecting domains without increasing architectural complexity. It also aligns perfectly with the Raveling philosophy: individual Threads of knowledge are woven together to reveal the essential nature—the *quiddity*—of every object.
+

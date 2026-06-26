@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ravel-research-log — sandbox</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Silkscreen&family=Quantico:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Silkscreen', monospace;
+            background: #181818;
+            color: #E6E2D3;
+            padding: 32px;
+            border: 10px solid #ff0000;
+            box-shadow: 0 0 0 10px inset #ffcc00;
+            min-height: 100vh;
+        }
+        h1 { font-size: 3rem; color: #fff; border-bottom: 10px solid rgba(102,102,102,.30); padding-bottom: 16px; margin-bottom: 32px; }
+        h2 { font-size: 1.25rem; color: #fff; margin-bottom: 16px; }
+        .section { background: #303030; border-radius: 8px; padding: 24px; margin-bottom: 24px; }
+        .text { font-family: 'Quantico', monospace; font-size: 1rem; color: rgba(255,255,255,.40); line-height: 1.6; margin-bottom: 16px; }
+        .stage { background: #222; border: 2px dotted rgba(102,102,102,.40); border-radius: 4px; padding: 16px; }
+        .ctrl-row { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
+        .ctrl-btn {
+            appearance: none; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.15);
+            border-radius: 4px; color: #E6E2D3; font-family: 'Silkscreen', monospace; font-size: .8rem;
+            padding: 8px 14px; cursor: pointer; min-height: 44px;
+        }
+        .ctrl-btn:hover { background: rgba(255,255,255,.12); }
+        .ctrl-btn:focus-visible { outline: 2px solid #00F0FF; outline-offset: 2px; }
+        ravel-research-log  { display: block; }
+        ravel-confidence-pill { display: inline-flex; }
+    </style>
+</head>
+<body>
+
+    <h1>ravel-research-log</h1>
+
+    <!-- ── Section 1: Pre-loaded entries ── -->
+    <div class="section">
+        <h2>Evidence History</h2>
+        <p class="text">Timestamped log of Q-Thread evidence. Green dot = approved. Grey dot = pending review.</p>
+        <div class="stage">
+            <ravel-research-log id="log-a" channel="res-demo"></ravel-research-log>
+        </div>
+        <div class="ctrl-row">
+            <button class="ctrl-btn" id="btn-add-high">+ High confidence</button>
+            <button class="ctrl-btn" id="btn-add-low">+ Low confidence</button>
+            <button class="ctrl-btn" id="btn-add-approved">+ Approved</button>
+            <button class="ctrl-btn" id="btn-clear">Clear</button>
+        </div>
+    </div>
+
+    <!-- ── Section 2: Empty state ── -->
+    <div class="section">
+        <h2>Empty State</h2>
+        <div class="stage">
+            <ravel-research-log id="log-empty" channel="res-empty"></ravel-research-log>
+        </div>
+    </div>
+
+    <script type="module">
+        import '../ravel-research-log.ts';
+        import '../../../../gidgets/ravel-confidence-pill/ravel-confidence-pill.ts';
+
+        const log = document.getElementById('log-a');
+        let entryCount = 0;
+
+        function now() { return new Date().toISOString(); }
+        function makeId() { return `entry-${++entryCount}`; }
+
+        // Pre-populate with sample entries
+        const seed = [
+            {
+                id:          'e1',
+                timestamp:   new Date(Date.now() - 3600000).toISOString(),
+                service:     'whole-earth',
+                cmd:         'match',
+                confidence:  0.92,
+                source:      'Last Whole Earth Catalog, p.183',
+                approved_at: new Date(Date.now() - 1800000).toISOString(),
+                summary:     'Matched "Shelter" (QID-B-000006) — 92% confidence',
+            },
+            {
+                id:          'e2',
+                timestamp:   new Date(Date.now() - 1200000).toISOString(),
+                service:     'whole-earth',
+                cmd:         'match',
+                confidence:  0.55,
+                source:      'Updated Last WEC, p.207',
+                approved_at: null,
+                summary:     'Possible match: "Nomadic Furniture" (QID-B-000008)',
+            },
+            {
+                id:          'e3',
+                timestamp:   new Date(Date.now() - 300000).toISOString(),
+                service:     'vision',
+                cmd:         'recognize',
+                confidence:  0.78,
+                source:      null,
+                approved_at: null,
+                summary:     'Photo classified as "book" (78%)',
+            },
+        ];
+
+        log.setEntries(seed);
+
+        function dispatch(channel, cmd, content) {
+            window.dispatchEvent(new CustomEvent(channel, { detail: { cmd, content, version: 1 } }));
+        }
+
+        document.getElementById('btn-add-high').addEventListener('click', () => {
+            dispatch('res-demo', 'add-entry', {
+                id:          makeId(),
+                timestamp:   now(),
+                service:     'whole-earth',
+                cmd:         'match',
+                confidence:  0.88 + Math.random() * 0.10,
+                source:      'Last Whole Earth Catalog, p.' + Math.floor(Math.random() * 400 + 1),
+                approved_at: null,
+                summary:     `Match found with ${Math.round((0.88 + Math.random() * 0.10) * 100)}% confidence`,
+            });
+        });
+
+        document.getElementById('btn-add-low').addEventListener('click', () => {
+            dispatch('res-demo', 'add-entry', {
+                id:          makeId(),
+                timestamp:   now(),
+                service:     'whole-earth',
+                cmd:         'recognize',
+                confidence:  Math.random() * 0.45,
+                source:      null,
+                approved_at: null,
+                summary:     'Weak signal — possible WEC domain item',
+            });
+        });
+
+        document.getElementById('btn-add-approved').addEventListener('click', () => {
+            dispatch('res-demo', 'add-entry', {
+                id:          makeId(),
+                timestamp:   now(),
+                service:     'whole-earth',
+                cmd:         'match',
+                confidence:  0.90,
+                source:      'WEC Fall 1968, p.6',
+                approved_at: now(),
+                summary:     'Approved match: "Dune" by Frank Herbert (QID-B-000015)',
+            });
+        });
+
+        document.getElementById('btn-clear').addEventListener('click', () => {
+            dispatch('res-demo', 'clear', {});
+        });
+    </script>
+</body>
+</html>

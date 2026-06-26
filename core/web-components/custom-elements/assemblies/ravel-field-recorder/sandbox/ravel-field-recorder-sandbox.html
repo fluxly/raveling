@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ravel-field-recorder — sandbox</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Silkscreen&family=Quantico:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Silkscreen', monospace;
+            background: #181818;
+            color: #E6E2D3;
+            padding: 32px;
+            border: 10px solid #ff0000;
+            box-shadow: 0px 0px 0px 10px inset #ffcc00;
+            min-height: 100vh;
+        }
+
+        h1 {
+            font-size: 3rem;
+            color: #FFFFFF;
+            border-bottom: 10px solid rgba(102,102,102,0.30);
+            padding-bottom: 16px;
+            margin-bottom: 32px;
+        }
+
+        h2 {
+            font-size: 1.25rem;
+            color: #FFFFFF;
+            margin-bottom: 16px;
+        }
+
+        .section {
+            background: #303030;
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .element-label {
+            font-size: 1rem;
+            color: #666666;
+            margin-bottom: 10px;
+        }
+
+        /* stage: field recorder uses position:fixed for its dialog, so
+           overflow:hidden on the stage is fine — the dialog escapes it */
+        .stage {
+            position: relative;
+            background: #222222;
+            border: 2px dotted rgba(102,102,102,0.40);
+            border-radius: 4px;
+            overflow: hidden;
+            padding: 40px 32px;
+        }
+
+        .stage-row {
+            display: flex;
+            gap: 48px;
+            align-items: flex-start;
+            flex-wrap: wrap;
+        }
+
+        /* Quantico for prose */
+        .text {
+            font-family: 'Quantico', monospace, sans-serif;
+            font-size: 1rem;
+            color: rgba(255,255,255,0.40);
+            line-height: 1.6;
+            margin-bottom: 16px;
+        }
+
+        /* ── Controls panel ──────────────────────────── */
+
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .ctrl {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .ctrl label {
+            font-size: 1rem;
+            color: rgba(255,255,255,0.40);
+            letter-spacing: 0.06em;
+            min-width: 80px;
+        }
+
+        .ctrl-select {
+            background: #181818;
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 4px;
+            color: #E6E2D3;
+            font-family: 'Silkscreen', monospace;
+            font-size: 1rem;
+            padding: 6px 10px;
+            cursor: pointer;
+        }
+        .ctrl-select:focus {
+            outline: 2px solid #FF4FB3;
+            outline-offset: 1px;
+        }
+
+        /* ── Drum pad row ─────────────────────────────── */
+
+        .drum-row {
+            display: flex;
+            gap: 24px;
+            flex-wrap: wrap;
+            align-items: flex-start;
+        }
+
+        .drum-cell {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .drum-cell-label {
+            font-size: 1rem;
+            color: rgba(255,255,255,0.35);
+            letter-spacing: 0.06em;
+        }
+
+        /* ── Event log ────────────────────────────────── */
+
+        .log {
+            background: #0a0a0a;
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 6px;
+            padding: 12px 16px;
+            height: 240px;
+            overflow-y: auto;
+            font-family: 'Quantico', monospace;
+            font-size: 1rem;
+            color: rgba(255,255,255,0.35);
+            display: flex;
+            flex-direction: column-reverse;
+            gap: 2px;
+        }
+
+        .log-select { color: #FF4FB3; }
+        .log-play   { color: #A7FF00; }
+        .log-rec    { color: #FF5555; }
+        .log-save   { color: #20C8D8; }
+        .log-stop   { color: rgba(255,255,255,0.28); }
+        .log-sys    { color: rgba(255,255,255,0.18); font-style: italic; }
+
+        .log-controls {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 8px;
+        }
+
+        .btn {
+            appearance: none;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 4px;
+            color: rgba(255,255,255,0.45);
+            font-family: 'Silkscreen', monospace;
+            font-size: 1rem;
+            padding: 6px 14px;
+            cursor: pointer;
+        }
+        .btn:hover { background: rgba(255,255,255,0.12); color: #E6E2D3; }
+        .btn:focus-visible { outline: 2px solid #00F0FF; outline-offset: 1px; }
+    </style>
+</head>
+<body>
+    <h1>ravel-field-recorder</h1>
+
+    <!-- ── Single recorder ─────────────────────────────────────────────── -->
+
+    <div class="section">
+        <div class="element-label">ravel-field-recorder</div>
+        <p class="text">
+            Click the animal emoji to open the recorder panel.
+            Choose a slot, press 🔴 to record, ▶️ to play back, ⏹️ to stop.
+            A pink dot on the face means the active slot has audio.
+        </p>
+        <div class="stage">
+            <div class="stage-row">
+                <ravel-field-recorder id="rec1" size="lg"></ravel-field-recorder>
+
+                <div class="controls">
+                    <div class="ctrl">
+                        <label for="sel-size">SIZE</label>
+                        <select class="ctrl-select" id="sel-size">
+                            <option value="sm">sm (32px)</option>
+                            <option value="md">md (48px)</option>
+                            <option value="lg" selected>lg (80px)</option>
+                        </select>
+                    </div>
+                    <div class="ctrl">
+                        <label for="sel-slots">SLOTS</label>
+                        <select class="ctrl-select" id="sel-slots">
+                            <option value="5">5</option>
+                            <option value="10">10</option>
+                            <option value="20" selected>20</option>
+                            <option value="30">30</option>
+                            <option value="40">40</option>
+                        </select>
+                    </div>
+                    <div class="ctrl">
+                        <label for="sel-slot">ACTIVE</label>
+                        <select class="ctrl-select" id="sel-slot">
+                            <!-- filled by JS -->
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Drum machine ─────────────────────────────────────────────────── -->
+
+    <div class="section">
+        <h2>Drum Machine</h2>
+        <p class="text">
+            Eight independent recorders, one per drum hit.
+            All broadcast on the <code style="font-family:Quantico,monospace">drum-pads</code> channel.
+        </p>
+        <div class="stage" style="padding: 32px 24px;">
+            <div class="drum-row" id="drum-row">
+                <!-- built by JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Event log ────────────────────────────────────────────────────── -->
+
+    <div class="section">
+        <h2>Event Log</h2>
+        <div class="log" id="log" aria-live="polite" aria-label="Event log">
+            <span class="log-sys">Open a recorder to see events…</span>
+        </div>
+        <div class="log-controls">
+            <button class="btn" id="btn-clear" type="button">CLEAR</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import '../ravel-field-recorder.ts';
+
+        const rec1     = document.getElementById('rec1');
+        const selSlots = document.getElementById('sel-slots');
+        const selSlot  = document.getElementById('sel-slot');
+        const log      = document.getElementById('log');
+        let   logEmpty = true;
+
+        // ── Timestamp helper ──────────────────────────────────────────────────
+
+        function ts() {
+            const d = new Date();
+            return `${String(d.getMinutes()).padStart(2,'0')}:${String(d.getSeconds()).padStart(2,'0')}.${String(d.getMilliseconds()).padStart(3,'0')}`;
+        }
+
+        function addLog(text, cls) {
+            if (logEmpty) { log.innerHTML = ''; logEmpty = false; }
+            const el = document.createElement('div');
+            el.className = cls;
+            el.textContent = `[${ts()}]  ${text}`;
+            log.prepend(el);
+            while (log.children.length > 200) log.removeChild(log.lastChild);
+        }
+
+        // ── Single recorder controls ──────────────────────────────────────────
+
+        document.getElementById('sel-size').addEventListener('change', e => {
+            rec1.setAttribute('size', e.target.value);
+        });
+
+        function buildSlotSelect(count) {
+            selSlot.innerHTML = '';
+            for (let i = 0; i < count; i++) {
+                const opt = document.createElement('option');
+                opt.value = String(i);
+                opt.textContent = `Slot ${i + 1}`;
+                selSlot.appendChild(opt);
+            }
+        }
+        buildSlotSelect(20);
+
+        selSlots.addEventListener('change', e => {
+            const n = parseInt(e.target.value);
+            rec1.setAttribute('slots', String(n));
+            buildSlotSelect(n);
+        });
+
+        selSlot.addEventListener('change', e => {
+            rec1.setAttribute('selected', e.target.value);
+        });
+
+        // Keep the select in sync when the user picks a slot inside the panel
+        rec1.addEventListener('select', e => {
+            selSlot.value = String(e.detail.slot);
+        });
+
+        // ── Drum machine ──────────────────────────────────────────────────────
+
+        const drumRow   = document.getElementById('drum-row');
+        const PAD_NAMES = ['KICK','SNARE','HI-HAT','CLAP','PERC','BASS','LEAD','PAD'];
+
+        for (let i = 0; i < 8; i++) {
+            const cell = document.createElement('div');
+            cell.className = 'drum-cell';
+
+            const rfr = document.createElement('ravel-field-recorder');
+            rfr.setAttribute('size', 'md');
+            rfr.setAttribute('slots', '8');
+            rfr.setAttribute('selected', String(i));
+            rfr.setAttribute('channel', 'drum-pads');
+            cell.appendChild(rfr);
+
+            const lbl = document.createElement('span');
+            lbl.className = 'drum-cell-label';
+            lbl.textContent = PAD_NAMES[i];
+            cell.appendChild(lbl);
+
+            drumRow.appendChild(cell);
+        }
+
+        // ── Log all events from both channels ─────────────────────────────────
+
+        function logEvent(prefix, cmd, content) {
+            switch (cmd) {
+                case 'select':
+                    addLog(`${prefix}  select   slot ${content.slot + 1}  ${content.emoji}`, 'log-select');
+                    break;
+                case 'play':
+                    addLog(`${prefix}  ▶️  play    slot ${content.slot + 1}  ${content.emoji}`, 'log-play');
+                    break;
+                case 'stop':
+                    addLog(`${prefix}  ⏹  stop    slot ${content.slot + 1}`, 'log-stop');
+                    break;
+                case 'record-start':
+                    addLog(`${prefix}  🔴 record-start   slot ${content.slot + 1}`, 'log-rec');
+                    break;
+                case 'record-stop':
+                    addLog(`${prefix}  💾 record-stop    slot ${content.slot + 1}  ${content.emoji}`, 'log-save');
+                    break;
+                case 'record-cancel':
+                    addLog(`${prefix}  ✕  record-cancel  slot ${content.slot + 1}`, 'log-stop');
+                    break;
+            }
+        }
+
+        window.addEventListener('ravel-field-recorder', e => {
+            logEvent('[rec1]', e.detail?.cmd, e.detail?.content);
+        });
+
+        window.addEventListener('drum-pads', e => {
+            logEvent('[drum]', e.detail?.cmd, e.detail?.content);
+        });
+
+        // ── Clear ─────────────────────────────────────────────────────────────
+
+        document.getElementById('btn-clear').addEventListener('click', () => {
+            log.innerHTML = '<div class="log-sys">Cleared.</div>';
+            logEmpty = false;
+        });
+    </script>
+</body>
+</html>

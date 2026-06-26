@@ -3,7 +3,12 @@
     "allow": [
       "Bash(npx tsc *)",
       "Bash(pip3 install *)",
-      "Bash(python3 *)"
+      "Bash(python3 *)",
+      "Bash(open *)",
+      "Bash(npm install *)",
+      "Bash(npx vite *)",
+      "Bash(cargo check *)",
+      "Bash(npm run *)"
     ]
   }
 }

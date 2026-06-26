@@ -1,0 +1,7 @@
+{
+  "id":           "foxfire",
+  "name":         "Foxfire",
+  "version":      "1.0.0",
+  "description":  "The Foxfire book series and Appalachian folk culture — skills, crafts, and vernacular knowledge documented by Eliot Wigginton's students in Rabun County, Georgia.",
+  "capabilities": ["recognition", "matching", "valuation", "related-items", "tags"]
+}

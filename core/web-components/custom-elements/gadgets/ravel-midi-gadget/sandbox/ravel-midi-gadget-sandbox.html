@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ravel-midi-gadget — sandbox</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Silkscreen&family=Quantico:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Silkscreen', monospace;
+            background: #181818;
+            color: #E6E2D3;
+            padding: 32px;
+            border: 10px solid #ff0000;
+            box-shadow: 0 0 0 10px inset #ffcc00;
+            min-height: 100vh;
+        }
+
+        h1 {
+            font-size: 3rem;
+            color: #FFFFFF;
+            letter-spacing: 0.04em;
+            border-bottom: 10px solid rgba(102,102,102,0.30);
+            padding-bottom: 16px;
+            margin-bottom: 32px;
+        }
+
+        h2 { font-size: 1.25rem; color: #FFFFFF; margin-bottom: 14px; }
+
+        .section {
+            background: #303030;
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .element-label { font-size: 1rem; color: #666666; margin-bottom: 10px; }
+
+        .stage {
+            position: relative;
+            background: #222222;
+            border: 2px dotted rgba(102,102,102,0.40);
+            border-radius: 4px;
+            overflow: visible;
+            padding: 20px;
+            display: flex;
+            align-items: flex-start;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .info {
+            font-family: 'Quantico', monospace;
+            font-size: 0.9rem;
+            color: rgba(255,255,255,0.45);
+            line-height: 1.6;
+            margin-bottom: 18px;
+        }
+
+        /* ── Piano keyboard ─────────────────────────────── */
+
+        .piano-wrap {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .piano {
+            position: relative;
+            height: 80px;
+            touch-action: none;
+        }
+
+        .key-w {
+            position: absolute;
+            width: 28px;
+            height: 80px;
+            background: #F5F0E8;
+            border: 1px solid #555;
+            border-radius: 0 0 3px 3px;
+            cursor: pointer;
+            transition: background 60ms ease;
+        }
+
+        .key-w.active { background: #A7FF00; }
+
+        .key-b {
+            position: absolute;
+            width: 18px;
+            height: 50px;
+            background: #1a1a1a;
+            border: 1px solid #000;
+            border-radius: 0 0 2px 2px;
+            cursor: pointer;
+            z-index: 1;
+            transition: background 60ms ease;
+        }
+
+        .key-b.active { background: #A7FF00; }
+
+        .key-note {
+            position: absolute;
+            bottom: 4px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 5px;
+            color: rgba(0,0,0,0.35);
+            pointer-events: none;
+        }
+
+        .key-b .key-note { color: rgba(255,255,255,0.3); bottom: 3px; }
+
+        /* ── CC / velocity controls ─────────────────────── */
+
+        .controls-row {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .ctrl-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .ctrl-label {
+            font-size: 0.7rem;
+            color: rgba(255,255,255,0.40);
+            letter-spacing: 0.06em;
+        }
+
+        .ctrl-slider {
+            width: 120px;
+            accent-color: #FF4FB3;
+        }
+
+        .ctrl-val {
+            font-size: 0.7rem;
+            color: #FF4FB3;
+        }
+
+        /* ── MIDI log ───────────────────────────────────── */
+
+        .midi-log {
+            background: #0a0a0a;
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 6px;
+            padding: 10px 12px;
+            height: 200px;
+            overflow-y: auto;
+            font-family: 'Quantico', monospace;
+            font-size: 0.83rem;
+            color: rgba(255,255,255,0.45);
+            display: flex;
+            flex-direction: column-reverse;
+            gap: 2px;
+        }
+
+        .log-entry { line-height: 1.5; }
+        .log-in    { color: #A7FF00; }
+        .log-out   { color: #FF37A8; }
+        .log-sys   { color: rgba(255,255,255,0.25); font-style: italic; }
+
+        .btn-clear {
+            appearance: none;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 4px;
+            color: rgba(255,255,255,0.45);
+            font-family: 'Silkscreen', monospace;
+            font-size: 0.7rem;
+            padding: 4px 10px;
+            cursor: pointer;
+            margin-top: 6px;
+        }
+
+        .btn-clear:hover { background: rgba(255,255,255,0.12); color: #E6E2D3; }
+
+        /* ── Setup hint ─────────────────────────────────── */
+
+        .hint {
+            background: rgba(255,79,179,0.07);
+            border: 1px solid rgba(255,79,179,0.25);
+            border-radius: 6px;
+            padding: 14px 16px;
+            font-family: 'Quantico', monospace;
+            font-size: 0.88rem;
+            color: rgba(255,255,255,0.60);
+            line-height: 1.7;
+        }
+
+        .hint strong { color: #FF4FB3; }
+        .hint code   { font-family: 'Quantico', monospace; background: rgba(255,255,255,0.08); padding: 1px 5px; border-radius: 3px; }
+
+        .chain {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 14px;
+            font-size: 0.8rem;
+            color: rgba(255,255,255,0.55);
+        }
+
+        .chain-node {
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 4px;
+            padding: 4px 10px;
+            white-space: nowrap;
+        }
+
+        .chain-arrow { color: rgba(255,255,255,0.25); }
+    </style>
+</head>
+<body>
+    <h1>ravel-midi-gadget</h1>
+
+    <!-- Setup hint -->
+    <div class="section">
+        <div class="hint">
+            <strong>macOS setup:</strong> Open <code>Audio MIDI Setup</code> → <code>MIDI Studio (⌘2)</code> → double-click
+            <strong>IAC Driver</strong> → check <strong>"Device is online"</strong>. The IAC port will appear
+            in the gadget's OUT selector. Logic Pro, Ableton, and any CoreMIDI app can then receive from it.
+            <div class="chain">
+                <span class="chain-node">ravel-midi-gesture</span>
+                <span class="chain-arrow">→</span>
+                <span class="chain-node">ravel-midi-broker</span>
+                <span class="chain-arrow">→</span>
+                <span class="chain-node" style="border-color: rgba(255,79,179,0.45); color: #FF4FB3;">ravel-midi-gadget</span>
+                <span class="chain-arrow">→</span>
+                <span class="chain-node">IAC Driver</span>
+                <span class="chain-arrow">→</span>
+                <span class="chain-node">Logic Pro / DAW</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Element stage -->
+    <div class="section">
+        <div class="element-label">ravel-midi-gadget</div>
+        <div class="stage">
+            <ravel-midi-gadget id="gadget" output="IAC"></ravel-midi-gadget>
+            <ravel-midi-broker id="broker" channel="midi-monitor"></ravel-midi-broker>
+        </div>
+    </div>
+
+    <!-- Outbound test: keyboard → broker → gadget → hardware -->
+    <div class="section">
+        <h2>Outbound Test — Keyboard → Gadget</h2>
+        <p class="info">Click keys to send notes via the broker chain. Requires MIDI connect above.</p>
+
+        <div class="stage" style="flex-direction: column; align-items: flex-start;">
+            <div class="piano-wrap">
+                <div class="piano" id="piano" role="group" aria-label="MIDI keyboard"></div>
+                <div class="controls-row">
+                    <div class="ctrl-group">
+                        <span class="ctrl-label">VELOCITY</span>
+                        <input type="range" class="ctrl-slider" id="sl-vel" min="1" max="127" value="100" aria-label="Note velocity">
+                        <span class="ctrl-val" id="vel-val">100</span>
+                    </div>
+                    <div class="ctrl-group">
+                        <span class="ctrl-label">CC 11 EXPRESSION</span>
+                        <input type="range" class="ctrl-slider" id="sl-cc11" min="0" max="127" value="64" aria-label="CC 11 expression">
+                        <span class="ctrl-val" id="cc11-val">64</span>
+                    </div>
+                    <div class="ctrl-group">
+                        <span class="ctrl-label">MIDI CHANNEL</span>
+                        <select id="sel-ch" style="background:#181818;border:1px solid rgba(255,255,255,0.15);border-radius:4px;color:#E6E2D3;font-family:'Silkscreen',monospace;font-size:0.7rem;padding:4px 8px;" aria-label="MIDI channel">
+                            <option value="0">CH 1</option>
+                            <option value="1">CH 2</option>
+                            <option value="2">CH 3</option>
+                            <option value="9">CH 10</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Inbound test: MIDI device → gadget → broker → log -->
+    <div class="section">
+        <h2>Inbound Monitor — Hardware → Gadget → Broker</h2>
+        <p class="info">
+            MIDI data from the selected IN port flows through the gadget → broker and appears below.
+            Set the gadget's IN selector to a port, then play a connected device.
+        </p>
+        <div class="midi-log" id="midi-log" aria-live="polite" aria-label="MIDI monitor">
+            <span class="log-entry log-sys">Waiting for MIDI…</span>
+        </div>
+        <div style="display:flex;justify-content:flex-end;">
+            <button class="btn-clear" id="btn-clear" type="button">CLEAR</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import '../ravel-midi-gadget.ts';
+        import '../../../brokers/ravel-midi-broker/ravel-midi-broker.ts';
+        import { RavelMessenger } from '../../../../common/RavelMessenger.ts';
+
+        const gadget = document.getElementById('gadget');
+        const log    = document.getElementById('midi-log');
+        let logEmpty = true;
+
+        function addLog(text, cls) {
+            if (logEmpty) { log.innerHTML = ''; logEmpty = false; }
+            const e = document.createElement('div');
+            e.className = `log-entry ${cls}`;
+            const n = new Date();
+            const ts = `${String(n.getMinutes()).padStart(2,'0')}:${String(n.getSeconds()).padStart(2,'0')}.${String(n.getMilliseconds()).padStart(3,'0')}`;
+            e.textContent = `[${ts}] ${text}`;
+            log.prepend(e);
+            while (log.children.length > 100) log.removeChild(log.lastChild);
+        }
+
+        document.getElementById('btn-clear').addEventListener('click', () => {
+            log.innerHTML = '<div class="log-entry log-sys">Cleared.</div>';
+            logEmpty = false;
+        });
+
+        // ── Monitor broker broadcasts ────────────────────────────────────────
+
+        window.addEventListener('midi-monitor', e => {
+            const { cmd, content } = e.detail ?? {};
+            if (!content) return;
+            let text = '', cls = 'log-in';
+            const ch = (content.channel ?? 0) + 1;
+            switch (cmd) {
+                case 'note-on':  text = `NOTE-ON  ch${ch}  note:${content.note}  vel:${content.velocity}  [${content.deviceName ?? ''}]`; break;
+                case 'note-off': text = `NOTE-OFF ch${ch}  note:${content.note}  [${content.deviceName ?? ''}]`; break;
+                case 'cc':       text = `CC       ch${ch}  ctrl:${content.controller}  val:${content.value}`; break;
+                case 'pitch-bend': text = `PB     ch${ch}  val:${content.value}`; break;
+                case 'clock':    text = `CLOCK ${content.type}`; cls = 'log-sys'; break;
+                default:         text = `${cmd}  ${JSON.stringify(content).slice(0,60)}`; cls = 'log-sys';
+            }
+            addLog(text, cls);
+        });
+
+        // ── Piano keyboard ───────────────────────────────────────────────────
+
+        const piano  = document.getElementById('piano');
+        const slVel  = document.getElementById('sl-vel');
+        const slCc11 = document.getElementById('sl-cc11');
+        const valVel = document.getElementById('vel-val');
+        const valCc  = document.getElementById('cc11-val');
+
+        slVel.addEventListener('input',  () => valVel.textContent = slVel.value);
+        slCc11.addEventListener('input', () => {
+            valCc.textContent = slCc11.value;
+            sendToBroker('cc', { channel: midiCh(), controller: 11, value: parseInt(slCc11.value) });
+        });
+
+        const midiCh = () => parseInt(document.getElementById('sel-ch').value);
+
+        // 2-octave keyboard C4–B5 (notes 60–83)
+        const WW = 28, BW = 18, GAP = 1;
+
+        let wIdx = 0;
+        for (let note = 60; note <= 83; note++) {
+            const pc = note % 12;
+            const isBlack = [1,3,6,8,10].includes(pc);
+            if (!isBlack) {
+                const k = document.createElement('div');
+                k.className = 'key-w';
+                k.dataset.note = note;
+                k.style.left = `${wIdx * (WW + GAP)}px`;
+                k.innerHTML = `<span class="key-note">${noteLabel(note)}</span>`;
+                k.setAttribute('role', 'button');
+                k.setAttribute('aria-label', `${noteLabel(note)} (${note})`);
+                k.setAttribute('tabindex', '0');
+                piano.appendChild(k);
+                wIdx++;
+            } else {
+                const prevWIdx = wIdx - 1;
+                const k = document.createElement('div');
+                k.className = 'key-b';
+                k.dataset.note = note;
+                k.style.left = `${prevWIdx * (WW + GAP) + WW - BW / 2}px`;
+                k.setAttribute('role', 'button');
+                k.setAttribute('aria-label', `${noteLabel(note)} (${note})`);
+                k.setAttribute('tabindex', '0');
+                piano.appendChild(k);
+            }
+        }
+
+        piano.style.width = `${wIdx * (WW + GAP) - GAP}px`;
+
+        function noteLabel(n) {
+            const names = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+            return `${names[n % 12]}${Math.floor(n / 12) - 1}`;
+        }
+
+        function sendToBroker(type, extra) {
+            RavelMessenger.sendMessage('ravel-midi-broker', 'send', { type, ...extra });
+            addLog(`→ ${type}  ${JSON.stringify(extra)}`, 'log-out');
+        }
+
+        const activeNotes = new Set();
+
+        function noteOn(note) {
+            if (activeNotes.has(note)) return;
+            activeNotes.add(note);
+            const k = piano.querySelector(`[data-note="${note}"]`);
+            k?.classList.add('active');
+            sendToBroker('note-on', { channel: midiCh(), note, velocity: parseInt(slVel.value) });
+        }
+
+        function noteOff(note) {
+            if (!activeNotes.has(note)) return;
+            activeNotes.delete(note);
+            const k = piano.querySelector(`[data-note="${note}"]`);
+            k?.classList.remove('active');
+            sendToBroker('note-off', { channel: midiCh(), note, velocity: 0 });
+        }
+
+        piano.addEventListener('pointerdown', e => {
+            const k = e.target.closest('[data-note]');
+            if (!k) return;
+            e.preventDefault();
+            piano.setPointerCapture(e.pointerId);
+            noteOn(parseInt(k.dataset.note));
+        });
+
+        piano.addEventListener('pointerup', e => {
+            for (const n of [...activeNotes]) noteOff(n);
+        });
+
+        piano.addEventListener('pointercancel', e => {
+            for (const n of [...activeNotes]) noteOff(n);
+        });
+
+        piano.addEventListener('keydown', e => {
+            if (e.key === ' ' || e.key === 'Enter') {
+                const k = document.activeElement?.closest?.('[data-note]');
+                if (k) { e.preventDefault(); noteOn(parseInt(k.dataset.note)); }
+            }
+        });
+
+        piano.addEventListener('keyup', e => {
+            if (e.key === ' ' || e.key === 'Enter') {
+                const k = document.activeElement?.closest?.('[data-note]');
+                if (k) { e.preventDefault(); noteOff(parseInt(k.dataset.note)); }
+            }
+        });
+    </script>
+</body>
+</html>

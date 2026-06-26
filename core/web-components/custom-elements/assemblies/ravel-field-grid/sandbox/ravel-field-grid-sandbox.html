@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ravel-field-grid — sandbox</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Silkscreen&family=Quantico:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Silkscreen', monospace;
+            background: #181818;
+            color: #E6E2D3;
+            padding: 32px;
+            border: 10px solid #ff0000;
+            box-shadow: 0px 0px 0px 10px inset #ffcc00;
+            min-height: 100vh;
+        }
+
+        h1 {
+            font-size: 3rem;
+            color: #FFFFFF;
+            border-bottom: 10px solid rgba(102,102,102,0.30);
+            padding-bottom: 16px;
+            margin-bottom: 32px;
+        }
+
+        h2 { font-size: 1.25rem; color: #FFFFFF; margin-bottom: 16px; }
+
+        .section {
+            background: #303030;
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .text {
+            font-family: 'Quantico', monospace, sans-serif;
+            font-size: 1rem;
+            color: rgba(255,255,255,0.40);
+            line-height: 1.6;
+            margin-bottom: 16px;
+        }
+
+        .stage {
+            position: relative;
+            background: #222222;
+            border: 2px dotted rgba(102,102,102,0.40);
+            border-radius: 4px;
+            padding: 24px;
+        }
+
+        .stage + .stage { margin-top: 16px; }
+
+        .element-label { font-size: 1rem; color: #666666; margin-bottom: 10px; }
+
+        .two-up {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+
+        @media (max-width: 700px) { .two-up { grid-template-columns: 1fr; } }
+
+        .ctrl-row {
+            display: flex;
+            gap: 10px;
+            margin-top: 16px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .ctrl-btn {
+            appearance: none;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 4px;
+            color: #E6E2D3;
+            font-family: 'Silkscreen', monospace;
+            font-size: 0.8rem;
+            padding: 8px 14px;
+            cursor: pointer;
+            min-height: 44px;
+        }
+        .ctrl-btn:hover { background: rgba(255,255,255,0.12); }
+        .ctrl-btn.active { background: rgba(255,79,179,0.2); border-color: rgba(255,79,179,0.5); }
+        .ctrl-btn:focus-visible { outline: 2px solid #00F0FF; outline-offset: 2px; }
+
+        .log {
+            font-family: 'Quantico', monospace, sans-serif;
+            font-size: 0.85rem;
+            background: #111;
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 4px;
+            padding: 12px 16px;
+            margin-top: 16px;
+            min-height: 80px;
+            max-height: 160px;
+            overflow-y: auto;
+            color: rgba(255,255,255,0.5);
+        }
+        .log-line { color: #00F0FF; margin-bottom: 4px; }
+        .log-empty { color: rgba(255,255,255,0.2); font-style: italic; }
+
+        ravel-field-grid { display: block; }
+    </style>
+</head>
+<body>
+
+    <h1>ravel-field-grid</h1>
+
+    <!-- ── Section 1: Read-only catalog card ── -->
+    <div class="section">
+        <h2>Read-Only Display</h2>
+        <p class="text">Fields rendered as labeled read-only values — a catalog card. Empty fields show a dash.</p>
+
+        <div class="stage">
+            <div class="element-label">Book record — 2 columns (default)</div>
+            <ravel-field-grid id="grid-ro" columns="2"></ravel-field-grid>
+        </div>
+    </div>
+
+    <!-- ── Section 2: Editable mode ── -->
+    <div class="section">
+        <h2>Editable Mode</h2>
+        <p class="text">All field types: text, number, year, textarea, select. Change any value to see the field-change event. Toggle columns with the buttons below.</p>
+
+        <div class="stage">
+            <div class="element-label">Item editor — all field types</div>
+            <ravel-field-grid id="grid-edit" columns="2" editable></ravel-field-grid>
+        </div>
+
+        <div class="ctrl-row">
+            <span style="font-size:0.8rem;color:#666">Columns:</span>
+            <button class="ctrl-btn" id="btn-1col">1</button>
+            <button class="ctrl-btn active" id="btn-2col">2</button>
+            <button class="ctrl-btn" id="btn-3col">3</button>
+        </div>
+
+        <div class="log" id="log-edit">
+            <span class="log-empty">field-change events will appear here…</span>
+        </div>
+    </div>
+
+    <!-- ── Section 3: Sparse (mixed empty) ── -->
+    <div class="section">
+        <h2>Sparse Data</h2>
+        <p class="text">Fields with no values display as empty — useful when cataloging items with incomplete information.</p>
+
+        <div class="stage">
+            <div class="element-label">Partially filled record</div>
+            <ravel-field-grid id="grid-sparse" columns="2"></ravel-field-grid>
+        </div>
+    </div>
+
+    <script type="module">
+        import '../ravel-field-grid.ts';
+
+        // ── Read-only grid ────────────────────────────────────────────────────
+        const gridRo = document.getElementById('grid-ro');
+        gridRo.setFields([
+            { key: 'title',     label: 'Title',      value: 'The Complete Far Side', span: 2 },
+            { key: 'author',    label: 'Author',      value: 'Gary Larson' },
+            { key: 'publisher', label: 'Publisher',   value: 'Andrews McMeel' },
+            { key: 'year',      label: 'Year',        value: '2003', type: 'year' },
+            { key: 'category',  label: 'Category',    value: 'Comics / Humor' },
+            { key: 'condition', label: 'Condition',   value: 'fine' },
+            { key: 'notes',     label: 'Notes',
+              value: 'Two-volume slipcased set. Both volumes in fine condition. Dust jackets have minor shelf wear.',
+              span: 2 },
+        ]);
+
+        // ── Editable grid ─────────────────────────────────────────────────────
+        const gridEdit = document.getElementById('grid-edit');
+        gridEdit.setFields([
+            { key: 'title',     label: 'Title',      value: '', type: 'text',     span: 2,
+              placeholder: 'Item title…' },
+            { key: 'brand',     label: 'Brand',      value: '', type: 'text',
+              placeholder: 'Brand or maker…' },
+            { key: 'author',    label: 'Author',     value: '', type: 'text',
+              placeholder: 'Author…' },
+            { key: 'year',      label: 'Year',       value: '', type: 'year',
+              placeholder: '1970' },
+            { key: 'category',  label: 'Category',   value: '', type: 'text',
+              placeholder: 'Category…' },
+            { key: 'condition', label: 'Condition',  value: '', type: 'select',
+              options: ['', 'poor', 'fair', 'good', 'vg', 'fine', 'mint'] },
+            { key: 'price',     label: 'Est. Value', value: '', type: 'number',
+              placeholder: '0.00' },
+            { key: 'notes',     label: 'Notes',      value: '', type: 'textarea',
+              span: 2, placeholder: 'Any notes about condition, provenance, or history…' },
+        ]);
+
+        // Column toggle
+        const colBtns = {
+            '1': document.getElementById('btn-1col'),
+            '2': document.getElementById('btn-2col'),
+            '3': document.getElementById('btn-3col'),
+        };
+        Object.entries(colBtns).forEach(([cols, btn]) => {
+            btn.addEventListener('click', () => {
+                Object.values(colBtns).forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                gridEdit.setAttribute('columns', cols);
+            });
+        });
+
+        // field-change log
+        function appendLog(logId, msg) {
+            const log = document.getElementById(logId);
+            const empty = log.querySelector('.log-empty');
+            if (empty) empty.remove();
+            const line = document.createElement('div');
+            line.className = 'log-line';
+            line.textContent = msg;
+            log.appendChild(line);
+            log.scrollTop = log.scrollHeight;
+        }
+
+        gridEdit.addEventListener('field-change', e => {
+            const { key, value, prev } = e.detail;
+            appendLog('log-edit', `field-change → key="${key}" value="${value}" prev="${prev}"`);
+        });
+
+        // ── Sparse grid ───────────────────────────────────────────────────────
+        const gridSparse = document.getElementById('grid-sparse');
+        gridSparse.setFields([
+            { key: 'title',     label: 'Title',      value: 'Untitled Object' },
+            { key: 'brand',     label: 'Brand',      value: null },
+            { key: 'year',      label: 'Year',       value: null, type: 'year' },
+            { key: 'category',  label: 'Category',   value: 'Ceramics' },
+            { key: 'condition', label: 'Condition',  value: null },
+            { key: 'notes',     label: 'Notes',      value: null, span: 2 },
+        ]);
+    </script>
+
+</body>
+</html>

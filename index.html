@@ -7,6 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Silkscreen&family=Quantico:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
   <title>Raveling</title>
+  <script type="module" src="/index.ts"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; }
 
@@ -89,6 +90,7 @@
     .chip.brokers   { background: var(--broker); color: #181818; }
     .chip.assembly  { background: var(--assembly); }
     .chip.artifacts { background: var(--artifact); color: #fff; }
+    .chip.tools     { background: #4D96FF; color: #181818; }
 
     .section h2 {
       font-size: 2rem;
@@ -142,6 +144,7 @@
     .gadgets  .sandbox-link::before { background: var(--gadget); }
     .assembly .sandbox-link::before { background: var(--assembly); }
     .artifacts .sandbox-link::before { background: var(--artifact); }
+    .tools    .sandbox-link::before { background: #4D96FF; }
 
     .link-name { flex: 1; }
 
@@ -151,6 +154,17 @@
       flex-shrink: 0;
     }
     .sandbox-link:hover .link-arrow { color: var(--text); }
+
+    .tool-note {
+      font-family: 'Quantico', monospace, sans-serif;
+      font-size: 0.82rem;
+      color: var(--muted);
+      margin: 0 0 12px 0;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
   </style>
 </head>
 <body>
@@ -171,6 +185,9 @@
       <a class="sandbox-link" href="/core/web-components/custom-elements/gidgets/ravel-alert/sandbox/ravel-alert-sandbox.html">
         <span class="link-name">ravel-alert</span><span class="link-arrow">↗</span>
       </a>
+      <a class="sandbox-link" href="/core/web-components/custom-elements/gidgets/ravel-abp-button/sandbox/ravel-abp-button-sandbox.html">
+        <span class="link-name">ravel-abp-button</span><span class="link-arrow">↗</span>
+      </a>
       <a class="sandbox-link" href="/core/web-components/custom-elements/gidgets/ravel-blockly/sandbox/ravel-blockly-sandbox.html">
         <span class="link-name">ravel-blockly</span><span class="link-arrow">↗</span>
       </a>
@@ -189,6 +206,12 @@
       <a class="sandbox-link" href="/core/web-components/custom-elements/gidgets/ravel-carousel/sandbox/ravel-carousel-sandbox.html">
         <span class="link-name">ravel-carousel</span><span class="link-arrow">↗</span>
       </a>
+      <a class="sandbox-link" href="/core/web-components/custom-elements/gidgets/ravel-checklist/sandbox/ravel-checklist-sandbox.html">
+        <span class="link-name">ravel-checklist</span><span class="link-arrow">↗</span>
+      </a>
+      <a class="sandbox-link" href="/core/web-components/custom-elements/gidgets/ravel-confidence-pill/sandbox/ravel-confidence-pill-sandbox.html">
+        <span class="link-name">ravel-confidence-pill</span><span class="link-arrow">↗</span>
+      </a>
       <a class="sandbox-link" href="/core/web-components/custom-elements/gidgets/ravel-dock/sandbox/ravel-dock-sandbox.html">
         <span class="link-name">ravel-dock</span><span class="link-arrow">↗</span>
       </a>
@@ -203,6 +226,9 @@
       </a>
       <a class="sandbox-link" href="/core/web-components/custom-elements/gidgets/ravel-help/sandbox/ravel-help-sandbox.html">
         <span class="link-name">ravel-help</span><span class="link-arrow">↗</span>
+      </a>
+      <a class="sandbox-link" href="/core/web-components/custom-elements/gidgets/ravel-keyboard/sandbox/ravel-keyboard-sandbox.html">
+        <span class="link-name">ravel-keyboard</span><span class="link-arrow">↗</span>
       </a>
       <a class="sandbox-link" href="/core/web-components/custom-elements/gidgets/ravel-menu/sandbox/ravel-menu-sandbox.html">
         <span class="link-name">ravel-menu</span><span class="link-arrow">↗</span>
@@ -222,6 +248,9 @@
       <a class="sandbox-link" href="/core/web-components/custom-elements/gidgets/ravel-playlist/sandbox/ravel-playlist-sandbox.html">
         <span class="link-name">ravel-playlist</span><span class="link-arrow">↗</span>
       </a>
+      <a class="sandbox-link" href="/core/web-components/custom-elements/gidgets/ravel-price-range/sandbox/ravel-price-range-sandbox.html">
+        <span class="link-name">ravel-price-range</span><span class="link-arrow">↗</span>
+      </a>
       <a class="sandbox-link" href="/core/web-components/custom-elements/gidgets/ravel-roll/sandbox/ravel-roll-sandbox.html">
         <span class="link-name">ravel-roll</span><span class="link-arrow">↗</span>
       </a>
@@ -237,9 +266,13 @@
       <a class="sandbox-link" href="/core/web-components/custom-elements/gidgets/ravel-sound/sandbox/ravel-sound-sandbox.html">
         <span class="link-name">ravel-sound</span><span class="link-arrow">↗</span>
       </a>
+      <a class="sandbox-link" href="/core/web-components/custom-elements/gidgets/ravel-tag-editor/sandbox/ravel-tag-editor-sandbox.html">
+        <span class="link-name">ravel-tag-editor</span><span class="link-arrow">↗</span>
+      </a>
       <a class="sandbox-link" href="/core/web-components/custom-elements/gidgets/ravel-visualizer/sandbox/ravel-visualizer-sandbox.html">
         <span class="link-name">ravel-visualizer</span><span class="link-arrow">↗</span>
       </a>
+
     </div>
   </div>
 
@@ -260,12 +293,20 @@
       <a class="sandbox-link" href="/core/web-components/custom-elements/gadgets/ravel-hand-tracker/sandbox/ravel-hand-tracker-sandbox.html">
         <span class="link-name">ravel-hand-tracker</span><span class="link-arrow">↗</span>
       </a>
+      <a class="sandbox-link" href="/core/web-components/custom-elements/gadgets/ravel-midi-gadget/sandbox/ravel-midi-gadget-sandbox.html">
+        <span class="link-name">ravel-midi-gadget</span><span class="link-arrow">↗</span>
+      </a>
+      <a class="sandbox-link" href="/core/web-components/custom-elements/gadgets/ravel-midi-gesture/sandbox/ravel-midi-gesture-sandbox.html">
+        <span class="link-name">ravel-midi-gesture</span><span class="link-arrow">↗</span>
+      </a>
       <a class="sandbox-link" href="/core/web-components/custom-elements/gadgets/ravel-pink-trombone/sandbox/ravel-pink-trombone-sandbox.html">
         <span class="link-name">ravel-pink-trombone</span><span class="link-arrow">↗</span>
       </a>
       <a class="sandbox-link" href="/core/web-components/custom-elements/gadgets/ravel-qr-reader/sandbox/ravel-qr-reader-sandbox.html">
         <span class="link-name">ravel-qr-reader</span><span class="link-arrow">↗</span>
-      </a>
+      </a> 
+
+      
     </div>
   </div>
 
@@ -277,8 +318,23 @@
       <h2>Assemblies</h2>
     </div>
     <div class="link-grid">
-      <a class="sandbox-link" href="/core/web-components/custom-elements/assemblies/ravel-signal-collector/sandbox/ravel-signal-collector-sandbox.html">
-        <span class="link-name">ravel-signal-collector</span><span class="link-arrow">↗</span>
+      <a class="sandbox-link" href="/core/web-components/custom-elements/assemblies/ravel-field-recorder/sandbox/ravel-field-recorder-sandbox.html">
+        <span class="link-name">ravel-field-recorder</span><span class="link-arrow">↗</span>
+      </a>
+      <a class="sandbox-link" href="/core/web-components/custom-elements/assemblies/ravel-stack-browser/sandbox/ravel-stack-browser-sandbox.html">
+        <span class="link-name">ravel-stack-browser</span><span class="link-arrow">↗</span>
+      </a>
+      <a class="sandbox-link" href="/core/web-components/custom-elements/assemblies/ravel-field-grid/sandbox/ravel-field-grid-sandbox.html">
+        <span class="link-name">ravel-field-grid</span><span class="link-arrow">↗</span>
+      </a>
+      <a class="sandbox-link" href="/core/web-components/custom-elements/assemblies/ravel-photo-strip/sandbox/ravel-photo-strip-sandbox.html">
+        <span class="link-name">ravel-photo-strip</span><span class="link-arrow">↗</span>
+      </a>
+      <a class="sandbox-link" href="/core/web-components/custom-elements/assemblies/ravel-job-monitor/sandbox/ravel-job-monitor-sandbox.html">
+        <span class="link-name">ravel-job-monitor</span><span class="link-arrow">↗</span>
+      </a>
+      <a class="sandbox-link" href="/core/web-components/custom-elements/assemblies/ravel-research-log/sandbox/ravel-research-log-sandbox.html">
+        <span class="link-name">ravel-research-log</span><span class="link-arrow">↗</span>
       </a>
     </div>
   </div>
@@ -291,10 +347,33 @@
       <h2>Brokers</h2>
     </div>
     <div class="link-grid">
-      
+      <a class="sandbox-link" href="/core/web-components/custom-elements/brokers/ravel-midi-broker/sandbox/ravel-midi-broker-sandbox.html">
+        <span class="link-name">ravel-midi-broker</span><span class="link-arrow">↗</span>
+      </a>
+      <a class="sandbox-link" href="/core/web-components/custom-elements/brokers/ravel-signal-collector/sandbox/ravel-signal-collector-sandbox.html">
+        <span class="link-name">ravel-signal-collector</span><span class="link-arrow">↗</span>
+      </a>
     </div>
   </div>
 
+
+  <!-- ─── TOOLS ──────────────────────────────────────────────── -->
+  <div class="section tools">
+    <hr class="section-rule">
+    <div class="section-header">
+      <span class="chip tools">Tools</span>
+      <h2>Tools</h2>
+    </div>
+    <div class="link-grid">
+      <a class="sandbox-link" href="/tools/hoarders-little-helper/app/">
+        <span class="link-name">hoarders-little-helper — app</span><span class="link-arrow">↗</span> 
+        <ravel-help width="340px">
+        Native features (database, file system, AI) need the Tauri backend running. To launch the full app: cd tools/hoarders-little-helper/app
+npm run tauri dev
+      </ravel-help>
+      </a>
+    </div>
+  </div>
 
   <!-- ─── ARTIFACTS ────────────────────────────────────────── -->
   <div class="section artifacts">
@@ -306,6 +385,9 @@
     <div class="link-grid">
       <a class="sandbox-link" href="/core/web-components/custom-elements/artifacts/ravel-scrapbook/sandbox/ravel-scrapbook-sandbox.html">
         <span class="link-name">ravel-scrapbook</span><span class="link-arrow">↗</span>
+      </a>
+      <a class="sandbox-link" href="/core/web-components/custom-elements/artifacts/ravel-notebook/sandbox/ravel-notebook-sandbox.html">
+        <span class="link-name">ravel-notebook</span><span class="link-arrow">↗</span>
       </a>
     </div>
   </div>

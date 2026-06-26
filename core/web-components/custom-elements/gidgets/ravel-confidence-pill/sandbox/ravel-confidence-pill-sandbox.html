@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ravel-confidence-pill sandbox</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Silkscreen&family=Quantico:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+  <script type="module" src="/index.ts"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+
+    :root {
+      --ground:        #303030;
+      --well:          #1a1a1a;
+      --muted:         #666666;
+      --rule:          rgba(102,102,102,.40);
+      --fluoro-orange: #FE6810;
+      --fluoro-lime:   #A7FF00;
+      --fluoro-cyan:   #00F0FF;
+      --fluoro-violet: #B300FF;
+      --fluoro-pink:   #FF4FB3;
+    }
+
+    body {
+      margin: 0;
+      padding: 40px 44px 80px;
+      background: var(--ground);
+      color: #E6E2D3;
+      font-family: 'Silkscreen', monospace;
+      font-size: 1rem;
+      line-height: 1.3;
+      border: 10px solid #ff0000;
+      box-shadow: 0px 0px 0px 10px inset #ffcc00;
+      min-height: 100vh;
+    }
+
+    h1 {
+      font-size: 2rem;
+      color: #ffffff;
+      margin: 0 0 8px 0;
+      border-bottom: 10px solid var(--fluoro-orange);
+      display: inline-block;
+      padding-bottom: 2px;
+    }
+
+    .subtitle {
+      font-family: 'Quantico', monospace;
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin: 0 0 32px 0;
+    }
+
+    /* ── Layout ───────────────────────────────────────────── */
+
+    .element-col  { display: flex; flex-direction: column; gap: 32px; }
+    .element-cell { display: flex; flex-direction: column; gap: 8px; }
+    .element-label {
+      font-family: 'Quantico', monospace;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .stage {
+      position: relative;
+      background: var(--well);
+      border: 2px dotted var(--rule);
+      border-radius: 4px;
+      overflow: hidden;
+      padding: 24px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+    }
+
+    /* ── Tier key ─────────────────────────────────────────── */
+
+    .tier-key {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .tier-card {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 4px;
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .tier-range {
+      font-family: 'Quantico', monospace;
+      font-size: 0.68rem;
+      color: var(--muted);
+    }
+
+    /* ── Context examples ─────────────────────────────────── */
+
+    .context-row {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .context-line {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: 'Quantico', monospace;
+      font-size: 0.82rem;
+      color: rgba(255,255,255,0.65);
+    }
+
+    .context-title {
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .context-source {
+      font-size: 0.68rem;
+      color: var(--muted);
+      flex-shrink: 0;
+    }
+
+    /* ── Slider ───────────────────────────────────────────── */
+
+    .slider-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .pill-display {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .slider-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    input[type="range"] {
+      accent-color: var(--fluoro-orange);
+      width: 280px;
+    }
+
+    .slider-val {
+      font-family: 'Quantico', monospace;
+      font-size: 0.82rem;
+      color: rgba(255,255,255,0.55);
+      width: 36px;
+    }
+
+    label {
+      font-family: 'Quantico', monospace;
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+
+  <h1>ravel-confidence-pill</h1>
+  <p class="subtitle">Colored pill showing a confidence score 0–1 with auto label and fluoro tier coloring</p>
+
+  <div class="element-col">
+
+    <!-- ── All four tiers ───────────────────────────────────────── -->
+    <div class="element-cell">
+      <div class="element-label">all four tiers — value with show-value</div>
+      <div class="stage">
+        <ravel-confidence-pill value="0.92" show-value></ravel-confidence-pill>
+        <ravel-confidence-pill value="0.72" show-value></ravel-confidence-pill>
+        <ravel-confidence-pill value="0.52" show-value></ravel-confidence-pill>
+        <ravel-confidence-pill value="0.22" show-value></ravel-confidence-pill>
+      </div>
+      <div class="tier-key">
+        <div class="tier-card">
+          <ravel-confidence-pill value="0.90"></ravel-confidence-pill>
+          <div class="tier-range">≥ 0.85 · Lime</div>
+        </div>
+        <div class="tier-card">
+          <ravel-confidence-pill value="0.70"></ravel-confidence-pill>
+          <div class="tier-range">≥ 0.65 · Orange</div>
+        </div>
+        <div class="tier-card">
+          <ravel-confidence-pill value="0.50"></ravel-confidence-pill>
+          <div class="tier-range">≥ 0.40 · Violet</div>
+        </div>
+        <div class="tier-card">
+          <ravel-confidence-pill value="0.20"></ravel-confidence-pill>
+          <div class="tier-range">&lt; 0.40 · Pink</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Label-only mode ──────────────────────────────────────── -->
+    <div class="element-cell">
+      <div class="element-label">label only — no show-value (default)</div>
+      <div class="stage">
+        <ravel-confidence-pill value="0.90"></ravel-confidence-pill>
+        <ravel-confidence-pill value="0.70"></ravel-confidence-pill>
+        <ravel-confidence-pill value="0.50"></ravel-confidence-pill>
+        <ravel-confidence-pill value="0.10"></ravel-confidence-pill>
+      </div>
+    </div>
+
+    <!-- ── Custom labels in context ─────────────────────────────── -->
+    <div class="element-cell">
+      <div class="element-label">custom label attribute — in a catalog result context</div>
+      <div class="stage" style="flex-direction:column; align-items:stretch;">
+        <div class="context-row">
+          <div class="context-line">
+            <ravel-confidence-pill value="0.97" label="Exact match" show-value></ravel-confidence-pill>
+            <span class="context-title">Foxfire Book 1 — Wigginton, Eliot (ed.)</span>
+            <span class="context-source">Whole Earth</span>
+          </div>
+          <div class="context-line">
+            <ravel-confidence-pill value="0.74" label="Title match" show-value></ravel-confidence-pill>
+            <span class="context-title">The Foxfire Book — Doubleday, 1972</span>
+            <span class="context-source">Whole Earth</span>
+          </div>
+          <div class="context-line">
+            <ravel-confidence-pill value="0.45" label="Author only" show-value></ravel-confidence-pill>
+            <span class="context-title">Possum Living — Dolly Freed</span>
+            <span class="context-source">Foxfire</span>
+          </div>
+          <div class="context-line">
+            <ravel-confidence-pill value="0.18" label="Keyword" show-value></ravel-confidence-pill>
+            <span class="context-title">Appalachian Folk Remedies</span>
+            <span class="context-source">Foxfire</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Live slider ───────────────────────────────────────────── -->
+    <div class="element-cell">
+      <div class="element-label">live slider — drag to see tier transitions</div>
+      <div class="stage" style="flex-direction:column; align-items:stretch;">
+        <div class="slider-wrap">
+          <div class="pill-display">
+            <ravel-confidence-pill id="pill-a" value="0.72" show-value></ravel-confidence-pill>
+            <ravel-confidence-pill id="pill-b" value="0.72"></ravel-confidence-pill>
+          </div>
+          <div class="slider-row">
+            <label for="slider">Value</label>
+            <input type="range" id="slider" min="0" max="100" value="72" step="1">
+            <span class="slider-val" id="slider-display">0.72</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script type="module">
+    const pillA   = document.getElementById('pill-a');
+    const pillB   = document.getElementById('pill-b');
+    const slider  = document.getElementById('slider');
+    const display = document.getElementById('slider-display');
+
+    slider.addEventListener('input', () => {
+      const v = (slider.value / 100).toFixed(2);
+      pillA.setAttribute('value', v);
+      pillB.setAttribute('value', v);
+      display.textContent = v;
+    });
+  </script>
+
+</body>
+</html>

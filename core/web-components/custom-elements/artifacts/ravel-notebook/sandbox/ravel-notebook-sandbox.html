@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+  <title>ravel-notebook sandbox</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Silkscreen&family=Quantico:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+  <script type="module" src="../ravel-notebook.ts"></script>
+  <script type="module" src="../../../brokers/ravel-midi-broker/ravel-midi-broker.ts"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 40px 44px;
+      background: #0e0e12;
+      font-family: 'Silkscreen', monospace;
+      font-size: 1rem;
+      line-height: 1.4;
+      color: #E6E2D3;
+      border: 10px solid #ff0000;
+      box-shadow: 0px 0px 0px 10px inset #ffcc00;
+      min-height: 100vh;
+    }
+
+    h1 {
+      font-size: 2.4rem;
+      color: #ffffff;
+      margin: 0 0 8px 0;
+      border-bottom: 10px solid #00F0FF;
+      display: inline-block;
+      padding-bottom: 2px;
+    }
+    .subtitle {
+      font-family: 'Quantico', monospace;
+      font-size: 0.9rem;
+      color: #666666;
+      margin: 0 0 40px 0;
+    }
+
+    .element-col  { display: flex; flex-direction: column; gap: 32px; }
+    .element-cell { display: flex; flex-direction: column; gap: 8px; }
+    .element-label {
+      font-family: 'Quantico', monospace;
+      font-size: 0.85rem;
+      color: #666666;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    /* ── Notebook frame ───────────────────────────────────────── */
+    .nb-frame {
+      border: 2px dotted rgba(102,102,102,.28);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    /* ── Text cell typography (light DOM, inside slots) ─────── */
+    ravel-notebook ravel-cell[type="text"] h2 {
+      font-family: 'Silkscreen', monospace;
+      font-size: 1rem;
+      color: #ffffff;
+      margin: 0 0 12px 0;
+      font-weight: normal;
+      line-height: 1.4;
+    }
+    ravel-notebook ravel-cell[type="text"] h3 {
+      font-family: 'Silkscreen', monospace;
+      font-size: 0.7rem;
+      color: rgba(255,255,255,0.55);
+      margin: 18px 0 8px 0;
+      font-weight: normal;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+    ravel-notebook ravel-cell[type="text"] p {
+      font-family: 'Quantico', monospace;
+      font-size: 0.88rem;
+      color: rgba(255,255,255,0.68);
+      margin: 0 0 10px 0;
+      line-height: 1.78;
+    }
+    ravel-notebook ravel-cell[type="text"] p:last-child { margin-bottom: 0; }
+    ravel-notebook ravel-cell[type="text"] code {
+      font-family: 'Quantico', monospace;
+      font-size: 0.82rem;
+      background: rgba(255,255,255,0.07);
+      border-radius: 3px;
+      padding: 1px 5px;
+      color: rgba(0,240,255,0.85);
+    }
+    ravel-notebook ravel-cell[type="text"] ul {
+      font-family: 'Quantico', monospace;
+      font-size: 0.88rem;
+      color: rgba(255,255,255,0.62);
+      margin: 6px 0 10px 0;
+      padding-left: 20px;
+      line-height: 1.85;
+    }
+    ravel-notebook ravel-cell[type="text"] li { margin-bottom: 2px; }
+    ravel-notebook ravel-cell[type="text"] strong { color: rgba(255,255,255,0.9); font-weight: 700; }
+    ravel-notebook ravel-cell[type="text"] em    { color: rgba(0,240,255,0.7); font-style: italic; }
+    ravel-notebook ravel-cell[type="text"] a     { color: #FF37A8; text-underline-offset: 3px; }
+
+    /* ── Divider between sections ─────────────────────────────── */
+    ravel-notebook ravel-cell[type="text"] hr {
+      border: none;
+      border-top: 1px solid rgba(255,255,255,0.07);
+      margin: 20px 0;
+    }
+
+    /* ── Reference ────────────────────────────────────────────── */
+    .stage {
+      background: #1a1a1a;
+      border: 2px dotted rgba(102,102,102,.28);
+      border-radius: 4px;
+      padding: 20px 22px;
+    }
+    .note {
+      font-family: 'Quantico', monospace;
+      font-size: 0.75rem;
+      color: #666666;
+      border-left: 2px solid rgba(102,102,102,.40);
+      padding-left: 10px;
+      line-height: 1.85;
+    }
+    .note code {
+      background: rgba(255,255,255,0.07);
+      border-radius: 3px;
+      padding: 1px 5px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>ravel-notebook</h1>
+  <p class="subtitle">Interactive document reader · text · code · live · output cells</p>
+
+  <div class="element-col">
+
+    <!-- ── Notebook ────────────────────────────────────────────── -->
+    <div class="element-cell">
+      <div class="element-label">ravel-notebook — Ravel Audio Architecture</div>
+      <div class="nb-frame">
+
+        <ravel-notebook title="Ravel Audio Architecture">
+
+          <!-- ── 1: text ───────────────────────────────────────── -->
+          <ravel-cell type="text">
+            <h2>Introduction</h2>
+            <p>
+              Raveling is a Web Component design system for music apps, games, and interactive
+              tools. It communicates entirely through a lightweight pub/sub bus — no framework,
+              no global singletons. Components look like instruments, not form fields.
+            </p>
+            <p>
+              This notebook walks through the three-layer architecture:
+              <strong>gadgets</strong> (device adapters),
+              <strong>brokers</strong> (message routers), and
+              <strong>gidgets</strong> (interactive UI components).
+            </p>
+          </ravel-cell>
+
+          <!-- ── 2: text ───────────────────────────────────────── -->
+          <ravel-cell type="text">
+            <h2>The Messaging System</h2>
+            <p>
+              Every Ravel component inherits from <code>RavelElement</code>, which exposes two
+              messaging primitives:
+            </p>
+            <ul>
+              <li><code>sendMessage(channel, cmd, content)</code> — targeted pub/sub via <code>RavelMessenger</code></li>
+              <li><code>broadcastMessage(channel, cmd, content)</code> — fires a <code>CustomEvent</code> on <code>window</code></li>
+            </ul>
+            <p>
+              Message shape is always <code>{ cmd: string, content: unknown, version: number }</code>.
+              Brokers are <em>invisible DOM elements</em> that translate between the external
+              world (MIDI, network, sensors) and Ravel's message format.
+            </p>
+          </ravel-cell>
+
+          <!-- ── 3: code ───────────────────────────────────────── -->
+          <ravel-cell type="code" lang="javascript">// Subscribing to MIDI note events from ravel-midi-broker
+window.addEventListener('midi', (e) => {
+  const { cmd, content } = e.detail;
+
+  if (cmd === 'note-on') {
+    const { note, velocity, channel } = content;
+    const freq = 440 * Math.pow(2, (note - 69) / 12);
+    osc.frequency.setValueAtTime(freq, ctx.currentTime);
+    gain.gain.setValueAtTime(velocity / 127, ctx.currentTime);
+  }
+
+  if (cmd === 'note-off') {
+    gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.08);
+  }
+
+  if (cmd === 'cc' && content.controller === 1) {
+    // mod wheel → vibrato depth
+    lfo.gain.setValueAtTime(content.value / 127 * 50, ctx.currentTime);
+  }
+});</ravel-cell>
+
+          <!-- ── 4: text ───────────────────────────────────────── -->
+          <ravel-cell type="text">
+            <h2>Brokers</h2>
+            <p>
+              A broker is placed once in the page HTML. <code>ravel-midi-broker</code> bridges
+              Web MIDI (via <code>ravel-midi-gadget</code>) into the Ravel bus. It parses raw
+              MIDI bytes and broadcasts structured events. It also encodes outbound structured
+              messages back to raw bytes for transmission.
+            </p>
+            <p>
+              The broker below is live. Its <strong>RX</strong> LED flashes when raw MIDI
+              arrives; <strong>TX</strong> flashes when parsed events are broadcast.
+              During MIDI clock both LEDs stay continuously lit.
+            </p>
+          </ravel-cell>
+
+          <!-- ── 5: code ───────────────────────────────────────── -->
+          <ravel-cell type="code" lang="html">&lt;!-- Place the broker in your page HTML --&gt;
+&lt;ravel-midi-broker
+  label="ravel-midi-broker"
+  channel="midi"&gt;
+&lt;/ravel-midi-broker&gt;
+
+&lt;!-- Send raw MIDI to it from ravel-midi-gadget --&gt;
+&lt;!-- RavelMessenger.sendMessage('ravel-midi-broker', 'raw', {
+       data: [0x90, 60, 80],
+       deviceName: 'My Keyboard'
+     }); --&gt;</ravel-cell>
+
+          <!-- ── 6: live ───────────────────────────────────────── -->
+          <ravel-cell type="live" label="ravel-midi-broker — live instance">
+            <ravel-midi-broker
+              id="nb-broker"
+              label="ravel-midi-broker"
+              channel="midi">
+            </ravel-midi-broker>
+          </ravel-cell>
+
+          <!-- ── 7: text ───────────────────────────────────────── -->
+          <ravel-cell type="text">
+            <h2>Message Schema</h2>
+            <p>
+              Every message on the Ravel bus follows the same envelope. The broker
+              emits structured events on the <code>channel</code> attribute value
+              (default <code>"midi"</code>). The output below shows a typical
+              <code>note-on</code> event payload.
+            </p>
+          </ravel-cell>
+
+          <!-- ── 8: output ─────────────────────────────────────── -->
+          <ravel-cell type="output" label="window.addEventListener('midi', e => console.log(e.detail))">
+{
+  "cmd": "note-on",
+  "content": {
+    "channel": 0,
+    "note": 60,
+    "velocity": 80,
+    "deviceName": "Arturia KeyStep 37"
+  },
+  "version": 1
+}</ravel-cell>
+
+          <!-- ── 9: text ───────────────────────────────────────── -->
+          <ravel-cell type="text">
+            <h2>What's Next</h2>
+            <p>
+              Connect a <code>ravel-midi-gadget</code> to a real MIDI device and the
+              broker automatically parses incoming bytes into these structured events.
+              Wire the <code>"midi"</code> channel to a <code>ravel-fluxly-sound-engine</code>
+              or your own <code>AudioWorklet</code> for a fully live synthesis pipeline.
+            </p>
+            <ul>
+              <li>Add <code>device="Arturia KeyStep 37"</code> to filter by device name</li>
+              <li>Change <code>channel</code> to namespace multiple brokers on the same page</li>
+              <li>Use <code>observable="events"</code> on any component to trace all messages</li>
+            </ul>
+          </ravel-cell>
+
+        </ravel-notebook>
+
+      </div>
+    </div>
+
+    <!-- ── Reference ──────────────────────────────────────────── -->
+    <div class="element-cell">
+      <div class="element-label">attributes</div>
+      <div class="stage">
+        <p class="note">
+          <strong>&lt;ravel-notebook&gt;</strong><br>
+          <code>title</code> — heading shown in the notebook header.<br>
+          <br>
+          <strong>&lt;ravel-cell&gt;</strong><br>
+          <code>type</code> — <code>text</code> | <code>code</code> | <code>live</code> | <code>output</code>. Default: <code>text</code>.<br>
+          <code>lang</code> — language badge in the gutter (e.g. <code>javascript</code>, <code>html</code>). Only meaningful on <code>code</code> cells.<br>
+          <code>label</code> — small caption shown above the cell body.<br>
+          <br>
+          Cell indices are assigned automatically by the notebook on <code>slotchange</code>. Add or remove
+          <code>&lt;ravel-cell&gt;</code> elements dynamically and the numbering updates.<br>
+          <br>
+          <code>text</code> cells accept arbitrary HTML — headings, paragraphs, lists, inline code.<br>
+          <code>code</code> / <code>output</code> cells treat their text content as preformatted (whitespace preserved).<br>
+          <code>live</code> cells are a flexbox stage — slot any Ravel component directly inside.
+        </p>
+      </div>
+    </div>
+
+  </div>
+
+</body>
+</html>

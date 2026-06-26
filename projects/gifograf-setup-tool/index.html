@@ -133,6 +133,7 @@
         }
         .btn-blue  { background: rgba(24, 72, 218, 1.0);  color: #fff; }
         .btn-green { background: rgba(22, 160, 70, 1.0);  color: #fff; }
+        .btn-pink { background: rgba(255, 10, 0, 1.0);  color: #fff; }
 
         /* ── Connect card ────────────────────────────────────── */
          #gifo-img img {
@@ -262,7 +263,34 @@
             <button id="btn-register" class="btn btn-green">Register Device</button>
         </div>
     </ravel-card>
+    
+    <!-- ══════════════════════════════════════════════════════
+         Frame 3 — Configure Settings and Lights
+         ══════════════════════════════════════════════════════ -->
+    <ravel-card  id="setup-panel-card" color="#0e0e20">
+        <div class="setup-panel" style="align-items:center">
+            <div class="panel-title">Settings and Lights</div>
+            <div class="mbox" style="width:100%">
+                <!--
+                    Camera Settings
+                    Inner Lights
+                    Outer Lights
+                -->
+            </div>
+            <button id="btn-configure-machine" class="btn btn-green">Update Machine</button>
+        </div>
+    </ravel-card>
 
+    <!-- ══════════════════════════════════════════════════════
+         Frame 4 — Manage Projects
+         ══════════════════════════════════════════════════════ -->
+    <ravel-card id="manage-projects-card" color="#0e0e20">
+        <div class="setup-panel" style="align-items:center">
+            <div class="panel-title">Manage Projects</div>
+            <button id="btn-delete-projects" class="btn btn-pink">Delete All Projects (Permanent)</button>
+        </div>
+    </ravel-card>
+    
 </ravel-sequence>
 
 <ravel-alert id="ra"></ravel-alert>

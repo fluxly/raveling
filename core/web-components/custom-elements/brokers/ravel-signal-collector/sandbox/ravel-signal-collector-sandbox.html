@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ravel-signal-collector — sandbox</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Silkscreen&family=Quantico:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Silkscreen', monospace;
+            background: #181818;
+            color: #E6E2D3;
+            padding: 32px;
+            border: 10px solid #ff0000;
+            box-shadow: 0 0 0 10px inset #ffcc00;
+            min-height: 100vh;
+        }
+
+        h1 {
+            font-size: 3rem;
+            color: #FFFFFF;
+            border-bottom: 10px solid rgba(102,102,102,0.30);
+            padding-bottom: 16px;
+            margin-bottom: 32px;
+        }
+
+        h2 { font-size: 1.25rem; color: #FFFFFF; margin-bottom: 14px; }
+
+        .section {
+            background: #303030;
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .element-label { font-size: 1rem; color: #666666; margin-bottom: 10px; }
+
+        .stage {
+            background: #222222;
+            border: 2px dotted rgba(102,102,102,0.40);
+            border-radius: 4px;
+            padding: 24px;
+            display: flex;
+            gap: 24px;
+            align-items: flex-start;
+            flex-wrap: wrap;
+        }
+
+        .info {
+            font-family: 'Quantico', monospace;
+            font-size: 0.88rem;
+            color: rgba(255,255,255,0.40);
+            line-height: 1.6;
+            margin-bottom: 18px;
+        }
+
+        /* ── Signal sender panel ──────────────────────── */
+
+        .sender-panel {
+            flex: 1;
+            min-width: 220px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .sender-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .sig-icon {
+            font-size: 18px;
+            width: 28px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .sig-slider {
+            flex: 1;
+            accent-color: #00CC00;
+        }
+
+        .sig-val {
+            font-family: 'Quantico', monospace;
+            font-size: 0.8rem;
+            color: #00CC00;
+            min-width: 32px;
+            text-align: right;
+        }
+
+        /* ── Dynamic add ─────────────────────────────── */
+
+        .add-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            margin-top: 6px;
+            padding-top: 10px;
+            border-top: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .add-input {
+            background: #181818;
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 4px;
+            color: #E6E2D3;
+            font-family: 'Silkscreen', monospace;
+            font-size: 0.8rem;
+            padding: 5px 8px;
+            width: 48px;
+            text-align: center;
+        }
+
+        .add-input:focus { outline: 2px solid rgba(0,204,0,0.5); outline-offset: 1px; }
+
+        .btn {
+            appearance: none;
+            background: rgba(0,204,0,0.10);
+            border: 1px solid rgba(0,204,0,0.30);
+            border-radius: 4px;
+            color: rgba(0,204,0,0.80);
+            font-family: 'Silkscreen', monospace;
+            font-size: 0.7rem;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+
+        .btn:hover { background: rgba(0,204,0,0.20); color: #00CC00; }
+
+        /* ── Broadcast log ───────────────────────────── */
+
+        .log {
+            background: #0a0a0a;
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 6px;
+            padding: 10px 12px;
+            height: 180px;
+            overflow-y: auto;
+            font-family: 'Quantico', monospace;
+            font-size: 0.83rem;
+            color: rgba(255,255,255,0.40);
+            display: flex;
+            flex-direction: column-reverse;
+            gap: 2px;
+        }
+
+        .log-entry { line-height: 1.5; color: #00CC00; }
+        .log-sys   { color: rgba(255,255,255,0.20); font-style: italic; }
+
+        .btn-clear {
+            appearance: none;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 4px;
+            color: rgba(255,255,255,0.45);
+            font-family: 'Silkscreen', monospace;
+            font-size: 0.7rem;
+            padding: 4px 10px;
+            cursor: pointer;
+            float: right;
+            margin-top: 6px;
+        }
+
+        .btn-clear:hover { background: rgba(255,255,255,0.12); color: #E6E2D3; }
+
+        /* ── Picklist ────────────────────────────────── */
+
+        .picklist-wrap select {
+            background: #181818;
+            border: 1px solid rgba(0,204,0,0.30);
+            border-radius: 4px;
+            color: #E6E2D3;
+            font-family: 'Silkscreen', monospace;
+            font-size: 0.8rem;
+            padding: 6px 10px;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <h1>ravel-signal-collector</h1>
+
+    <!-- Element display -->
+    <div class="section">
+        <div class="element-label">ravel-signal-collector</div>
+        <div class="stage">
+            <ravel-signal-collector id="collector">
+                <ravel-signal icon="🍎" value="200"></ravel-signal>
+                <ravel-signal icon="🍏" value="42"></ravel-signal>
+                <ravel-signal icon="🌡️" value="0"></ravel-signal>
+                <ravel-signal icon="💧" value="0"></ravel-signal>
+                <ravel-signal icon="⚡" value="0"></ravel-signal>
+            </ravel-signal-collector>
+
+            <!-- Senders -->
+            <div class="sender-panel" id="senders">
+                <div class="sender-row">
+                    <span class="sig-icon">🍎</span>
+                    <input type="range" class="sig-slider" min="0" max="255" value="200" data-signal="🍎" aria-label="🍎 signal">
+                    <span class="sig-val">200</span>
+                </div>
+                <div class="sender-row">
+                    <span class="sig-icon">🍏</span>
+                    <input type="range" class="sig-slider" min="0" max="127" value="42" data-signal="🍏" aria-label="🍏 signal">
+                    <span class="sig-val">42</span>
+                </div>
+                <div class="sender-row">
+                    <span class="sig-icon">🌡️</span>
+                    <input type="range" class="sig-slider" min="-40" max="120" value="0" data-signal="🌡️" aria-label="🌡️ signal">
+                    <span class="sig-val">0</span>
+                </div>
+                <div class="sender-row">
+                    <span class="sig-icon">💧</span>
+                    <input type="range" class="sig-slider" min="0" max="100" value="0" data-signal="💧" aria-label="💧 signal">
+                    <span class="sig-val">0</span>
+                </div>
+                <div class="sender-row">
+                    <span class="sig-icon">⚡</span>
+                    <input type="range" class="sig-slider" min="0" max="1000" value="0" data-signal="⚡" aria-label="⚡ signal">
+                    <span class="sig-val">0</span>
+                </div>
+
+                <div class="add-row">
+                    <input type="text" class="add-input" id="add-icon" maxlength="4" placeholder="🆕" aria-label="New signal icon">
+                    <input type="text" class="add-input" id="add-val" placeholder="val" style="width:56px" aria-label="Initial value">
+                    <button class="btn" id="btn-add" type="button">ADD SIGNAL</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Broadcast log -->
+    <div class="section">
+        <h2>Broadcast Log <span style="font-size:0.7rem;color:#666;font-weight:400">— window channel: signal-update</span></h2>
+        <div class="log" id="log" aria-live="polite">
+            <span class="log-sys">Move a slider to see updates…</span>
+        </div>
+        <button class="btn-clear" id="btn-clear" type="button">CLEAR</button>
+        <div style="clear:both"></div>
+    </div>
+
+    <!-- getPicklist() output -->
+    <div class="section">
+        <h2>getPicklist()</h2>
+        <p class="info">Rendered from <code style="font-family:Quantico,monospace;background:rgba(255,255,255,0.08);padding:1px 5px;border-radius:3px">collector.getPicklist()</code> — updates when new signals are added.</p>
+        <div class="picklist-wrap" id="picklist"></div>
+    </div>
+
+    <script type="module">
+        import '../ravel-signal-collector.ts';
+        import { RavelMessenger } from '../../../../common/RavelMessenger.ts';
+
+        const collector = document.getElementById('collector');
+        const log       = document.getElementById('log');
+        const picklist  = document.getElementById('picklist');
+        let logEmpty    = true;
+
+        function refreshPicklist() {
+            picklist.innerHTML = collector.getPicklist();
+        }
+
+        function addLog(text) {
+            if (logEmpty) { log.innerHTML = ''; logEmpty = false; }
+            const e = document.createElement('div');
+            e.className = 'log-entry';
+            const d = new Date();
+            const ts = `${String(d.getMinutes()).padStart(2,'0')}:${String(d.getSeconds()).padStart(2,'0')}.${String(d.getMilliseconds()).padStart(3,'0')}`;
+            e.textContent = `[${ts}] ${text}`;
+            log.prepend(e);
+            while (log.children.length > 100) log.removeChild(log.lastChild);
+        }
+
+        // ── Listen for broadcasts from the collector ──────────────────────────
+
+        window.addEventListener('signal-update', e => {
+            const { cmd, content } = e.detail ?? {};
+            addLog(`${cmd}  →  ${JSON.stringify(content)}`);
+        });
+
+        // ── Sliders send messages on the 'signal' channel ─────────────────────
+
+        document.querySelectorAll('.sig-slider').forEach(slider => {
+            slider.addEventListener('input', () => {
+                const name = slider.dataset.signal;
+                const val  = Number(slider.value);
+                slider.nextElementSibling.textContent = val;
+                RavelMessenger.sendMessage('signal', name, val);
+            });
+        });
+
+        // ── Add a new signal dynamically ──────────────────────────────────────
+
+        document.getElementById('btn-add').addEventListener('click', () => {
+            const iconInput = document.getElementById('add-icon');
+            const valInput  = document.getElementById('add-val');
+            const name = iconInput.value.trim();
+            if (!name) return;
+            const raw = valInput.value.trim();
+            const val = raw !== '' && !isNaN(Number(raw)) ? Number(raw) : (raw || null);
+
+            // Add via set() API (bypasses the message bus)
+            collector.set(name, val);
+            refreshPicklist();
+
+            // Add a sender row for it
+            const row = document.createElement('div');
+            row.className = 'sender-row';
+            row.innerHTML = `
+                <span class="sig-icon">${name}</span>
+                <input type="range" class="sig-slider" min="0" max="127" value="${Number(val) || 0}" data-signal="${name}" aria-label="${name} signal">
+                <span class="sig-val">${val ?? 0}</span>
+            `;
+            row.querySelector('.sig-slider').addEventListener('input', function() {
+                const v = Number(this.value);
+                this.nextElementSibling.textContent = v;
+                RavelMessenger.sendMessage('signal', name, v);
+            });
+            document.getElementById('senders').insertBefore(row,
+                document.querySelector('.add-row'));
+
+            iconInput.value = '';
+            valInput.value  = '';
+        });
+
+        // ── Init picklist after first slotchange settles ──────────────────────
+
+        collector.addEventListener('slotchange', refreshPicklist, { once: true });
+        setTimeout(refreshPicklist, 100); // fallback
+
+        document.getElementById('btn-clear').addEventListener('click', () => {
+            log.innerHTML = '<div class="log-sys">Cleared.</div>';
+            logEmpty = false;
+        });
+    </script>
+</body>
+</html>

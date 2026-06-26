@@ -120,11 +120,6 @@
       font-weight: 700;
     }
 
-    hr {
-      border: none;
-      border-top: 1px solid var(--rule);
-    }
-
     .note {
       font-size: 0.75rem;
       color: var(--muted);
@@ -143,25 +138,31 @@
 <body>
 
   <h1>ravel-help</h1>
-  <p class="subtitle">Inline help trigger — click the ? to open a tip panel to the right</p>
+  <p class="subtitle">Inline help trigger — slotted HTML content shown in a popup to the right</p>
 
   <div class="element-col">
 
     <!-- ── Inline with label ─────────────────────────────── -->
     <div class="element-cell">
-      <div class="element-label">inline with label</div>
+      <div class="element-label">inline with label — slotted paragraph content</div>
       <div class="stage">
         <div class="inline-row">
           Output gain
-          <ravel-help tip="Controls the final output level before the signal reaches the master bus. Values above 0 dB will clip."></ravel-help>
+          <ravel-help>
+            <p>Controls the final output level before the signal reaches the master bus. Values above 0 dB will clip.</p>
+          </ravel-help>
         </div>
         <div class="inline-row">
           Quantize
-          <ravel-help tip="Snaps notes to the nearest rhythmic grid division. Lower values give tighter timing; higher values allow more expressive drift."></ravel-help>
+          <ravel-help>
+            <p>Snaps notes to the nearest rhythmic grid division. Lower values give tighter timing; higher values allow more expressive drift.</p>
+          </ravel-help>
         </div>
         <div class="inline-row">
           Onion skin
-          <ravel-help tip="Overlays a reference SVG behind the roll so you can trace or align notes to an existing arrangement."></ravel-help>
+          <ravel-help>
+            <p>Overlays a reference SVG behind the roll so you can trace or align notes to an existing arrangement.</p>
+          </ravel-help>
         </div>
       </div>
     </div>
@@ -173,7 +174,9 @@
         <div class="field">
           <div class="field-label">
             Sample rate
-            <ravel-help tip="Higher sample rates capture more high-frequency detail but increase file size and CPU load. 44 100 Hz is CD quality."></ravel-help>
+            <ravel-help>
+              <p>Higher sample rates capture more high-frequency detail but increase file size and CPU load. 44 100 Hz is CD quality.</p>
+            </ravel-help>
           </div>
           <select>
             <option>44 100 Hz</option>
@@ -184,7 +187,9 @@
         <div class="field">
           <div class="field-label">
             Buffer size
-            <ravel-help tip="Smaller buffers reduce latency but increase the risk of audio dropouts. Start at 256 and lower only if your system can handle it."></ravel-help>
+            <ravel-help>
+              <p>Smaller buffers reduce latency but increase the risk of audio dropouts. Start at 256 and lower only if your system can handle it.</p>
+            </ravel-help>
           </div>
           <select>
             <option>128</option>
@@ -196,9 +201,35 @@
         <div class="field">
           <div class="field-label">
             Export path
-            <ravel-help tip="The folder where rendered files will be saved. Relative paths are resolved from the project root." width="300px"></ravel-help>
+            <ravel-help width="300px">
+              <p>The folder where rendered files will be saved. Relative paths are resolved from the project root.</p>
+            </ravel-help>
           </div>
           <input type="text" value="./exports/">
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Rich content ──────────────────────────────────── -->
+    <div class="element-cell">
+      <div class="element-label">rich slotted content — multiple paragraphs and a code block</div>
+      <div class="stage">
+        <div class="inline-row">
+          Launch backend
+          <ravel-help width="320px">
+            <p>Native features (database, file system, AI) require the Tauri backend. Launch it with:</p>
+            <pre>cd app
+npm run tauri dev</pre>
+            <p>This starts both Vite and the Tauri (Rust) process together.</p>
+          </ravel-help>
+        </div>
+        <div class="inline-row">
+          Message format
+          <ravel-help width="300px">
+            <p>All pub/sub messages follow the shape:</p>
+            <pre>{ cmd, content, version }</pre>
+            <p><code>cmd</code> is a string command name. <code>version</code> defaults to 1.</p>
+          </ravel-help>
         </div>
       </div>
     </div>
@@ -208,9 +239,13 @@
       <div class="element-label">in running prose</div>
       <div class="stage">
         <p class="prose" style="margin:0">
-          The roll uses a <strong>unit-width</strong><ravel-help tip="One unit equals 1/128th of a whole note. The unit-width attribute controls how many pixels wide each unit is rendered on screen." style="margin-left:3px"></ravel-help>
+          The roll uses a <strong>unit-width</strong><ravel-help style="margin-left:3px">
+            <p>One unit equals 1/128th of a whole note. The unit-width attribute controls how many pixels wide each unit is rendered on screen.</p>
+          </ravel-help>
           system internally. Each track broadcasts state on the
-          <strong>ravel-roll</strong><ravel-help tip="The ravel-roll channel carries navigation, selection, and export events between the roll and any listening elements on the page." style="margin-left:3px"></ravel-help>
+          <strong>ravel-roll</strong><ravel-help style="margin-left:3px">
+            <p>The ravel-roll channel carries navigation, selection, and export events between the roll and any listening elements on the page.</p>
+          </ravel-help>
           channel whenever a perf is added or modified.
         </p>
       </div>
@@ -222,15 +257,21 @@
       <div class="stage">
         <div class="inline-row">
           Reverb tail
-          <ravel-help label="i" tip="The decay time of the reverb impulse response. Longer tails create a sense of a larger space."></ravel-help>
+          <ravel-help label="i">
+            <p>The decay time of the reverb impulse response. Longer tails create a sense of a larger space.</p>
+          </ravel-help>
         </div>
         <div class="inline-row">
           Phase invert
-          <ravel-help label="!" tip="Flips the polarity of the signal by 180°. Useful for correcting phase cancellation between a mic and a DI."></ravel-help>
+          <ravel-help label="!">
+            <p>Flips the polarity of the signal by 180°. Useful for correcting phase cancellation between a mic and a DI.</p>
+          </ravel-help>
         </div>
         <div class="inline-row">
           Warp mode
-          <ravel-help label="★" tip="Stretches or compresses audio in time without changing pitch. Useful for beat-matching loops to the project tempo."></ravel-help>
+          <ravel-help label="★">
+            <p>Stretches or compresses audio in time without changing pitch. Useful for beat-matching loops to the project tempo.</p>
+          </ravel-help>
         </div>
       </div>
     </div>
@@ -240,7 +281,7 @@
       <div class="element-label">attributes</div>
       <div class="stage">
         <p class="note">
-          <code>tip</code> — the help text shown in the popup.<br>
+          Content is <strong>slotted</strong> — put any HTML inside <code>&lt;ravel-help&gt;</code> and it appears in the popup.<br>
           <code>label</code> — icon inside the trigger button (default <code>?</code>).<br>
           <code>width</code> — max-width of the popup panel (default <code>260px</code>).<br>
           <br>

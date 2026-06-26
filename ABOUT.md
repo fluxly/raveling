@@ -25,19 +25,18 @@
 
 ### Artifacts (Persistent, data-bearing and distibution)
     ravel-scrapbook
-    - ravel-notebook
+    ravel-notebook
 
 ### Assemblies (Composite elements, desktop accessories, app-in-a-box)
-    + ravel-signal-collector
-    + ravel-field-recorder
+    ravel-field-recorder
 
 ### Brokers (Protocol and communication wranglers)
-    - ravel-theme-broker
     - ravel-ballyhoo-broker (at-based, rss)
-    + ravel-message-broker (bridge relay)
     - ravel-local-broker (local forage)
     - ravel-distributed-broker (yjs, webrtc)
-    - ravel-midi-broker
+    ravel-midi-broker
+    ravel-signal-collector
+    - ravel-theme-broker
 
 ### Gadgets (Interactive elements with a physical counterpart)
     ravel-gadget
@@ -68,7 +67,6 @@
     ravel-roll
     ravel-roll-perf
     ravel-roll-track
-    ravel-tweet-card
     ravel-sequence
     ravel-sound
     ravel-visualizer
@@ -88,10 +86,58 @@
     ++ ravel-toy-switch
     ++ ravel-progressive-composition-2
     + ravel-tally-grid
-    
+
 ## Backend (Services and microservices)
     + App Server (for running Python processes locally)
     + Kiosk app server (e.g. Gif-o-graf)
+    Shopify Connector
+
+## Tools (Dashboards and Tiny Helpers)
+    Raveling Reader
+        Packager/stacker/bootstrapper
+        Playlists/Efrob playback
+        Scrapbooks and Notebooks distribution
+    ! Raveling Lab
+        ! Sound Studio
+            Stem extraction
+            Stable Generation
+            Sorting and Tagger
+            Latent Space Explorer
+    Raveling Console
+        Dashboard
+        Tool Wrangler
+        Library Wrangler
+        ABP Tool
+        Device Bridge (phone/laptop)
+        Orchestration: Source of Truth tracking (repo and issue wrangler)
+    Scheduler
+        heartbeats
+        dreams
+        = ARF: async research funnel: R&D Funnel generation from arxiv
+            Human-Computer Interaction (cs.HC)
+            Sound (eess.AS)
+            Programming Languages (cs.PL)
+            Emerging Technologies (cs.AR — Hardware Architecture)
+            cs.RO
+            eess.SP (Signal Processing)
+            Artificial Intelligence (cs.AI)
+            Computer Vision and Pattern Recognition (cs.CV)
+            Computers and Society (cs.CY)
+        RFC generation
+    Storyboarder
+        Sorting and tagging
+        Playlist Wrangler
+        Writers Room/Worlding Room
+        MIDI Sketch (vs audio evidence)
+        Efrob format and tools
+    Text Tools
+    Graphics Tools
+        QR Generator
+        Codex for image local generation
+    3D Gen
+        openscad
+        lego
+    
 
 ## Library (Reusable resources)
     Raveling Inventory (a la Fab Inventory)
@@ -126,40 +172,7 @@
         ! Daisy
         ! Fluxamasynth
         Eurorack
-    
-## Tools (Dashboards and Tiny Helpers)
-    Raveling Reader
-        Playlists/Efrobs
-        Scrapbooks and Notebooks
-    ! Raveling Lab
-        ! Sound Studio
-            Stem extraction
-            Stable Generation
-            Sorting and Tagger
-            Latent Space Explorer
-    Raveling Console
-        Dashboard
-        Tool Wrangler
-        Library Wrangler
-        ABP Tool
-        Device Bridge (phone/laptop)
-        Orchestration: Source of Truth tracking (repo and issue wrangler)
-    Scheduler
-        heartbeats
-        dreams
-        ARF: async research funnel
-        RFC generation
-    Storyboarder
-        Sorting and tagging
-        Playlist Wrangler
-        Writers Room/Worlding Room
-        MIDI Sketch (vs audio evidence)
-        Efrob format and tools
-    Text Tools
-    3D Gen
-        openscad
-        lego
-    
+
 ## Toys (Productized Assemblies)
     ! Universal Public Instrument
         ! Feral Companion Vocal Tools
@@ -180,3 +193,8 @@
         Machines of Loving Grace
     The Computational Printmaker (tiny tool suite)
     Murmurmatic
+
+## Places
+    Augmented Reality Performance Map
+    Big Friend Generative Opera House
+

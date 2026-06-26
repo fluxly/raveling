@@ -1,0 +1,24 @@
+{
+  "name": "hoarders-little-helper",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "tauri": "tauri"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "^2",
+    "@tauri-apps/plugin-dialog": "^2",
+    "@tauri-apps/plugin-fs": "^2.5.1",
+    "@tauri-apps/plugin-sql": "^2",
+    "uuid": "^11"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2",
+    "@types/uuid": "^10",
+    "typescript": "^5.7",
+    "vite": "^6"
+  }
+}

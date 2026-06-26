@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ravel-price-range sandbox</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Silkscreen&family=Quantico:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+  <script type="module" src="/index.ts"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+
+    :root {
+      --ground:        #303030;
+      --well:          #1a1a1a;
+      --muted:         #666666;
+      --rule:          rgba(102,102,102,.40);
+      --fluoro-lime:   #A7FF00;
+      --fluoro-orange: #FE6810;
+      --fluoro-cyan:   #00F0FF;
+      --fluoro-violet: #B300FF;
+    }
+
+    body {
+      margin: 0;
+      padding: 40px 44px 80px;
+      background: var(--ground);
+      color: #E6E2D3;
+      font-family: 'Silkscreen', monospace;
+      font-size: 1rem;
+      line-height: 1.3;
+      border: 10px solid #ff0000;
+      box-shadow: 0px 0px 0px 10px inset #ffcc00;
+      min-height: 100vh;
+    }
+
+    h1 {
+      font-size: 2rem;
+      color: #ffffff;
+      margin: 0 0 8px 0;
+      border-bottom: 10px solid var(--fluoro-lime);
+      display: inline-block;
+      padding-bottom: 2px;
+    }
+
+    .subtitle {
+      font-family: 'Quantico', monospace;
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin: 0 0 32px 0;
+    }
+
+    /* ── Layout ───────────────────────────────────────────── */
+
+    .element-col  { display: flex; flex-direction: column; gap: 32px; }
+    .element-cell { display: flex; flex-direction: column; gap: 8px; }
+    .element-label {
+      font-family: 'Quantico', monospace;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .stage {
+      position: relative;
+      background: var(--well);
+      border: 2px dotted var(--rule);
+      border-radius: 4px;
+      overflow: hidden;
+      padding: 24px;
+    }
+
+    /* ── Catalog presets ──────────────────────────────────── */
+
+    .preset-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
+    }
+
+    .preset-card {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 6px;
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .preset-title {
+      font-family: 'Quantico', monospace;
+      font-size: 0.8rem;
+      color: rgba(255,255,255,0.7);
+    }
+
+    .preset-source {
+      font-size: 0.65rem;
+      color: var(--muted);
+      margin-top: -6px;
+    }
+
+    /* ── Currency grid ────────────────────────────────────── */
+
+    .currency-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 20px;
+    }
+
+    .currency-card {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 6px;
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .currency-label {
+      font-family: 'Quantico', monospace;
+      font-size: 0.72rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    /* ── Live controls ────────────────────────────────────── */
+
+    .live-grid {
+      display: grid;
+      grid-template-columns: 1fr 260px;
+      gap: 24px;
+      align-items: start;
+    }
+
+    .controls {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .ctrl-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .ctrl-row label {
+      font-family: 'Quantico', monospace;
+      font-size: 0.75rem;
+      color: var(--muted);
+      width: 80px;
+      flex-shrink: 0;
+    }
+
+    .ctrl-row label.low      { color: var(--fluoro-violet); }
+    .ctrl-row label.expected { color: var(--fluoro-orange); }
+    .ctrl-row label.optimistic { color: var(--fluoro-lime); }
+
+    input[type="number"] {
+      width: 80px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 4px;
+      color: #E6E2D3;
+      font-family: 'Quantico', monospace;
+      font-size: 0.82rem;
+      padding: 6px 8px;
+      outline: none;
+    }
+    input[type="number"]:focus { border-color: rgba(0,240,255,0.4); }
+
+    .dollar-hint {
+      font-family: 'Quantico', monospace;
+      font-size: 0.68rem;
+      color: rgba(255,255,255,0.2);
+    }
+
+    .basis-input {
+      width: 100%;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 4px;
+      color: #E6E2D3;
+      font-family: 'Quantico', monospace;
+      font-size: 0.78rem;
+      padding: 6px 10px;
+      outline: none;
+      resize: none;
+    }
+    .basis-input:focus { border-color: rgba(0,240,255,0.4); }
+  </style>
+</head>
+<body>
+
+  <h1>ravel-price-range</h1>
+  <p class="subtitle">Three-bar Low / Expected / Optimistic price display — Violet · Orange · Lime</p>
+
+  <div class="element-col">
+
+    <!-- ── Catalog presets ──────────────────────────────────────── -->
+    <div class="element-cell">
+      <div class="element-label">catalog presets — real-world value ranges</div>
+      <div class="stage">
+        <div class="preset-grid">
+
+          <div class="preset-card">
+            <div class="preset-title">Foxfire Book 3</div>
+            <div class="preset-source">Foxfire Q-Thread · condition: VG</div>
+            <ravel-price-range
+              low="5" expected="14" optimistic="30"
+              basis="Foxfire series 1–3; VG condition. Foxfire 1 commands a premium; later numbers more common.">
+            </ravel-price-range>
+          </div>
+
+          <div class="preset-card">
+            <div class="preset-title">Levi's 501 Big E — VG</div>
+            <div class="preset-source">Vintage Clothing Q-Thread · selvedge, ca. 1965</div>
+            <ravel-price-range
+              low="120" expected="320" optimistic="750"
+              basis="Big E premium. Selvedge denim. Condition drives price significantly for vintage denim.">
+            </ravel-price-range>
+          </div>
+
+          <div class="preset-card">
+            <div class="preset-title">Spell of the Witch World</div>
+            <div class="preset-source">DAW SF Q-Thread · DAW #1 · Norton, Andre</div>
+            <ravel-price-range
+              low="20" expected="55" optimistic="120"
+              basis="DAW #1 — the first DAW book. Fine copies scarce. Author collectibility high.">
+            </ravel-price-range>
+          </div>
+
+          <div class="preset-card">
+            <div class="preset-title">Whole Earth Catalog — Fall 1968</div>
+            <div class="preset-source">Whole Earth Q-Thread · first edition</div>
+            <ravel-price-range
+              low="45" expected="120" optimistic="320"
+              basis="Fall 1968 first edition. Near Fine condition rare. Strong collector demand.">
+            </ravel-price-range>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Empty state ───────────────────────────────────────────── -->
+    <div class="element-cell">
+      <div class="element-label">empty state — all values zero</div>
+      <div class="stage" style="max-width: 360px;">
+        <ravel-price-range low="0" expected="0" optimistic="0"></ravel-price-range>
+      </div>
+    </div>
+
+    <!-- ── Live controls ─────────────────────────────────────────── -->
+    <div class="element-cell">
+      <div class="element-label">live controls — enter dollar values</div>
+      <div class="stage">
+        <div class="live-grid">
+          <div>
+            <ravel-price-range id="pr-live"
+              low="25" expected="65" optimistic="140"
+              basis="Edit the fields to update the range in real time.">
+            </ravel-price-range>
+          </div>
+          <div class="controls">
+            <div class="ctrl-row">
+              <label class="low" for="inp-low">Low</label>
+              <input type="number" id="inp-low" value="25" min="0" step="1">
+              <span class="dollar-hint">$</span>
+            </div>
+            <div class="ctrl-row">
+              <label class="expected" for="inp-expected">Expected</label>
+              <input type="number" id="inp-expected" value="65" min="0" step="1">
+              <span class="dollar-hint">$</span>
+            </div>
+            <div class="ctrl-row">
+              <label class="optimistic" for="inp-optimistic">Optimistic</label>
+              <input type="number" id="inp-optimistic" value="140" min="0" step="1">
+              <span class="dollar-hint">$</span>
+            </div>
+            <div>
+              <textarea class="basis-input" id="inp-basis" rows="3"
+                placeholder="Basis / explanation…">Edit the fields to update the range in real time.</textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Currency variants ─────────────────────────────────────── -->
+    <div class="element-cell">
+      <div class="element-label">currency attribute — USD · EUR · GBP</div>
+      <div class="stage">
+        <div class="currency-grid">
+          <div class="currency-card">
+            <div class="currency-label">USD (default)</div>
+            <ravel-price-range low="40" expected="95" optimistic="200" currency="USD"></ravel-price-range>
+          </div>
+          <div class="currency-card">
+            <div class="currency-label">EUR</div>
+            <ravel-price-range low="38" expected="88" optimistic="185" currency="EUR"></ravel-price-range>
+          </div>
+          <div class="currency-card">
+            <div class="currency-label">GBP</div>
+            <ravel-price-range low="32" expected="75" optimistic="158" currency="GBP"></ravel-price-range>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script type="module">
+    const pr       = document.getElementById('pr-live');
+    const inpLow   = document.getElementById('inp-low');
+    const inpExp   = document.getElementById('inp-expected');
+    const inpOpt   = document.getElementById('inp-optimistic');
+    const inpBasis = document.getElementById('inp-basis');
+
+    function update() {
+      pr.setRange(
+        parseInt(inpLow.value)   || 0,
+        parseInt(inpExp.value)   || 0,
+        parseInt(inpOpt.value)   || 0,
+        'USD',
+        inpBasis.value.trim(),
+      );
+    }
+
+    [inpLow, inpExp, inpOpt].forEach(el => el.addEventListener('input', update));
+    inpBasis.addEventListener('input', update);
+  </script>
+
+</body>
+</html>
